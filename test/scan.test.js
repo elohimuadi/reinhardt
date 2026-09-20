@@ -49,3 +49,18 @@ test('consent existence suppresses finding, and policy endpoints are not code ev
   assert.deepEqual((await scanRepo(root)).findings,[]);
   assert.deepEqual((await scanRepo(root)).sdks.map(s=>s.id),['posthog']);
 });
+test('Objective-C ATT usage and Xcode generated description are recognized',async t=>{
+  const root=await repo(t,{'Podfile':"pod 'FBSDKCoreKit'",'privacy.md':policy('Meta'),'App.m':'[ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {}];','Example.xcodeproj/project.pbxproj':'INFOPLIST_KEY_NSUserTrackingUsageDescription = "Measure advertising";'});
+  assert.equal((await scanRepo(root)).findings.length,0);
+});
+test('baseline rejects malformed state and symlink directories without changing targets',async t=>{
+  const root=await repo(t,{'package.json':'{}','.reinhardt/baseline.json':'{"schema_version":2,"recipients":[]}'});
+  await assert.rejects(driftCheck(root),/Invalid baseline/);
+  const { symlink, readFile } = await import('node:fs/promises');
+  const external=await repo(t,{'baseline.json':'keep me'});
+  await rm(path.join(root,'.reinhardt'),{recursive:true});
+  await symlink(external,path.join(root,'.reinhardt'));
+  await assert.rejects(saveBaseline(root),/symlink/);
+  await assert.rejects(driftCheck(root),/Cannot read baseline/);
+  assert.equal(await readFile(path.join(external,'baseline.json'),'utf8'),'keep me');
+});

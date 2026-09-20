@@ -16,6 +16,9 @@ export function formatReport(report) {
   if (report.message) lines.push(report.message);
   if ('policy' in report) lines.push(`Policy: ${report.policy?.file ?? 'not found'}`);
   for (const sdk of report.sdks ?? []) lines.push(`SDK ${sdk.id}: ${sdk.name}${sdk.disclosure ? ` [${sdk.disclosure}]` : ` — ${sdk.purpose}`}`);
+  for (const sdk of report.sdks ?? []) if (!sdk.disclosure) {
+    lines.push(`  Category: ${sdk.category}`, `  Potential collection: ${sdk.collects.join(', ')}`, `  Domains: ${sdk.domains.join(', ')}`, `  Aliases: ${sdk.aliases.join(', ')}`, `  ${sdk.note}`);
+  }
   for (const recipient of report.recipients ?? []) lines.push(`Baseline recipient: ${recipient.id}`);
   for (const sdk of report.added ?? []) lines.push(`ADDED ${sdk.id}: ${sdk.disclosure} (named in policy: ${sdk.named_in_policy})`);
   for (const sdk of report.removed ?? []) lines.push(`REMOVED ${sdk.id}`);
@@ -37,7 +40,7 @@ try {
   else {
     const [command,target]=positionals;
     if (!['scan','baseline','drift','sdk','mcp'].includes(command) || positionals.length>2) throw new Error(usage);
-    if (values['fail-on'] && !(values['fail-on'] in severityRank)) throw new Error('--fail-on must be high, medium, or low');
+    if (values['fail-on'] && !Object.hasOwn(severityRank, values['fail-on'])) throw new Error('--fail-on must be high, medium, or low');
     if (command==='mcp') {
       if (values.policy || values.json || values['fail-on']) throw new Error('mcp accepts only an optional default repository path');
       const { startServer } = await import('../src/mcp.js');

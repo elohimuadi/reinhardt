@@ -4,7 +4,7 @@ import path from 'node:path';
 
 export const MAX_BYTES = 1_000_000;
 export const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-const ignored = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'pods', 'deriveddata', 'vendor', 'venv', '.venv', 'env', '__pycache__', '.reinhardt', 'coverage', '.nuxt', '.output', '.turbo', '.cache', 'out', 'target', 'bower_components', '.build', '.swiftpm']);
+const ignored = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'pods', 'deriveddata', 'vendor', 'venv', '.venv', 'env', '__pycache__', '.reinhardt', 'coverage', '.nuxt', '.output', '.turbo', '.cache', 'out', 'target', 'bower_components', '.build', '.swiftpm', '.svelte-kit', '.vercel', '.netlify', 'htmlcov', '.tox', '.gradle']);
 export function forbidden(name) {
   const lower = name.toLowerCase();
   return ignored.has(lower) || lower.startsWith('.env') || /(?:^|[.-])lock(?:\.|$)/i.test(name) || ['package-lock.json', 'npm-shrinkwrap.json', 'package.resolved', 'pipfile.lock', 'bun.lockb'].includes(lower) || /\.(?:min\.(?:js|css)|map)$/.test(lower);
@@ -14,6 +14,7 @@ export function allowedPath(relative) {
 }
 export async function repoRoot(input) {
   const root = await realpath(path.resolve(input));
+  if (root.split(path.sep).some(forbidden)) throw new Error('Repository path is inside an excluded directory');
   if (!(await lstat(root)).isDirectory()) throw new Error('Repository path must be a directory');
   return root;
 }

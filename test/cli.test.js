@@ -12,4 +12,5 @@ test('CLI human output, JSON and CI thresholds',()=>{
   assert.equal(clean.status,0);
   assert.deepEqual(JSON.parse(clean.stdout).findings,[]);
   assert.equal(cli('scan','--fail-on','oops').status,2);
+  assert.equal(cli('scan','--fail-on','constructor').status,2);
 });

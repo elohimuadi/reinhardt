@@ -15,7 +15,6 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
   const files = await walk(root);
   const policy = await findPolicy(root, files, policyPath);
   const detected = new Map();
-  const dependencies = [];
   const signals = { web: false, ios: false, consent: [], att: [], attDescription: [] };
   const add = (sdk, evidence) => {
     if (!detected.has(sdk.id)) detected.set(sdk.id, { ...sdk, evidence: [] });
@@ -31,7 +30,6 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
     if (manifest) {
       let parsed;
       try { parsed = parseManifest(file, text); } catch { throw new Error(`Cannot parse manifest: ${file}`); }
-      dependencies.push(...parsed);
       for (const dep of parsed) {
         for (const sdk of matchingSdks(dep.ecosystem, dep.name)) add(sdk, dep.evidence);
         if (dep.ecosystem === 'npm' && consentPackages.test(dep.name)) signals.consent.push(dep.evidence);
@@ -45,7 +43,7 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
       if (/\.(?:swift|m|mm)$/.test(file)) signals.ios = true;
       const consent = text.match(consentCode);
       if (consent) signals.consent.push(evidenceAt(file, text, consent.index, 'consent'));
-      const att = text.match(/\bATTrackingManager\s*(?:\.|\])/);
+      const att = text.match(/\bATTrackingManager\s*(?:\.|requestTrackingAuthorization(?:WithCompletionHandler)?\b|trackingAuthorizationStatus\b)/);
       if (att) signals.att.push(evidenceAt(file, text, att.index, 'att'));
     }
     if (/\.(?:plist|pbxproj)$/.test(file)) {
@@ -56,6 +54,7 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
   const sdks = [...detected.values()].sort((a,b) => compare(a.id,b.id)).map(sdk => ({ ...sdk, disclosure: disclosure(sdk, policy), evidence: sdk.evidence.sort((a,b) => compare(a.file,b.file) || a.line-b.line || compare(a.kind,b.kind)) }));
   const findings = [];
   function finding(id, severity, title, detail, evidence, fix, draft = null, sdkId = null) {
+    evidence = [...new Map(evidence.map(item => [JSON.stringify(item), item])).values()].sort((a,b) => compare(a.file,b.file) || a.line-b.line || compare(a.kind,b.kind));
     findings.push({ id, sdk_id: sdkId, severity, title, detail, evidence, suggested_fix: fix, suggested_disclosure: draft });
   }
   for (const sdk of sdks) {

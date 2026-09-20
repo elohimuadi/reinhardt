@@ -21,7 +21,7 @@ export async function saveBaseline(input='.', options={}) {
     await handle.close();
     await rename(temporary,path.join(root,baselineFile));
   } finally { await handle.close(); await unlink(temporary).catch(error=>{if(error.code!=='ENOENT') throw error;}); }
-  return { ...baseline, baseline_path: baselineFile, message: 'Baseline saved for the current recipients.' };
+  return { ...baseline, baseline_path: baselineFile, findings: report.findings, message: 'Baseline saved for the current recipients.' };
 }
 export async function driftCheck(input='.', options={}) {
   const root = await repoRoot(input);
