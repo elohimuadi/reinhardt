@@ -1,0 +1,1020 @@
+{
+  "schema_version": 1,
+  "categories": {
+    "analytics": {
+      "severity": "medium",
+      "generic_terms": [
+        "analytics",
+        "usage analytics",
+        "usage statistics"
+      ],
+      "purpose": "understand how people use the app"
+    },
+    "advertising": {
+      "severity": "high",
+      "generic_terms": [
+        "advertising",
+        "ad targeting",
+        "marketing partners"
+      ],
+      "purpose": "deliver or measure advertising"
+    },
+    "session_replay": {
+      "severity": "high",
+      "generic_terms": [
+        "session replay",
+        "session recording",
+        "record user sessions"
+      ],
+      "purpose": "record interactions to understand user sessions"
+    },
+    "crash_reporting": {
+      "severity": "medium",
+      "generic_terms": [
+        "crash reporting",
+        "error monitoring",
+        "diagnostic data"
+      ],
+      "purpose": "diagnose errors and reliability problems"
+    },
+    "backend": {
+      "severity": "medium",
+      "generic_terms": [
+        "hosting providers",
+        "cloud storage",
+        "backend services"
+      ],
+      "purpose": "store and process application data"
+    },
+    "auth": {
+      "severity": "medium",
+      "generic_terms": [
+        "authentication providers",
+        "identity providers",
+        "sign-in services"
+      ],
+      "purpose": "manage accounts and authentication"
+    },
+    "payments": {
+      "severity": "medium",
+      "generic_terms": [
+        "payment processors",
+        "payment processing",
+        "billing providers"
+      ],
+      "purpose": "process purchases and subscriptions"
+    },
+    "messaging": {
+      "severity": "medium",
+      "generic_terms": [
+        "push notifications",
+        "customer support",
+        "messaging providers"
+      ],
+      "purpose": "deliver messages and provide customer support"
+    },
+    "ai": {
+      "severity": "high",
+      "generic_terms": [
+        "artificial intelligence",
+        "ai providers",
+        "language models"
+      ],
+      "purpose": "process content with AI models"
+    }
+  },
+  "sdks": [
+    {
+      "id": "adjust",
+      "name": "Adjust",
+      "category": "advertising",
+      "aliases": [
+        "Adjust"
+      ],
+      "match": {
+        "npm": [
+          "@adjustcom/*",
+          "react-native-adjust"
+        ],
+        "pod": [
+          "Adjust"
+        ],
+        "swiftpm": [
+          "ios_sdk"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "adjust.com",
+        "adjust.io"
+      ],
+      "collects": [
+        "advertising identifiers",
+        "device information",
+        "conversion and interaction events"
+      ]
+    },
+    {
+      "id": "amplitude",
+      "name": "Amplitude",
+      "category": "analytics",
+      "aliases": [
+        "Amplitude"
+      ],
+      "match": {
+        "npm": [
+          "@amplitude/*",
+          "amplitude-js"
+        ],
+        "pod": [
+          "Amplitude",
+          "AmplitudeSwift"
+        ],
+        "swiftpm": [
+          "amplitude-swift",
+          "amplitude-ios"
+        ],
+        "pypi": [
+          "amplitude-analytics"
+        ]
+      },
+      "domains": [
+        "amplitude.com"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "category": "ai",
+      "aliases": [
+        "Anthropic",
+        "Claude"
+      ],
+      "match": {
+        "npm": [
+          "@anthropic-ai/*",
+          "@ai-sdk/anthropic"
+        ],
+        "pod": [],
+        "swiftpm": [],
+        "pypi": [
+          "anthropic"
+        ]
+      },
+      "domains": [
+        "api.anthropic.com"
+      ],
+      "collects": [
+        "submitted prompts and content",
+        "request metadata"
+      ]
+    },
+    {
+      "id": "appsflyer",
+      "name": "AppsFlyer",
+      "category": "advertising",
+      "aliases": [
+        "AppsFlyer"
+      ],
+      "match": {
+        "npm": [
+          "react-native-appsflyer",
+          "appsflyer-sdk"
+        ],
+        "pod": [
+          "AppsFlyerFramework"
+        ],
+        "swiftpm": [
+          "appsflyerframework"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "appsflyer.com"
+      ],
+      "collects": [
+        "advertising identifiers",
+        "device information",
+        "conversion and interaction events"
+      ]
+    },
+    {
+      "id": "auth0",
+      "name": "Auth0",
+      "category": "auth",
+      "aliases": [
+        "Auth0"
+      ],
+      "match": {
+        "npm": [
+          "auth0",
+          "@auth0/*"
+        ],
+        "pod": [
+          "Auth0"
+        ],
+        "swiftpm": [
+          "auth0.swift"
+        ],
+        "pypi": [
+          "auth0-python"
+        ]
+      },
+      "domains": [
+        "auth0.com"
+      ],
+      "collects": [
+        "account and identity information",
+        "authentication metadata"
+      ]
+    },
+    {
+      "id": "clarity",
+      "name": "Microsoft Clarity",
+      "category": "session_replay",
+      "aliases": [
+        "Microsoft Clarity",
+        "Clarity"
+      ],
+      "match": {
+        "npm": [
+          "@microsoft/clarity",
+          "clarity-js"
+        ],
+        "pod": [
+          "Clarity"
+        ],
+        "swiftpm": [
+          "clarity-apps"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "clarity.ms"
+      ],
+      "collects": [
+        "page and interaction recordings",
+        "device information",
+        "potentially entered content"
+      ]
+    },
+    {
+      "id": "clerk",
+      "name": "Clerk",
+      "category": "auth",
+      "aliases": [
+        "Clerk"
+      ],
+      "match": {
+        "npm": [
+          "@clerk/*"
+        ],
+        "pod": [],
+        "swiftpm": [
+          "clerk-ios"
+        ],
+        "pypi": [
+          "clerk-backend-api"
+        ]
+      },
+      "domains": [
+        "clerk.com",
+        "clerk.accounts.dev"
+      ],
+      "collects": [
+        "account and identity information",
+        "authentication metadata"
+      ]
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog RUM",
+      "category": "session_replay",
+      "aliases": [
+        "Datadog"
+      ],
+      "match": {
+        "npm": [
+          "@datadog/browser-rum",
+          "@datadog/mobile-react-native"
+        ],
+        "pod": [
+          "Datadog*"
+        ],
+        "swiftpm": [
+          "dd-sdk-ios"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "datadoghq.com",
+        "datadoghq.eu",
+        "datadog-browser-agent.com"
+      ],
+      "collects": [
+        "page and interaction recordings",
+        "device information",
+        "potentially entered content"
+      ]
+    },
+    {
+      "id": "firebase",
+      "name": "Firebase",
+      "category": "backend",
+      "aliases": [
+        "Firebase",
+        "Google Firebase"
+      ],
+      "match": {
+        "npm": [
+          "firebase",
+          "firebase-admin",
+          "@firebase/*",
+          "@react-native-firebase/*"
+        ],
+        "pod": [
+          "Firebase*"
+        ],
+        "swiftpm": [
+          "firebase-ios-sdk"
+        ],
+        "pypi": [
+          "firebase-admin"
+        ]
+      },
+      "domains": [
+        "firebaseio.com",
+        "firebaseapp.com",
+        "firestore.googleapis.com",
+        "firebaseinstallations.googleapis.com"
+      ],
+      "collects": [
+        "application records",
+        "user identifiers",
+        "request metadata"
+      ]
+    },
+    {
+      "id": "fullstory",
+      "name": "FullStory",
+      "category": "session_replay",
+      "aliases": [
+        "FullStory",
+        "Full Story"
+      ],
+      "match": {
+        "npm": [
+          "@fullstory/*"
+        ],
+        "pod": [
+          "FullStory"
+        ],
+        "swiftpm": [
+          "fullstory-swift-package-manager"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "fullstory.com"
+      ],
+      "collects": [
+        "page and interaction recordings",
+        "device information",
+        "potentially entered content"
+      ]
+    },
+    {
+      "id": "google-ads",
+      "name": "Google Ads / AdMob",
+      "category": "advertising",
+      "aliases": [
+        "Google Ads",
+        "AdMob",
+        "DoubleClick"
+      ],
+      "match": {
+        "npm": [
+          "react-native-google-mobile-ads",
+          "@capacitor-community/admob",
+          "google-ads-api"
+        ],
+        "pod": [
+          "Google-Mobile-Ads-SDK",
+          "GoogleMobileAds*"
+        ],
+        "swiftpm": [
+          "swift-package-manager-google-mobile-ads"
+        ],
+        "pypi": [
+          "google-ads"
+        ]
+      },
+      "domains": [
+        "googleadservices.com",
+        "googlesyndication.com",
+        "doubleclick.net"
+      ],
+      "collects": [
+        "advertising identifiers",
+        "device information",
+        "conversion and interaction events"
+      ]
+    },
+    {
+      "id": "google-analytics",
+      "name": "Google Analytics",
+      "category": "analytics",
+      "aliases": [
+        "Google Analytics",
+        "GA4"
+      ],
+      "match": {
+        "npm": [
+          "@google-analytics/*",
+          "react-ga",
+          "react-ga4",
+          "vue-gtag"
+        ],
+        "pod": [
+          "GoogleAnalytics"
+        ],
+        "swiftpm": [],
+        "pypi": []
+      },
+      "domains": [
+        "google-analytics.com"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "google-gemini",
+      "name": "Google Gemini",
+      "category": "ai",
+      "aliases": [
+        "Google Gemini",
+        "Gemini",
+        "Google Generative AI"
+      ],
+      "match": {
+        "npm": [
+          "@google/generative-ai",
+          "@google/genai",
+          "@ai-sdk/google"
+        ],
+        "pod": [],
+        "swiftpm": [
+          "generative-ai-swift"
+        ],
+        "pypi": [
+          "google-generativeai",
+          "google-genai"
+        ]
+      },
+      "domains": [
+        "generativelanguage.googleapis.com"
+      ],
+      "collects": [
+        "submitted prompts and content",
+        "request metadata"
+      ]
+    },
+    {
+      "id": "google-tag-manager",
+      "name": "Google Tag Manager",
+      "category": "analytics",
+      "aliases": [
+        "Google Tag Manager",
+        "GTM"
+      ],
+      "match": {
+        "npm": [
+          "react-gtm-module",
+          "@gtm-support/*"
+        ],
+        "pod": [
+          "GoogleTagManager"
+        ],
+        "swiftpm": [],
+        "pypi": []
+      },
+      "domains": [
+        "googletagmanager.com"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "hotjar",
+      "name": "Hotjar",
+      "category": "session_replay",
+      "aliases": [
+        "Hotjar"
+      ],
+      "match": {
+        "npm": [
+          "@hotjar/*",
+          "react-hotjar"
+        ],
+        "pod": [],
+        "swiftpm": [],
+        "pypi": []
+      },
+      "domains": [
+        "hotjar.com",
+        "hotjar.io"
+      ],
+      "collects": [
+        "page and interaction recordings",
+        "device information",
+        "potentially entered content"
+      ]
+    },
+    {
+      "id": "intercom",
+      "name": "Intercom",
+      "category": "messaging",
+      "aliases": [
+        "Intercom"
+      ],
+      "match": {
+        "npm": [
+          "@intercom/*",
+          "intercom-client",
+          "react-use-intercom"
+        ],
+        "pod": [
+          "Intercom"
+        ],
+        "swiftpm": [
+          "intercom-ios"
+        ],
+        "pypi": [
+          "intercom-python"
+        ]
+      },
+      "domains": [
+        "intercom.io",
+        "intercom.com",
+        "intercomcdn.com"
+      ],
+      "collects": [
+        "contact information or push tokens",
+        "message content",
+        "interaction events"
+      ]
+    },
+    {
+      "id": "logrocket",
+      "name": "LogRocket",
+      "category": "session_replay",
+      "aliases": [
+        "LogRocket"
+      ],
+      "match": {
+        "npm": [
+          "logrocket",
+          "@logrocket/*"
+        ],
+        "pod": [
+          "LogRocket"
+        ],
+        "swiftpm": [
+          "logrocket-ios"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "logrocket.io",
+        "logrocket.com"
+      ],
+      "collects": [
+        "page and interaction recordings",
+        "device information",
+        "potentially entered content"
+      ]
+    },
+    {
+      "id": "meta",
+      "name": "Meta Pixel / SDK",
+      "category": "advertising",
+      "aliases": [
+        "Meta",
+        "Facebook",
+        "Meta Pixel"
+      ],
+      "match": {
+        "npm": [
+          "react-facebook-pixel",
+          "facebook-nodejs-business-sdk",
+          "react-native-fbsdk-next"
+        ],
+        "pod": [
+          "FBSDK*"
+        ],
+        "swiftpm": [
+          "facebook-ios-sdk"
+        ],
+        "pypi": [
+          "facebook-business"
+        ]
+      },
+      "domains": [
+        "connect.facebook.net",
+        "graph.facebook.com",
+        "facebook.com"
+      ],
+      "collects": [
+        "advertising identifiers",
+        "device information",
+        "conversion and interaction events"
+      ]
+    },
+    {
+      "id": "mixpanel",
+      "name": "Mixpanel",
+      "category": "analytics",
+      "aliases": [
+        "Mixpanel"
+      ],
+      "match": {
+        "npm": [
+          "mixpanel",
+          "mixpanel-browser",
+          "mixpanel-react-native"
+        ],
+        "pod": [
+          "Mixpanel",
+          "Mixpanel-swift"
+        ],
+        "swiftpm": [
+          "mixpanel-swift"
+        ],
+        "pypi": [
+          "mixpanel"
+        ]
+      },
+      "domains": [
+        "mixpanel.com"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "onesignal",
+      "name": "OneSignal",
+      "category": "messaging",
+      "aliases": [
+        "OneSignal"
+      ],
+      "match": {
+        "npm": [
+          "onesignal",
+          "react-onesignal",
+          "react-native-onesignal",
+          "@onesignal/*"
+        ],
+        "pod": [
+          "OneSignal*"
+        ],
+        "swiftpm": [
+          "onesignal-xcframework"
+        ],
+        "pypi": [
+          "onesignal-python-api"
+        ]
+      },
+      "domains": [
+        "onesignal.com"
+      ],
+      "collects": [
+        "contact information or push tokens",
+        "message content",
+        "interaction events"
+      ]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "category": "ai",
+      "aliases": [
+        "OpenAI",
+        "ChatGPT"
+      ],
+      "match": {
+        "npm": [
+          "openai",
+          "@ai-sdk/openai",
+          "@ai-sdk/openai-compatible"
+        ],
+        "pod": [],
+        "swiftpm": [],
+        "pypi": [
+          "openai"
+        ]
+      },
+      "domains": [
+        "api.openai.com"
+      ],
+      "collects": [
+        "submitted prompts and content",
+        "request metadata"
+      ]
+    },
+    {
+      "id": "posthog",
+      "name": "PostHog",
+      "category": "analytics",
+      "aliases": [
+        "PostHog"
+      ],
+      "match": {
+        "npm": [
+          "posthog-js",
+          "posthog-node",
+          "@posthog/*"
+        ],
+        "pod": [
+          "PostHog"
+        ],
+        "swiftpm": [
+          "posthog-ios"
+        ],
+        "pypi": [
+          "posthog"
+        ]
+      },
+      "domains": [
+        "posthog.com",
+        "posthog.eu"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "pusher",
+      "name": "Pusher",
+      "category": "messaging",
+      "aliases": [
+        "Pusher"
+      ],
+      "match": {
+        "npm": [
+          "pusher",
+          "pusher-js",
+          "@pusher/*"
+        ],
+        "pod": [
+          "PusherSwift"
+        ],
+        "swiftpm": [
+          "pusher-websocket-swift"
+        ],
+        "pypi": [
+          "pusher"
+        ]
+      },
+      "domains": [
+        "pusher.com",
+        "pusherapp.com"
+      ],
+      "collects": [
+        "contact information or push tokens",
+        "message content",
+        "interaction events"
+      ]
+    },
+    {
+      "id": "revenuecat",
+      "name": "RevenueCat",
+      "category": "payments",
+      "aliases": [
+        "RevenueCat"
+      ],
+      "match": {
+        "npm": [
+          "@revenuecat/*",
+          "react-native-purchases"
+        ],
+        "pod": [
+          "RevenueCat",
+          "Purchases",
+          "PurchasesHybridCommon"
+        ],
+        "swiftpm": [
+          "purchases-ios"
+        ],
+        "pypi": []
+      },
+      "domains": [
+        "revenuecat.com"
+      ],
+      "collects": [
+        "transaction information",
+        "billing information"
+      ]
+    },
+    {
+      "id": "segment",
+      "name": "Segment",
+      "category": "analytics",
+      "aliases": [
+        "Segment",
+        "Twilio Segment"
+      ],
+      "match": {
+        "npm": [
+          "@segment/*",
+          "analytics-node"
+        ],
+        "pod": [
+          "Analytics",
+          "Segment"
+        ],
+        "swiftpm": [
+          "analytics-swift"
+        ],
+        "pypi": [
+          "analytics-python",
+          "segment-analytics-python"
+        ]
+      },
+      "domains": [
+        "segment.io",
+        "segment.com"
+      ],
+      "collects": [
+        "device and browser information",
+        "usage events",
+        "user identifiers"
+      ]
+    },
+    {
+      "id": "sentry",
+      "name": "Sentry",
+      "category": "crash_reporting",
+      "aliases": [
+        "Sentry"
+      ],
+      "match": {
+        "npm": [
+          "@sentry/*",
+          "sentry"
+        ],
+        "pod": [
+          "Sentry*"
+        ],
+        "swiftpm": [
+          "sentry-cocoa"
+        ],
+        "pypi": [
+          "sentry-sdk"
+        ]
+      },
+      "domains": [
+        "sentry.io"
+      ],
+      "collects": [
+        "error reports and stack traces",
+        "device information",
+        "potentially user context"
+      ]
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "category": "payments",
+      "aliases": [
+        "Stripe"
+      ],
+      "match": {
+        "npm": [
+          "stripe",
+          "@stripe/*"
+        ],
+        "pod": [
+          "Stripe*"
+        ],
+        "swiftpm": [
+          "stripe-ios"
+        ],
+        "pypi": [
+          "stripe"
+        ]
+      },
+      "domains": [
+        "stripe.com",
+        "stripe.network"
+      ],
+      "collects": [
+        "transaction information",
+        "billing information"
+      ]
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "category": "backend",
+      "aliases": [
+        "Supabase"
+      ],
+      "match": {
+        "npm": [
+          "@supabase/*"
+        ],
+        "pod": [],
+        "swiftpm": [
+          "supabase-swift"
+        ],
+        "pypi": [
+          "supabase"
+        ]
+      },
+      "domains": [
+        "supabase.co",
+        "supabase.com"
+      ],
+      "collects": [
+        "application records",
+        "user identifiers",
+        "request metadata"
+      ]
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok Pixel",
+      "category": "advertising",
+      "aliases": [
+        "TikTok"
+      ],
+      "match": {
+        "npm": [
+          "tiktok-pixel",
+          "react-tiktok-pixel",
+          "tiktok-business-api-sdk"
+        ],
+        "pod": [
+          "TikTokBusinessSDK"
+        ],
+        "swiftpm": [
+          "tiktok-business-ios-sdk"
+        ],
+        "pypi": [
+          "tiktok-business-api-sdk"
+        ]
+      },
+      "domains": [
+        "analytics.tiktok.com",
+        "business-api.tiktok.com"
+      ],
+      "collects": [
+        "advertising identifiers",
+        "device information",
+        "conversion and interaction events"
+      ]
+    },
+    {
+      "id": "vercel-ai",
+      "name": "Vercel AI SDK",
+      "category": "ai",
+      "aliases": [
+        "Vercel AI",
+        "Vercel AI SDK",
+        "Vercel"
+      ],
+      "match": {
+        "npm": [
+          "ai",
+          "@ai-sdk/*"
+        ],
+        "pod": [],
+        "swiftpm": [],
+        "pypi": []
+      },
+      "domains": [
+        "ai-gateway.vercel.sh"
+      ],
+      "collects": [
+        "submitted prompts and content",
+        "request metadata"
+      ]
+    }
+  ]
+}
