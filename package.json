@@ -1,0 +1,11 @@
+{
+  "name": "reinhardt",
+  "version": "0.1.0",
+  "description": "Static privacy-drift detection for AI-generated apps",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "license": "MIT",
+  "bin": { "reinhardt": "bin/reinhardt.js" },
+  "scripts": { "test": "node --test test/*.test.js", "eval": "node evals/run.js" },
+  "files": ["bin", "src", "data", "plugin", "codex", "README.md", "LICENSE"]
+}

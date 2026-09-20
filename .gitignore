@@ -1,0 +1,4 @@
+node_modules/
+.reinhardt/
+*.tgz
+.DS_Store
