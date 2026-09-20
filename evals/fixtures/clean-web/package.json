@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "dependencies": {
+    "react-dom": "19.0.0",
+    "posthog-js": "1.0.0",
+    "stripe": "1.0.0",
+    "react-cookie-consent": "9.0.0"
+  },
+  "devDependencies": {
+    "logrocket": "1.0.0"
+  }
+}

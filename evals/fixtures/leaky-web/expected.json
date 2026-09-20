@@ -1,0 +1,20 @@
+{
+  "findings": [
+    {
+      "id": "undisclosed-sdk",
+      "sdk_id": "anthropic"
+    },
+    {
+      "id": "undisclosed-sdk",
+      "sdk_id": "meta"
+    },
+    {
+      "id": "generic-disclosure-only",
+      "sdk_id": "posthog"
+    },
+    {
+      "id": "no-consent-mechanism",
+      "sdk_id": null
+    }
+  ]
+}

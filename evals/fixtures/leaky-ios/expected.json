@@ -1,0 +1,16 @@
+{
+  "findings": [
+    {
+      "id": "missing-att",
+      "sdk_id": null
+    },
+    {
+      "id": "undisclosed-sdk",
+      "sdk_id": "meta"
+    },
+    {
+      "id": "generic-disclosure-only",
+      "sdk_id": "sentry"
+    }
+  ]
+}

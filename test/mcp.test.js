@@ -1,0 +1,24 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout:15000},async t=>{
+  const client=new Client({name:'reinhardt-test',version:'1.0.0'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../bin/reinhardt.js',import.meta.url)),'mcp'],stderr:'pipe'});
+  t.after(()=>client.close());
+  await client.connect(transport);
+  const {tools}=await client.listTools();
+  assert.deepEqual(tools.map(tool=>tool.name).sort(),['drift_check','explain_sdk','save_baseline','scan_repo']);
+  assert.match(tools.find(tool=>tool.name==='save_baseline').description,/only after the user accepted/);
+  const result=await client.callTool({name:'scan_repo',arguments:{path:fileURLToPath(new URL('../evals/fixtures/leaky-web',import.meta.url))}});
+  assert.ok(!result.isError);
+  assert.ok(JSON.parse(result.content[0].text).findings.some(f=>f.id==='undisclosed-sdk'));
+  const failure=await client.callTool({name:'scan_repo',arguments:{path:'/nonexistent-reinhardt-fixture'}});
+  assert.equal(failure.isError,true);
+  assert.match(failure.content[0].text,/not legal advice/);
+  const invalid=await client.callTool({name:'scan_repo',arguments:{path:123}});
+  assert.equal(invalid.isError,true);
+  const healthy=await client.callTool({name:'explain_sdk',arguments:{id:'posthog'}});
+  assert.equal(JSON.parse(healthy.content[0].text).sdks[0].id,'posthog');
+});
