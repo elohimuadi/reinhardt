@@ -1,0 +1,13 @@
+{
+  "name": "reinhardt",
+  "owner": {
+    "name": "reinhardt contributors"
+  },
+  "plugins": [
+    {
+      "name": "reinhardt",
+      "source": "./",
+      "description": "Privacy-drift and OWASP-mapped security checks for AI-generated apps"
+    }
+  ]
+}

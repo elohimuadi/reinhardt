@@ -161,9 +161,9 @@
 - `codex/mcp.json`: `{ "mcpServers": { "reinhardt": { "command": "reinhardt", "args": ["mcp"] } } }` (Codex resolves via PATH; document `npm link`).
 - `hooks/hooks.json`: `SessionStart` with matcher `startup|clear|compact`, command `"${CLAUDE_PLUGIN_ROOT}/hooks/session-start"`.
 - `hooks/session-start` (bash, executable, no deps) prints exactly one JSON object: `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"reinhardt is installed. When writing code that touches auth, data access, secrets, LLM calls, uploads, CI or dependencies, follow the secure-by-default skill. Before saying work is done, run reinhardt scan_repo; use security-audit for reviews and privacy-drift-watch after dependency changes."}}`.
-- [ ] **Step 1: Failing tests** in `test/plugin.test.js`: both manifests parse and `version === package.json.version`; every `skills/*/SKILL.md` has frontmatter `name` equal to its directory and `description` starting with `Use when`; there are exactly 6 skills; `plugin/` does not exist; `.mcp.json` args reference `${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js`; running `hooks/session-start` exits 0 and its stdout parses to an object with `hookSpecificOutput.additionalContext` containing `secure-by-default`.
-- [ ] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS.
-- [ ] **Step 5:** `git commit -m "feat: package as Claude Code and Codex plugin"`
+- [x] **Step 1: Failing tests** in `test/plugin.test.js`: both manifests parse and `version === package.json.version`; every `skills/*/SKILL.md` has frontmatter `name` equal to its directory and `description` starting with `Use when`; there are exactly 6 skills; `plugin/` does not exist; `.mcp.json` args reference `${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js`; running `hooks/session-start` exits 0 and its stdout parses to an object with `hookSpecificOutput.additionalContext` containing `secure-by-default`.
+- [x] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS.
+- [x] **Step 5:** `git commit -m "feat: package as Claude Code and Codex plugin"`
 
 ### Task 7: Documentation
 

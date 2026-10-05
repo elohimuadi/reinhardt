@@ -2,7 +2,9 @@
   "mcpServers": {
     "reinhardt": {
       "command": "reinhardt",
-      "args": ["mcp"]
+      "args": [
+        "mcp"
+      ]
     }
   }
 }
