@@ -79,16 +79,16 @@
 - `kind: "ios-privacy-manifest"`: run the pattern logic; return the evidence only if no file in `files` has basename `PrivacyInfo.xcprivacy`; cap at 20 entries (after sorting).
 - `kind: "supabase-rls"`: implement the rule's `algorithm` text exactly. Use bounded regexes (no unbounded `[\s\S]*`). Evidence kind `table-without-rls`.
 
-- [ ] **Step 1: Write failing tests** in `test/rules.test.js`:
+- [x] **Step 1: Write failing tests** in `test/rules.test.js`:
   - `rules data integrity`: unique ids; every `files` entry exists in `file_classes`; every regex compiles; every `owasp` and `guidance` ref resolves via `resolveRef`; every `asvs` id `v5.0.0-X.Y.Z` exists among `asvs-5.0` chapters' `l1_requirements`; every `privacy_rules` ref resolves; severities ∈ {high, medium, low}; confidence ∈ {high, medium, low}.
   - One generated test per vector: `for each rule, for each positive vector: matchRule(rule, [vector, ...with]).length > 0`; `for each negative vector: === 0` (apply `vectorText` to every file). Name tests `` `${rule.id} positive #${i}` ``.
   - `fileClasses`: `'.github/workflows/ci.yml'` includes `workflow` and `config`; `'docker/Dockerfile.prod'` includes `dockerfile`; `'App/Info.plist'` includes `plist`; `'database.rules.json'` includes `firebase-rules` and `config`.
   - `evidence lines are 1-based and correct` for a match on line 3.
   - `performance`: a 1,000,000-character single-line string of `'a=1;'` repeated plus one positive snippet, run through every rule whose files include `js` → total < 2000 ms.
-- [ ] **Step 2:** Run → FAIL.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** `node --test test/rules.test.js` → PASS, 0 failures.
-- [ ] **Step 5:** `git commit -m "feat: interpret data-driven security rules"`
+- [x] **Step 2:** Run → FAIL.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** `node --test test/rules.test.js` → PASS, 0 failures.
+- [x] **Step 5:** `git commit -m "feat: interpret data-driven security rules"`
 
 ### Task 3: Security findings in scan reports and evals
 
