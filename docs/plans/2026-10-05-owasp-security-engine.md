@@ -178,7 +178,9 @@
 
 ### Task 8: Final verification
 
-- [ ] Run `npm ci && npm test && npm run eval` from a clean checkout state. Paste the final summary lines (tests passed/failed counts; eval Precision/Recall and TP/FP/FN).
-- [ ] Run `node bin/reinhardt.js scan evals/fixtures/leaky-security-web --json | grep -c AKIAIOSFODNN7EXAMPLE` → `0`.
-- [ ] Run `node bin/reinhardt.js owasp LLM01:2026` and `node bin/reinhardt.js rules` and confirm output.
-- [ ] `git status` clean; list commits created. Report any rule/data issues found (per Global Constraints) instead of changing data.
+- [x] Run `npm ci && npm test && npm run eval` from a clean checkout state. Paste the final summary lines (tests passed/failed counts; eval Precision/Recall and TP/FP/FN).
+- [x] Run `node bin/reinhardt.js scan evals/fixtures/leaky-security-web --json | grep -c AKIAIOSFODNN7EXAMPLE` → `0`.
+- [x] Run `node bin/reinhardt.js owasp LLM01:2026` and `node bin/reinhardt.js rules` and confirm output.
+- [x] `git status` clean; list commits created. Report any rule/data issues found (per Global Constraints) instead of changing data.
+
+Final verification: `npm ci && npm test && npm run eval` ran from a clean working tree. 174 tests passed, 0 failed. Eval: Precision 1.000; Recall 1.000; TP=49 FP=0 FN=0. Credential-output match count was 0. OWASP lookup and rule-list CLI output were checked. Protected data, other skills, and fixtures were unchanged; no rule/vector issues were found. Real editor-host installation remains untested.
