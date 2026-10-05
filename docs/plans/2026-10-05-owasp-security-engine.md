@@ -101,7 +101,7 @@
 - Produces: `scanRepo` report `schema_version: 2`. Every finding gains `category` (`"privacy"` | `"security"`), `owasp: string[]`, `cwe: string[]`, `asvs: string[]`, `guidance: string[]`, `confidence`. Privacy findings: `owasp` from `ruleset.privacy_rules[id]`, `cwe/asvs/guidance: []`, `confidence: "medium"`. Security findings: one per rule that matched, `sdk_id: null`, `suggested_disclosure: null`, `title/detail/suggested_fix/severity/confidence/owasp/cwe/asvs/guidance` copied from the rule, evidence capped at 50 after sorting. Sorting of findings unchanged (severity, id, sdk_id).
 - Candidate files: walked files whose `fileClasses` intersect any rule's `files`. Read each once with `readText`; skip (do not throw) on binary / oversized errors for files that are not privacy manifests.
 
-- [ ] **Step 1: Write failing tests** in `test/security-scan.test.js` using temp repos like `test/scan.test.js`:
+- [x] **Step 1: Write failing tests** in `test/security-scan.test.js` using temp repos like `test/scan.test.js`:
   - `security finding shape`: a repo with `src/a.js` containing `new OpenAI({ dangerouslyAllowBrowser: true })` → finding `llm-sdk-in-browser` with `category === 'security'`, `owasp` including `'llm-top10-2026:LLM02:2026'`, evidence `[{ file: 'src/a.js', line: 1, kind: 'dangerously-allow-browser' }]`.
   - `privacy findings carry OWASP refs`: the existing no-policy scenario yields `no-policy` with `owasp` including `'privacy-top10-2021:P5'` and `category === 'privacy'`.
   - `no secret text in report`: scan `evals/fixtures/leaky-security-web`; `JSON.stringify(report)` does not include `AKIAIOSFODNN7EXAMPLE`.
@@ -109,10 +109,10 @@
   - `binary security candidate is skipped`: `App/Binary.plist` containing `\0` bytes does not throw.
   - `deterministic`: two scans of `leaky-security-web` deep-equal.
   - `report schema_version is 2`.
-- [ ] **Step 2:** Run → FAIL.
-- [ ] **Step 3:** Implement in `scan.js` (keep the privacy logic intact; add a `securityFindings(root, files)` helper in a new `src/engine/security.js` if `scan.js` grows past ~120 lines).
-- [ ] **Step 4:** `npm test` → 0 failures. `npm run eval` → every fixture PASS, `Precision: 1.000; Recall: 1.000`.
-- [ ] **Step 5:** `git commit -m "feat: report OWASP-mapped security findings"`
+- [x] **Step 2:** Run → FAIL.
+- [x] **Step 3:** Implement in `scan.js` (keep the privacy logic intact; add a `securityFindings(root, files)` helper in a new `src/engine/security.js` if `scan.js` grows past ~120 lines).
+- [x] **Step 4:** `npm test` → 0 failures. `npm run eval` → every fixture PASS, `Precision: 1.000; Recall: 1.000`.
+- [x] **Step 5:** `git commit -m "feat: report OWASP-mapped security findings"`
 
 ### Task 4: CLI commands and text output
 
