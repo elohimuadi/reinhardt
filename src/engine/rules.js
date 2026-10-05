@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { compare } from './files.js';
-import { lineIndex } from './common.js';
+import { DISCLAIMER, lineIndex } from './common.js';
 import { hasPrivacyManifest, tablesWithoutRls } from './rule-kinds.js';
 
 export const ruleset = JSON.parse(readFileSync(new URL('../../data/rules.json', import.meta.url), 'utf8'));
@@ -30,4 +30,15 @@ export function matchRule(rule, files) {
   }
   evidence = [...new Map(evidence.map(item => [JSON.stringify(item), item])).values()].sort((a, b) => compare(a.file, b.file) || a.line - b.line || compare(a.kind, b.kind));
   return rule.kind === 'ios-privacy-manifest' ? evidence.slice(0, 20) : evidence;
+}
+
+export function listRules(id) {
+  let rules;
+  if (id !== undefined) {
+    const rule = ruleset.rules.find(rule => rule.id === id);
+    if (!rule) throw new Error(`Unknown rule: ${id}`);
+    const { tests, ...detail } = rule;
+    rules = [detail];
+  } else rules = ruleset.rules.map(({ id, title, severity, confidence, category, owasp, cwe }) => ({ id, title, severity, confidence, category, owasp, cwe })).sort((a,b) => compare(a.id,b.id));
+  return { disclaimer: DISCLAIMER, rules };
 }

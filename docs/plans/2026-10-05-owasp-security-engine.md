@@ -127,9 +127,9 @@
   - `reinhardt rules [id]` → `{ disclaimer, rules: [{ id, title, severity, confidence, category, owasp, cwe }] }` sorted by id, or the full rule object minus `tests` for one id; unknown id → exit 2 with `Unknown rule: <id>`.
   - Finding text output adds a line `OWASP: <refs joined by ", ">` when `owasp` is non-empty.
   - Usage string lists `owasp [query]` and `rules [id]`.
-- [ ] **Step 1: Failing tests**: `owasp A01:2025 --json` exits 0 and `results[0].item.name === 'Broken Access Control'`; `rules --json` lists 38 rules; `rules nope` exits 2; `scan evals/fixtures/leaky-security-web` text contains `OWASP: ` and exit code 0; with `--fail-on high` exit code 1.
-- [ ] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS.
-- [ ] **Step 5:** `git commit -m "feat: add owasp and rules CLI commands"`
+- [x] **Step 1: Failing tests**: `owasp A01:2025 --json` exits 0 and `results[0].item.name === 'Broken Access Control'`; `rules --json` lists 38 rules; `rules nope` exits 2; `scan evals/fixtures/leaky-security-web` text contains `OWASP: ` and exit code 0; with `--fail-on high` exit code 1.
+- [x] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS.
+- [x] **Step 5:** `git commit -m "feat: add owasp and rules CLI commands"`
 
 ### Task 5: Zero-dependency MCP server with OWASP tools
 
