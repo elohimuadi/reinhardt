@@ -84,7 +84,7 @@ In Claude Code:
 /plugin install reinhardt@reinhardt
 ```
 
-Install from a repository revision containing version 0.2.0. The root `.claude-plugin/` marketplace points to this checkout. The bundled `.mcp.json` launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
+Install from a repository revision containing version 0.2.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
 
 The executable SessionStart hook adds workflow guidance on startup, clear, and compact. It does not perform a scan or enforce the guidance. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, command, and hook output have automated tests.
 
