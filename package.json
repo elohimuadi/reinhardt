@@ -25,7 +25,6 @@
     "hooks",
     ".claude-plugin",
     ".codex-plugin",
-    ".mcp.json",
     "RELEASE-NOTES.md"
   ],
   "devDependencies": {

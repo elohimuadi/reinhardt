@@ -10,12 +10,12 @@ test('dual plugin manifests and package agree on version and transports', () => 
     assert.equal(json(file).version,pkg.version);
     assert.equal(json(file).name,'reinhardt');
   }
-  assert.deepEqual(json('.mcp.json').mcpServers.reinhardt.args,['${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js','mcp']);
+  assert.deepEqual(json('.claude-plugin/mcp.json').mcpServers.reinhardt.args,['${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js','mcp']);
   assert.equal(json('codex/mcp.json').mcpServers.reinhardt.command,'reinhardt');
   assert.deepEqual(json('.codex-plugin/plugin.json').hooks,{});
   assert.equal(json('.claude-plugin/marketplace.json').plugins[0].source,'./');
   assert.equal(existsSync('plugin'),false);
-  for(const file of ['skills','hooks','.claude-plugin','.codex-plugin','.mcp.json']) assert.ok(pkg.files.includes(file));
+  for(const file of ['skills','hooks','.claude-plugin','.codex-plugin']) assert.ok(pkg.files.includes(file));
 });
 test('six skills have matching names and Use when descriptions', () => {
   const names=readdirSync('skills').sort();
@@ -37,4 +37,10 @@ test('session-start is executable and emits one context object', () => {
   const hook=json('hooks/hooks.json').hooks.SessionStart[0];
   assert.equal(hook.matcher,'startup|clear|compact');
   assert.equal(hook.hooks[0].command,'"${CLAUDE_PLUGIN_ROOT}/hooks/session-start"');
+});
+
+test('Claude MCP config is plugin-scoped and absent from project root', () => {
+  assert.equal(existsSync('.mcp.json'),false);
+  assert.equal(json('.claude-plugin/plugin.json').mcpServers,'./.claude-plugin/mcp.json');
+  assert.equal(json('package.json').files.includes('.mcp.json'),false);
 });

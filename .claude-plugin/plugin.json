@@ -12,5 +12,6 @@
     "owasp",
     "security",
     "mcp"
-  ]
+  ],
+  "mcpServers": "./.claude-plugin/mcp.json"
 }
