@@ -1,21 +1,22 @@
 # reinhardt
 
-An open-source privacy-drift detector for AI-generated (vibe-coded) apps. AI coding tools can add SDKs that introduce third-party data recipients while the privacy policy stays unchanged. reinhardt finds those potential recipients, compares them with the policy, and tracks additions and removals against an explicitly accepted baseline.
+Privacy drift and OWASP-mapped security checks for AI-generated (vibe-coded) apps. AI coding tools can add SDKs that introduce third-party data recipients while the privacy policy stays unchanged. reinhardt finds those potential recipients, compares them with the policy, and tracks additions and removals against an explicitly accepted baseline.
 
 **Static, heuristic analysis; not legal advice and not a certification. Findings require human verification.** Zero findings are not an assurance about an application's privacy practices.
 
-The deterministic engine makes no LLM calls or network requests. An agent uses its evidence to verify initialization, explain uncertainty, and make truthful fixes. Node >=20, ESM, plain JavaScript, MIT. The engine uses only Node built-ins; the two direct runtime dependencies, `@modelcontextprotocol/sdk` and `zod`, power MCP (the SDK has its own transitive dependencies).
+The deterministic engine makes no LLM calls or network requests. An agent uses its evidence to verify initialization, explain uncertainty, and make truthful fixes. Node >=20, ESM, plain JavaScript, MIT. Both the engine and stdio MCP server use only Node built-ins: zero runtime dependencies. `@modelcontextprotocol/sdk` is a development dependency for interoperability tests; zod is not a direct dependency. OWASP-derived data has a separate license described below.
 
 ## Quickstart
 
 From a checkout of this repository:
 
 ```sh
-npm ci
-node bin/reinhardt.js scan evals/fixtures/leaky-web
+node bin/reinhardt.js scan evals/fixtures/leaky-security-web
 node bin/reinhardt.js scan /path/to/your/app --json
 node bin/reinhardt.js scan /path/to/your/app --policy docs/privacy.md --fail-on high
 ```
+
+No dependency installation is needed to run the CLI or MCP server from a checkout. Run `npm ci` when developing or testing.
 
 After reviewing and accepting the current recipients:
 
@@ -32,7 +33,7 @@ Optionally run `npm link` from this checkout to make `reinhardt` available on yo
 ## CLI
 
 ```text
-reinhardt scan|baseline|drift|sdk|mcp [path]
+reinhardt scan|baseline|drift|sdk|owasp|rules|mcp [path]
   --policy <file>           Explicit policy, relative to the scanned repository
   --json                    JSON output
   --fail-on high|medium|low  Exit 1 for findings at or above the threshold
@@ -42,11 +43,15 @@ The repository defaults to the current directory. `sdk` takes an SDK ID instead 
 
 ```sh
 reinhardt sdk posthog
+reinhardt owasp LLM01:2026
+reinhardt owasp CWE-918 --json
+reinhardt rules
+reinhardt rules hardcoded-secret --json
 reinhardt drift . --json --fail-on medium
 reinhardt mcp
 ```
 
-Exit codes: `0` for a completed operation below the chosen threshold (or without one), `1` for findings meeting the threshold, and `2` for invalid arguments or operational errors. `--fail-on` evaluates the current findings for scan, drift, and baseline; saving a baseline still writes it before applying the exit threshold. A named new recipient appears in drift but does not itself trigger a finding. Malformed manifests and unreadable candidate files fail the operation rather than silently returning an incomplete scan.
+Exit codes: `0` for a completed operation below the chosen threshold (or without one), `1` for findings meeting the threshold, and `2` for invalid arguments or operational errors. `--fail-on` evaluates the current findings for scan, drift, and baseline; saving a baseline still writes it before applying the exit threshold. A named new recipient appears in drift but does not itself trigger a finding. Malformed privacy dependency manifests and unreadable files fail the operation. Non-manifest binary or oversized security candidates are skipped. Security matches are included in the same CI threshold calculation.
 
 The example leaky web fixture produces four findings: missing consent handling, undisclosed Anthropic and Meta, and a generic-only PostHog disclosure. Evidence includes `package.json` and source `file:line` locations.
 
@@ -70,9 +75,22 @@ Finding IDs identify rules; `sdk_id` distinguishes per-SDK findings. Findings in
 
 The catalog spans analytics, advertising, session replay, crash reporting, backend, auth, payments, messaging, and AI. The seed catalog is heuristic and has not been exhaustively checked against every vendor's current package names and collection behavior. Collection lists describe possibilities, not observed transmission. Firebase is grouped under backend even though specific products have other purposes. Vercel AI SDK may send content to a configured model provider without making Vercel a recipient; verify that route before changing disclosure.
 
+## Claude Code installation
+
+In Claude Code:
+
+```text
+/plugin marketplace add elohimuadi/reinhardt
+/plugin install reinhardt@reinhardt
+```
+
+Install from a repository revision containing version 0.2.0. The root `.claude-plugin/` marketplace points to this checkout. The bundled `.mcp.json` launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
+
+The executable SessionStart hook adds workflow guidance on startup, clear, and compact. It does not perform a scan or enforce the guidance. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, command, and hook output have automated tests.
+
 ## Codex setup: config.toml first
 
-After `npm ci`, merge [codex/config.toml.snippet](codex/config.toml.snippet) into `~/.codex/config.toml`, replacing the absolute path:
+Merge [codex/config.toml.snippet](codex/config.toml.snippet) into `~/.codex/config.toml`, replacing the absolute path:
 
 ```toml
 [mcp_servers.reinhardt]
@@ -86,29 +104,89 @@ Append [codex/AGENTS.snippet.md](codex/AGENTS.snippet.md) to an application's AG
 
 | MCP tool | Arguments | Behavior |
 | --- | --- | --- |
-| `scan_repo` | `path`, optional `policy_path` | Scan and classify potential recipients |
+| `scan_repo` | `path`, optional `policy_path` | Scan privacy disclosures and OWASP-mapped security patterns |
 | `drift_check` | `path`, optional `policy_path` | Compare with baseline; never saves one |
 | `save_baseline` | `path`, optional `policy_path` | Write baseline **only after the user accepted the current state** |
 | `explain_sdk` | optional `id` | Explain one SDK or list the catalog |
+| `owasp_lookup` | optional `query` | List standards or look up references, item IDs, CWE IDs, or terms |
+| `list_rules` | optional `id` | List 38 security rules or explain one without its test vectors |
 
 Tool failures return `isError`; a failed call does not terminate the server. Only JSON-RPC goes to stdout in MCP mode. The MCP client receives structured reports and JSON text; no source file contents are returned. Tool paths are local filesystem access with the permissions of the process; this is not a sandbox for untrusted remote clients.
 
 ## Codex plugin: secondary, host installation untested
 
-[plugin/](plugin/) contains `.codex-plugin/plugin.json`, `.mcp.json`, and three skills:
+The root [.codex-plugin/plugin.json](.codex-plugin/plugin.json) references `skills/` and `codex/mcp.json`. Run `npm link` from this checkout so `reinhardt mcp` is available on the Codex host's PATH, then follow the [official local plugin installation instructions](https://developers.openai.com/plugins/build/plugins). The manifest uses the compatibility layout; it declares `hooks: {}` so the Claude-specific hook is not selected through default hook discovery.
 
-- `privacy-audit`: verify each finding in code; report uncertainty; do not edit.
-- `privacy-fix`: fix one verified finding, then re-scan; disclosure must reflect behavior.
+The earlier compatibility layout was checked against official documentation; this release's explicit manifest fields are covered by repository tests. Actual Codex installation, cached-plugin PATH inheritance, UI discovery, and agent behavior have not been verified. Use config.toml as the primary setup route. Neither route changes your personal configuration automatically.
+
+## Six agent workflows
+
+- `privacy-audit`: verify each privacy finding in code; do not edit.
+- `privacy-fix`: fix one verified privacy finding, then re-scan; disclosure must reflect behavior.
 - `privacy-drift-watch`: check after dependency changes; ask about new unnamed recipients; never reset the baseline on its own.
+- `security-audit`: investigate OWASP-mapped findings and report evidence and uncertainty.
+- `security-fix`: remediate a verified security finding and validate the change.
+- `secure-by-default`: apply security guidance while writing relevant code.
 
-The manifest fields and compatibility layout were checked against the [official plugin documentation](https://developers.openai.com/plugins/build/plugins) on 2026-09-20. That documentation now recommends a portable root manifest for new packages and still supports the requested `.codex-plugin` layout. The bundled plugin and skill validators pass.
+These are instructions for an agent, not guarantees about its behavior. The Codex AGENTS snippet and Claude hook request checks; they do not enforce execution.
 
-For a local plugin experiment, first make `reinhardt` available on the Codex host's PATH using `npm link`. The plugin's `.mcp.json` invokes `reinhardt mcp`; it does not download a package or reference a parent directory that would disappear when cached. Copy the contents of `plugin/` into a directory named `reinhardt` in your local plugin source and follow the official marketplace installation instructions. This project does not edit your personal marketplace or Codex settings.
+## OWASP knowledge and security rules
 
-**Unverified:** actual Codex plugin installation, cached-plugin PATH inheritance, UI discovery, and agent behavior in Codex, Claude Code, or Cursor. Direct MCP protocol integration is tested with the official SDK client; that is not a full host integration test. Use config.toml as the primary setup route.
+`owasp` and `owasp_lookup` read the 22 bundled standards. Lookup tries an exact reference, then a standard ID, then case-insensitive item ID, then CWE ID, then a name/summary substring search capped at 25 results. References split on the first colon: `top10-2025:A01:2025` identifies item `A01:2025`. No query lists standards; no match returns an empty results array.
+
+Scan reports now use `schema_version: 2`. All findings carry `category` (`privacy` or `security`), `confidence`, and arrays for `owasp`, `cwe`, `asvs`, and `guidance`. Privacy findings gain OWASP mappings without changing baseline schema version 1. Security findings are grouped once per matching rule, with `sdk_id` and `suggested_disclosure` set to null. Evidence contains only `{ file, line, kind }`, sorted and capped at 50 per security finding (20 for the missing iOS privacy manifest check). Matched source text and credential values are never included.
+
+The data-driven interpreter applies file classes, required context, suppression patterns, and per-rule test-path exclusions. Two repository checks look for SQL tables without an RLS enable statement and required-reason APIs without a walked `PrivacyInfo.xcprivacy`. These existence checks do not establish that a policy is correct or a manifest belongs to the app target. `rules [id]` returns the rule definition without test vectors; the list below shows its first OWASP mapping. Full mappings are available through the CLI/MCP tools.
+
+| Rule ID | Severity | Primary OWASP reference |
+| --- | --- | --- |
+| `hardcoded-secret` | high | `nhi-top10-2025:NHI2:2025` |
+| `client-exposed-secret-env` | high | `top10-2025:A04:2025` |
+| `llm-sdk-in-browser` | high | `llm-top10-2026:LLM02:2026` |
+| `supabase-privileged-key-in-client` | high | `top10-2025:A01:2025` |
+| `supabase-table-without-rls` | high | `top10-2025:A01:2025` |
+| `supabase-permissive-write-policy` | high | `top10-2025:A01:2025` |
+| `firebase-open-rules` | high | `top10-2025:A01:2025` |
+| `mass-assignment` | medium | `api-top10-2023:API3:2023` |
+| `cors-credentials-any-origin` | high | `top10-2025:A01:2025` |
+| `open-redirect` | medium | `top10-2025:A01:2025` |
+| `ssrf-request-url` | high | `top10-2025:A01:2025` |
+| `sql-string-building` | high | `top10-2025:A05:2025` |
+| `command-injection` | high | `top10-2025:A05:2025` |
+| `dynamic-code-execution` | medium | `top10-2025:A05:2025` |
+| `unsanitized-html-sink` | medium | `top10-2025:A05:2025` |
+| `jwt-none-algorithm` | high | `top10-2025:A07:2025` |
+| `jwt-decoded-without-verification` | medium | `top10-2025:A07:2025` |
+| `weak-password-hashing` | high | `top10-2025:A04:2025` |
+| `weak-hash-algorithm` | low | `top10-2025:A04:2025` |
+| `insecure-randomness` | medium | `top10-2025:A04:2025` |
+| `insecure-cookie-flags` | medium | `top10-2025:A07:2025` |
+| `token-in-web-storage` | medium | `client-side-top10:CS7` |
+| `tls-verification-disabled` | high | `top10-2025:A04:2025` |
+| `ios-ats-disabled` | medium | `mobile-top10-2024:M5` |
+| `ios-cleartext-url` | low | `mobile-top10-2024:M5` |
+| `ios-sensitive-data-in-userdefaults` | medium | `mobile-top10-2024:M9` |
+| `sensitive-data-logged` | low | `top10-2025:A09:2025` |
+| `ios-privacy-manifest-missing` | medium | `mobile-top10-2024:M6` |
+| `gha-pull-request-target-checkout` | high | `cicd-top10:CICD-SEC-4` |
+| `gha-script-injection` | high | `cicd-top10:CICD-SEC-4` |
+| `gha-excessive-permissions` | medium | `cicd-top10:CICD-SEC-5` |
+| `gha-unpinned-action` | low | `cicd-top10:CICD-SEC-3` |
+| `docker-secret-in-image` | medium | `nhi-top10-2025:NHI2:2025` |
+| `mcp-server-unpinned` | low | `llm-top10-2026:LLM04:2026` |
+| `postmessage-wildcard-origin` | low | `client-side-top10:CS9` |
+| `third-party-script-without-sri` | low | `client-side-top10:CS5` |
+| `nextjs-browser-source-maps` | low | `client-side-top10:CS10` |
+| `upload-without-size-limit` | low | `api-top10-2023:API4:2023` |
+
+## Data licensing and provenance
+
+Code remains [MIT licensed](LICENSE). Content in `data/owasp/` is adapted from OWASP Foundation projects and licensed **CC BY-SA 4.0**, attributed to OWASP Foundation and the respective project teams, with adaptations by reinhardt contributors. See [data/owasp/README.md](data/owasp/README.md) for attribution, source notes, and caveats, and [docs/owasp.md](docs/owasp.md) for the distillation approach. Some mappings are inferred and some standards are draft, partial, or archived; inclusion is not OWASP endorsement.
 
 ## Limits
 
+- Security regexes use bounded matching where context spans are needed to reduce ReDoS risk. The suite times every JS rule against a 1 MB single-line input; that test is not a proof against every adversarial input.
+- Rules with `skip_test_paths` skip test/example/fixture paths according to the data file. This is per rule; not all rules skip tests. Scanning a fixture root still tests its relative application paths.
 - Static and heuristic: no runtime traffic, effective SDK configuration, reachable-code analysis, server-side forwarding, consent correctness, or legal conclusions. There are no LLM calls in the engine.
 - Cannot see scripts loaded dynamically by tag managers, dynamically constructed endpoints, custom proxies, or transitive SDK dependencies. No lockfiles are read, and requirements includes are not recursively followed.
 - Manifest parsers recognize common literal forms; they do not execute Ruby, Swift, Python, or JavaScript. Conditional, commented, and unused code may cause false positives. Raw source endpoint matching can also see examples or tests.
@@ -125,20 +203,20 @@ npm test
 npm run eval
 ```
 
-`node:test` covers matching, disclosure, excluded files, drift, ATT, CLI exit codes, and a child-process MCP stdio round trip (including error recovery). Labelled `evals/fixtures/{leaky-web,clean-web,leaky-ios}/expected.json` files define rule IDs with SDK IDs so a missed recipient cannot be hidden by another finding with the same rule. The eval runner prints precision/recall and fails on any unexpected or missing finding. `clean-web` must produce zero findings. Fixture apps are static examples; do not install or execute them.
+`node:test` covers matching, disclosure, excluded files, drift, ATT, CLI exit codes, and a child-process MCP stdio round trip (including error recovery). Labelled `expected.json` files in all six directories under `evals/fixtures/` define rule IDs with SDK IDs so a missed recipient cannot be hidden by another finding with the same rule. The eval runner prints precision/recall and fails on any unexpected or missing finding. `clean-web` and `clean-ios` must produce zero findings. Fixture apps are static examples; do not install or execute them.
 
-Verified locally on Node 20.20.2 and 22.16.0: tests, MCP e2e, all three evals, and the leaky-web CLI example. The fixtures yield precision 1.000 and recall 1.000 (7 true positives, no false positives/negatives); those figures measure this small labelled suite, not general detection quality. GitHub Actions is configured for Node 20 and 22; hosted execution has not been observed.
+The v0.2.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 49 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
 
 ## Contributing
 
 Add an SDK entry to `data/sdks.json` and a labelled fixture covering it. Each entry has `id`, `name`, `category`, `aliases`, `match` (`npm`, `pod`, `swiftpm`, `pypi` arrays), `domains`, and `collects`. Names are exact case-insensitive matches unless they end in `*`; domains are hostnames without schemes or wildcards. Prefer specific policy aliases and add negative cases for ambiguous names. Include evidence from the vendor's documentation in your contribution.
 
-Each category defines `severity`, `generic_terms`, and a plain-English `purpose`. Keep data and output ordering stable, add focused regression tests, and run both commands above. Never add legal assurances or treat catalog data types as verified collection. The project is [MIT licensed](LICENSE).
+Each category defines `severity`, `generic_terms`, and a plain-English `purpose`. Keep data and output ordering stable, add focused regression tests, and run both commands above. Never add legal assurances or treat catalog data types as verified collection. Code is MIT; OWASP-derived data is CC BY-SA 4.0 as described above. Agents must follow the read-only knowledge ownership boundaries in [AGENTS.md](AGENTS.md).
 
 ## Roadmap
 
 - Android/Gradle dependency detection.
 - An opt-in runtime mode that records real third-party requests.
-- Agent/editor hooks for dependency changes.
+- Dependency-change hooks that execute checks automatically (the current SessionStart hook only supplies guidance).
 - Consent-gating verification, including initialization order and denied-consent paths.
 - More fixtures, provider-specific configuration checks, and host integration tests.
