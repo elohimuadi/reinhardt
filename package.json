@@ -23,8 +23,7 @@
     "README.md",
     "LICENSE"
   ],
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "zod": "^4.6.5"
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }

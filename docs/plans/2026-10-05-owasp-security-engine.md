@@ -140,9 +140,9 @@
 **Interfaces:**
 - Produces: newline-delimited JSON-RPC 2.0 over stdio using only `node:readline`/`process.stdin`. Methods: `initialize` → `{ protocolVersion: <client's requested version>, capabilities: { tools: {} }, serverInfo: { name: 'reinhardt', version: '0.2.0' } }`; `notifications/initialized` and other notifications → no response; `ping` → `{}`; `tools/list` → tools with `name`, `description` (ending with the disclaimer), JSON Schema `inputSchema`, and `annotations`; `tools/call` → `{ content: [{ type: 'text', text: JSON }], structuredContent }` or `{ isError: true, content: [...] }` on tool failure. Unknown method → error `-32601`; invalid JSON → `-32700`; invalid params → `-32602`. Only JSON-RPC on stdout.
 - Tools: existing `scan_repo`, `drift_check`, `save_baseline`, `explain_sdk` (same args/annotations), plus `owasp_lookup { query?: string }` and `list_rules { id?: string }` (both read-only, idempotent, closed-world).
-- [ ] **Step 1: Failing tests** (keep the existing SDK-client e2e and extend it): client lists 6 tools; `owasp_lookup { query: 'LLM10:2026' }` returns `Improper Output Handling`; `list_rules {}` returns 38 rules; a malformed line on raw stdin gets a `-32700` error and the server keeps serving; `scan_repo` on `leaky-security-web` response text does not contain the AWS example key.
-- [ ] **Step 2:** FAIL → **Step 3:** implement; delete `zod`; `npm ci` must leave `dependencies` empty → **Step 4:** `npm test` PASS.
-- [ ] **Step 5:** `git commit -m "feat: zero-dependency MCP server with OWASP tools"`
+- [x] **Step 1: Failing tests** (keep the existing SDK-client e2e and extend it): client lists 6 tools; `owasp_lookup { query: 'LLM10:2026' }` returns `Improper Output Handling`; `list_rules {}` returns 38 rules; a malformed line on raw stdin gets a `-32700` error and the server keeps serving; `scan_repo` on `leaky-security-web` response text does not contain the AWS example key.
+- [x] **Step 2:** FAIL → **Step 3:** implement; delete `zod`; `npm ci` must leave `dependencies` empty → **Step 4:** `npm test` PASS.
+- [x] **Step 5:** `git commit -m "feat: zero-dependency MCP server with OWASP tools"`
 
 ### Task 6: Claude Code + Codex plugin packaging (superpowers layout)
 
