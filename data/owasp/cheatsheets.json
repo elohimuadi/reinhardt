@@ -1,0 +1,1076 @@
+{
+  "schema_version": 1,
+  "id": "cheatsheets",
+  "name": "OWASP Cheat Sheet Series",
+  "edition": null,
+  "status": "released",
+  "maturity": "flagship",
+  "released": null,
+  "url": "https://cheatsheetseries.owasp.org/",
+  "source_notes": "Verified against a shallow clone of the OWASP/CheatSheetSeries GitHub repo (last commit 2026-10-04), the source of cheatsheetseries.owasp.org.",
+  "caveats": [
+    "Continuously updated series with no edition or release date; content reflects the repo as of 2026-10-04 (137 sheets). Only the sheets distilled in the research notes are included.",
+    "Sheets named in the notes without rule content are not included: MCP Security, LLM Prompt Injection Prevention, Webhook Security, Software Supply Chain Security.",
+    "Transport Layer Protection Cheat Sheet is DEPRECATED in favor of the Transport Layer Security Cheat Sheet; Abuse Case Cheat Sheet is archived and should not be used for rules. Neither is included as an item.",
+    "No OWASP cheat sheet covers Supabase or Firebase; RLS appears only as generic Postgres guidance in the Multi-Tenant Security sheet. Supabase/Firebase rules must cite vendor docs.",
+    "Detection entries prefixed \"(inferred) \" are reinhardt mappings not literally in the sheet; unprefixed entries map directly to sheet text. csurf deprecation and cors package default behavior were not verified.",
+    "Only the Authorization sheet carries an explicit CWE reference in the notes (CWE-209); other cwe arrays are empty.",
+    "Detail extraction was partial: Secure Coding with AI (section headings only), Multi-Tenant Security, CI/CD Security and OS Command Injection Defense summaries are thinner than the others.",
+    "Item URLs follow the standard https://cheatsheetseries.owasp.org/cheatsheets/<File_Name>.html pattern; whether the rendered site lags the repo was not checked."
+  ],
+  "items": [
+    {
+      "id": "json-web-token-cheat-sheet",
+      "name": "JSON Web Token Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_Cheat_Sheet.html",
+      "summary": "Guidance for issuing and validating JWTs safely: algorithm pinning, trusted key selection, strong HMAC secrets and claim validation.",
+      "prevention": [
+        "Reject \"alg\":\"none\" tokens.",
+        "Hard-code the accepted algorithms and do not mix public-key signature and MAC algorithms.",
+        "Never trust header-supplied key material (jku, x5u, x5c, kid); pick keys bound to the validated issuer.",
+        "Generate HMAC secrets with a CSPRNG, at least the hash output size, never a password or published value.",
+        "Validate exp, nbf, iss and aud.",
+        "Remember signed JWTs are not confidential; use JWE when claims must be secret."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "jwt.verify(token, key) with no algorithms option",
+          "algorithms containing 'none' or mixing HS* with RS*/ES*",
+          "(inferred) jwt.decode() result used in an auth decision",
+          "jwt.sign(..., 'literal') with a short string-literal secret",
+          "(inferred) jwt.verify without audience/issuer options",
+          "JWT stored in localStorage"
+        ],
+        "review": [
+          "Key rotation and issuer trust configuration"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V9",
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) api-top10-2023:API2:2023"
+      ]
+    },
+    {
+      "id": "password-storage-cheat-sheet",
+      "name": "Password Storage Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html",
+      "summary": "How to store passwords with slow, salted hashing algorithms and recommended work factors.",
+      "prevention": [
+        "Hash passwords; never encrypt them or store plaintext.",
+        "Prefer Argon2id with at least m=19 MiB, t=2, p=1 (or an equivalent setting).",
+        "scrypt: N=2^17, r=8, p=1; bcrypt only for legacy, with work factor 10+ and a 72-byte input limit.",
+        "PBKDF2 (FIPS): at least 600,000 iterations with HMAC-SHA-256.",
+        "Do not use fast hashes such as MD5, SHA-1 or SHA-256 for passwords.",
+        "Use a unique salt per password; store any optional pepper separately (vault/HSM).",
+        "Compare hashes with constant-time functions."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "bcrypt.hash(pw, n) / genSalt(n) with n < 10",
+          "crypto.createHash('md5'|'sha1'|'sha256') applied to a password",
+          "pbkdf2 with fewer than 600000 iterations",
+          "argon2.hash with memoryCost < 19456",
+          "(inferred) === used to compare a hash or token (use crypto.timingSafeEqual)",
+          "(inferred) Swift Insecure.MD5 / Insecure.SHA1 / SHA256.hash(data: password)"
+        ],
+        "review": [
+          "Migration plan for legacy hashes"
+        ]
+      },
+      "related": [
+        "top10-2025:A04:2025",
+        "(inferred) asvs-5.0:V11"
+      ]
+    },
+    {
+      "id": "session-management-cheat-sheet",
+      "name": "Session Management Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "summary": "Guidance on generating, transporting, storing and renewing session identifiers.",
+      "prevention": [
+        "Generate session IDs with a CSPRNG and at least 64 bits of entropy.",
+        "Set Secure and HttpOnly on session cookies; SameSite is defense in depth, not a CSRF replacement.",
+        "Prefer the __Host- cookie prefix for session IDs.",
+        "Do not store tokens, session IDs, JWTs or refresh tokens in localStorage or sessionStorage; use HttpOnly Secure SameSite=Strict cookies or a BFF.",
+        "Renew the session ID on any privilege change, at minimum at login."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "res.cookie(name, v, opts) lacking httpOnly, secure or sameSite",
+          "express-session/cookie-session with cookie.secure false or missing, or a hard-coded secret",
+          "localStorage.setItem('token'|'jwt'|'access_token'|'refresh...', ...)",
+          "(inferred) Login handler without req.session.regenerate (low confidence)"
+        ],
+        "review": [
+          "Session invalidation behavior"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V7",
+        "(inferred) top10-2025:A07:2025"
+      ]
+    },
+    {
+      "id": "authentication-cheat-sheet",
+      "name": "Authentication Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+      "summary": "Guidance on password policy, error messaging, transport and protection against automated attacks during authentication.",
+      "prevention": [
+        "Treat passwords under 8 characters as weak with MFA and under 15 without MFA; allow at least 64 characters.",
+        "Return generic errors for login, reset and registration to prevent user enumeration, and watch timing differences.",
+        "Send passwords only over TLS.",
+        "Require re-authentication for sensitive features.",
+        "Protect against automated attacks with rate limiting and MFA."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Login route with no rate-limit middleware",
+          "Distinct \"user not found\" vs \"wrong password\" responses",
+          "(inferred) Password validators enforcing maxLength < 64"
+        ],
+        "review": [
+          "MFA availability and lockout behavior"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V6",
+        "(inferred) top10-2025:A07:2025"
+      ]
+    },
+    {
+      "id": "authorization-cheat-sheet",
+      "name": "Authorization Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+      "summary": "Principles for enforcing authorization: least privilege, deny by default and per-request checks on the server.",
+      "prevention": [
+        "Enforce least privilege.",
+        "Deny by default.",
+        "Validate permissions on every request.",
+        "Ensure lookup IDs are not accessible even when guessed.",
+        "Enforce authorization checks on static resources.",
+        "Exit safely when authorization fails, without exposing logs or debug output.",
+        "Never rely on client-side access control as the deciding control."
+      ],
+      "cwe": [
+        "CWE-209"
+      ],
+      "detection": {
+        "static": [
+          "(inferred) Role/admin checks only in React components (e.g. user.role === 'admin') with no server check",
+          "(inferred) Route handlers with DB writes and no auth middleware"
+        ],
+        "review": [
+          "Role and policy model review"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) asvs-5.0:V8"
+      ]
+    },
+    {
+      "id": "insecure-direct-object-reference-prevention-cheat-sheet",
+      "name": "Insecure Direct Object Reference Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html",
+      "summary": "How to prevent users from accessing objects by manipulating identifiers.",
+      "prevention": [
+        "Implement access control checks for each object.",
+        "Scope lookups to the current user (e.g. current_user.projects.find(id)).",
+        "Derive the user from the session rather than IDs in the URL or body.",
+        "Treat complex IDs such as GUIDs only as defense in depth."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) findById(req.params.id) / findUnique({ where: { id: req.params.id } }) / supabase.from(t).select().eq(\"id\", param) with no owner predicate",
+          "(inferred) userId taken from req.body/req.query instead of the session"
+        ],
+        "review": [
+          "Cross-account access testing"
+        ]
+      },
+      "related": [
+        "(inferred) api-top10-2023:API1:2023",
+        "(inferred) top10-2025:A01:2025"
+      ]
+    },
+    {
+      "id": "mass-assignment-cheat-sheet",
+      "name": "Mass Assignment Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html",
+      "summary": "How to prevent clients from setting object fields they should not control via automatic binding.",
+      "prevention": [
+        "Use DTOs that contain only editable fields.",
+        "Allowlist bindable fields (e.g. pick safe fields from req.body).",
+        "Use blocklisting only as an alternative when allowlisting is impractical.",
+        "Remember DTOs and allowlists do not replace authorization."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "new Model(req.body), Model.create(req.body), update(..., req.body)",
+          "Object.assign(entity, req.body) or {...req.body} passed to an ORM",
+          "prisma.x.update({ data: req.body })",
+          "supabase.from(t).insert(req.body) / .update(body)"
+        ],
+        "review": [
+          "Which fields are safe per role"
+        ]
+      },
+      "related": [
+        "(inferred) api-top10-2023:API3:2023",
+        "(inferred) top10-2025:A08:2025"
+      ]
+    },
+    {
+      "id": "input-validation-cheat-sheet",
+      "name": "Input Validation Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html",
+      "summary": "Guidance on validating input with allowlists and schemas at trust boundaries.",
+      "prevention": [
+        "Prefer allowlist over denylist validation.",
+        "Apply request size limits before buffering or parsing, and configure parser depth limits.",
+        "Use a maintained parser, then validate against a schema.",
+        "Do not rely on client-only checks or trust internal sources or upload metadata.",
+        "Avoid \"cleaning\" input and logging rejected input verbatim."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) API route handlers using req.body.* without zod/yup/joi/valibot or similar validation"
+        ],
+        "review": [
+          "Completeness of validation rules"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V2",
+        "(inferred) proactive-controls-2024:C3"
+      ]
+    },
+    {
+      "id": "sql-injection-prevention-cheat-sheet",
+      "name": "SQL Injection Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+      "summary": "Ranked defenses against SQL injection, led by prepared statements.",
+      "prevention": [
+        "Use prepared statements (parameterized queries).",
+        "Use stored procedures only when they contain no dynamic SQL.",
+        "Allowlist-validate table and column names that must be dynamic.",
+        "Treat escaping all user input as strongly discouraged."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "query(`...${x}...`), db.raw(`...${}`) or \"SELECT ...\" + var",
+          "prisma.$queryRawUnsafe / $executeRawUnsafe with interpolation",
+          "sequelize.query with a template literal",
+          "(inferred) Supabase .rpc to SQL functions building dynamic EXECUTE format(...)",
+          "(inferred) Supabase .or(`...${userInput}`) filter-string injection",
+          "(inferred) Swift sqlite3_exec / sqlite3_prepare with string interpolation"
+        ],
+        "review": [
+          "Second-order injection paths"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) asvs-5.0:V1"
+      ]
+    },
+    {
+      "id": "cross-site-scripting-prevention-cheat-sheet",
+      "name": "Cross Site Scripting Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html",
+      "summary": "Output encoding and framework guidance for preventing XSS, including framework escape hatches.",
+      "prevention": [
+        "Avoid framework escape hatches such as React dangerouslySetInnerHTML, Angular bypassSecurityTrustAs* and Lit unsafeHTML with unsanitized HTML.",
+        "Validate URL values even where frameworks block javascript: URLs.",
+        "Avoid eval and string-based setTimeout/setInterval.",
+        "Sanitize HTML with DOMPurify and keep it patched."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "dangerouslySetInnerHTML={{ __html: X }} where X is not wrapped in DOMPurify.sanitize",
+          "v-html",
+          "href={userValue} without scheme check",
+          "(inferred) marked/markdown-it output with html: true fed to the DOM",
+          "(inferred) iOS WKWebView.loadHTMLString with interpolated user data"
+        ],
+        "review": [
+          "Sanitizer configuration and context correctness"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) asvs-5.0:V1"
+      ]
+    },
+    {
+      "id": "dom-based-xss-prevention-cheat-sheet",
+      "name": "DOM based XSS Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html",
+      "summary": "How to avoid DOM-based XSS by keeping untrusted data out of dangerous DOM sinks.",
+      "prevention": [
+        "Populate the DOM with untrusted data via textContent.",
+        "Avoid innerHTML, document.write/writeln and event-handler attributes for untrusted data.",
+        "Never pass strings to setTimeout, setInterval or Function."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          ".innerHTML =, .outerHTML =, insertAdjacentHTML",
+          "document.write( fed from location.*, URLSearchParams or postMessage data"
+        ],
+        "review": [
+          "Data flow from sources to sinks at runtime"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) asvs-5.0:V3"
+      ]
+    },
+    {
+      "id": "cross-site-request-forgery-prevention-cheat-sheet",
+      "name": "Cross-Site Request Forgery Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "summary": "Defenses against CSRF for stateful and stateless applications.",
+      "prevention": [
+        "Use the framework's built-in CSRF protection.",
+        "Otherwise use synchronizer tokens (stateful) or signed double-submit cookies (stateless); avoid naive double-submit.",
+        "Reject non-safe methods when Sec-Fetch-Site is cross-site.",
+        "Use custom request headers for AJAX/API calls; treat SameSite as defense in depth.",
+        "Never use GET for state-changing operations."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) app.get( handlers that perform DB writes or deletes",
+          "(inferred) Cookie-session Express apps with POST routes and no CSRF/origin middleware"
+        ],
+        "review": [
+          "Effective CSRF protection across all state-changing routes"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V3",
+        "(inferred) top10-2025:A01:2025"
+      ]
+    },
+    {
+      "id": "server-side-request-forgery-prevention-cheat-sheet",
+      "name": "Server-Side Request Forgery Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "summary": "Defenses against SSRF for both known-destination and arbitrary-destination fetch features.",
+      "prevention": [
+        "For known targets, allowlist domains/IPs with strict comparison.",
+        "Disable redirect following in the HTTP client.",
+        "Validate resolved IPs to resist DNS rebinding, then connect to the validated IP.",
+        "For arbitrary targets, allow only HTTP/HTTPS, block private/internal IPs and build requests only from validated parts.",
+        "Segment the network and migrate to AWS IMDSv2; use deny-lists (e.g. 169.254.169.254) only as a last resort.",
+        "In Next.js keep images.dangerouslyAllowLocalIP off and define images.remotePatterns tightly."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "fetch(req.query.url | req.body.url), axios.get(userInput), got(...), http.get(...) with a tainted URL",
+          "redirect: 'follow' on a user-URL fetch",
+          "next.config remotePatterns: [{ hostname: '**' }] or dangerouslyAllowLocalIP: true"
+        ],
+        "review": [
+          "Network egress and metadata endpoint access"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) api-top10-2023:API7:2023",
+        "(inferred) proactive-controls-2024:C10"
+      ]
+    },
+    {
+      "id": "unvalidated-redirects-and-forwards-cheat-sheet",
+      "name": "Unvalidated Redirects and Forwards Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
+      "summary": "How to avoid open redirects and forwards.",
+      "prevention": [
+        "Avoid redirects and forwards where possible.",
+        "Do not accept the destination URL as user input.",
+        "Map a short ID or token to the destination server-side.",
+        "Use a local-only helper for return URLs.",
+        "Allowlist parsed scheme, host and port for external destinations."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "res.redirect(req.query.next | returnTo | url)",
+          "Next.js redirect(searchParams.x) / NextResponse.redirect(new URL(param))",
+          "window.location = params.get(...)"
+        ],
+        "review": [
+          "Allowed redirect destinations"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025"
+      ]
+    },
+    {
+      "id": "file-upload-cheat-sheet",
+      "name": "File Upload Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+      "summary": "Controls for accepting, validating and storing uploaded files safely.",
+      "prevention": [
+        "Allowlist extensions and do not trust the Content-Type header.",
+        "Generate filenames server-side and limit filename length and charset.",
+        "Set a file size limit.",
+        "Allow only authorized users to upload and CSRF-protect the upload.",
+        "Store files outside the webroot or on a separate server.",
+        "Beware double extensions, null bytes and case tricks; re-encode images and strip metadata; avoid ZIP uploads."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) multer({ dest }) / multer({ storage }) without limits.fileSize or fileFilter",
+          "(inferred) file.originalname used in a filesystem path",
+          "(inferred) Uploads saved under public/",
+          "(inferred) Supabase Storage bucket created public: true for user uploads"
+        ],
+        "review": [
+          "AV/CDR scanning and content validation depth"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V5",
+        "(inferred) top10-2025:A06:2025"
+      ]
+    },
+    {
+      "id": "rest-security-cheat-sheet",
+      "name": "REST Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html",
+      "summary": "Security guidance for REST APIs covering transport, access control, tokens, API keys, methods, content types and errors.",
+      "prevention": [
+        "Serve only over HTTPS and enforce access control at each endpoint.",
+        "Do not accept unsecured JWTs (alg none) or let the token header pick the verification algorithm.",
+        "Require API keys on every request, return 429 when rate limits are exceeded, and do not rely only on API keys for sensitive resources.",
+        "Restrict HTTP methods and validate request content types; protect management endpoints.",
+        "Return generic errors without stack traces or technical details.",
+        "Keep passwords, tokens and API keys out of URLs."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "?api_key= / ?token= in fetch URLs",
+          "res.status(500).json({ error: err.stack | err.message })"
+        ],
+        "review": [
+          "Endpoint-by-endpoint access control"
+        ]
+      },
+      "related": [
+        "(inferred) api-top10-2023:API8:2023",
+        "(inferred) asvs-5.0:V14"
+      ]
+    },
+    {
+      "id": "node-js-security-cheat-sheet",
+      "name": "Node.js Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html",
+      "summary": "Security practices for Node.js applications, including Express configuration, dangerous APIs and dependency hygiene.",
+      "prevention": [
+        "Set request size limits and do not block the event loop.",
+        "Validate input, escape output and protect against brute force and CSRF.",
+        "Use helmet for security headers and remove X-Powered-By.",
+        "Set cookie flags and only return necessary data.",
+        "Avoid eval, child_process.exec with input, and node:vm as a security boundary; watch fs paths for traversal.",
+        "Avoid evil regexes, keep packages updated and run security linters."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "express() app with no helmet import",
+          "app.disable('x-powered-by') absent",
+          "child_process.exec(`...${}`) / execSync with concatenation",
+          "(inferred) spawn(..., { shell: true })",
+          "(inferred) express.json() with a huge limit",
+          "new vm.Script(userInput)",
+          "fs.readFile(path.join(base, req.params.x)) without normalization or prefix check"
+        ],
+        "review": [
+          "Event-loop blocking and runtime error handling"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) top10-2025:A05:2025"
+      ]
+    },
+    {
+      "id": "javascript-and-typescript-security-cheat-sheet",
+      "name": "JavaScript and TypeScript Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/JavaScript_and_TypeScript_Security_Cheat_Sheet.html",
+      "summary": "Language-level security guidance for JavaScript and TypeScript code in browsers and servers.",
+      "prevention": [
+        "Never build code from strings: use JSON.parse, not eval; enforce no-eval, no-implied-eval and no-new-func.",
+        "Omit 'unsafe-eval' from CSP script-src.",
+        "Build the DOM with textContent/createElement and use Trusted Types without a permissive default policy.",
+        "Avoid ReDoS-prone regexes and cap input length.",
+        "For postMessage, check event.origin against an allowlist and never send sensitive data to \"*\".",
+        "Validate untrusted data at trust boundaries with a runtime schema; TypeScript types are erased.",
+        "Reject __proto__, constructor and prototype keys in merges."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "eval(, new Function(, setTimeout(\"string\")",
+          "Regexes with nested quantifiers",
+          "postMessage(x, '*')",
+          "addEventListener('message', ...) without event.origin check",
+          "origin.indexOf('.example.com') style checks",
+          "(await req.json()) as User"
+        ],
+        "review": [
+          "Data flow through any/as casts"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025"
+      ]
+    },
+    {
+      "id": "prototype-pollution-prevention-cheat-sheet",
+      "name": "Prototype Pollution Prevention Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Prototype_Pollution_Prevention_Cheat_Sheet.html",
+      "summary": "How to prevent attackers from modifying JavaScript object prototypes via untrusted keys.",
+      "prevention": [
+        "Use Map/Set instead of object literals for untrusted keys.",
+        "Use Object.create(null) when an object is required.",
+        "Freeze or seal prototypes.",
+        "Use Node --disable-proto=delete as defense in depth.",
+        "Never pass untrusted input to recursive merge or set-by-path helpers."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "_.merge / _.defaultsDeep / deepmerge / _.set(obj, req.body.path, ...) with request data",
+          "Custom recursive merge functions lacking a __proto__ guard",
+          "obj[req.query.key] = ..."
+        ],
+        "review": [
+          "Reachability of polluted properties"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A08:2025"
+      ]
+    },
+    {
+      "id": "next-js-security-cheat-sheet",
+      "name": "Next.js Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Nextjs_Security_Cheat_Sheet.html",
+      "summary": "Next.js-specific guidance on proxy/middleware auth, Server Actions, environment variables and configuration.",
+      "prevention": [
+        "Do not make proxy/middleware the only authorization layer (cf. CVE-2025-29927).",
+        "Treat every Server Action as a client-callable POST: validate input and authorize inside it.",
+        "Return only authorized fields from Server Actions and keep serverActions.allowedOrigins narrow.",
+        "Use NEXT_PUBLIC_ only for intentionally public values; mark sensitive modules server-only.",
+        "Protect revalidatePath/revalidateTag, keep productionBrowserSourceMaps off and never run next dev in production.",
+        "Validate env-derived hosts at startup and fail closed."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "NEXT_PUBLIC_* names matching SECRET, SERVICE_ROLE, PRIVATE, TOKEN, PASSWORD or *_KEY (excluding PUBLISHABLE_KEY/ANON_KEY)",
+          "'use server' functions with no auth call",
+          "Auth only in middleware.ts / proxy.ts",
+          "productionBrowserSourceMaps: true",
+          "\"start\": \"next dev\" in package.json"
+        ],
+        "review": [
+          "Authorization inside each action and route"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) top10-2025:A02:2025"
+      ]
+    },
+    {
+      "id": "secrets-management-cheat-sheet",
+      "name": "Secrets Management Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+      "summary": "Guidance on storing, rotating, injecting and detecting secrets across applications and pipelines.",
+      "prevention": [
+        "Centralize secrets, automate rotation, apply least-privilege access and audit use.",
+        "Never hard-code secrets, including in Docker ENV/ARG or build-time env.",
+        "Detect secrets in the IDE or pre-commit, using several tools that balance entropy and format detection.",
+        "Prefer dynamic or short-lived secrets.",
+        "On leak, revoke, then rotate, then delete, then log.",
+        "Prefer mounted volumes or sidecars over env vars for container secrets."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "High-entropy literals and known prefixes (sk_live_, sb_secret_, AKIA, service_role JWT payload)",
+          ".env committed and not in .gitignore",
+          "Secrets in Info.plist or Swift string constants"
+        ],
+        "review": [
+          "Rotation and audit practices"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI2:2025",
+        "(inferred) cicd-top10:CICD-SEC-6",
+        "(inferred) top10-2025:A02:2025"
+      ]
+    },
+    {
+      "id": "npm-security-cheat-sheet",
+      "name": "NPM Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/NPM_Security_Cheat_Sheet.html",
+      "summary": "Practices for safely consuming and publishing npm packages.",
+      "prevention": [
+        "Avoid publishing secrets: .npmignore overrides .gitignore when both exist.",
+        "Enforce the lockfile (npm ci, yarn install --frozen-lockfile).",
+        "Consider ignoring run-scripts and audit dependencies.",
+        "Enable 2FA and minimize tokens.",
+        "Watch for typosquatting, AI-hallucinated package names (slopsquatting) and dependency confusion.",
+        "Verify documentation examples before copying them."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No lockfile",
+          ".npmrc containing _authToken",
+          "Dependencies not resolvable on the registry or newly published (optional network check)"
+        ],
+        "review": [
+          "Package reputation and maintainer trust"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025",
+        "(inferred) cicd-top10:CICD-SEC-3"
+      ]
+    },
+    {
+      "id": "http-headers-cheat-sheet",
+      "name": "HTTP Headers Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html",
+      "summary": "Recommended values for security-relevant HTTP response headers.",
+      "prevention": [
+        "Send X-Frame-Options: DENY or CSP frame-ancestors.",
+        "Do not set X-XSS-Protection, or set it to 0.",
+        "Send X-Content-Type-Options: nosniff and Referrer-Policy: strict-origin-when-cross-origin.",
+        "Send Strict-Transport-Security with a long max-age, includeSubDomains and preload.",
+        "Remove Server and X-Powered-By; do not use deprecated Expect-CT or HPKP.",
+        "Set specific origins in Access-Control-Allow-Origin rather than *, except for truly public APIs."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) next.config headers() missing CSP/HSTS",
+          "X-XSS-Protection: 1; mode=block (outdated)",
+          "(inferred) vercel.json lacking a headers block (low severity)"
+        ],
+        "review": [
+          "Headers actually served"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C8",
+        "(inferred) asvs-5.0:V3"
+      ]
+    },
+    {
+      "id": "content-security-policy-cheat-sheet",
+      "name": "Content Security Policy Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html",
+      "summary": "How to deploy a strict, nonce- or hash-based Content Security Policy.",
+      "prevention": [
+        "Use a strict nonce- or hash-based policy such as script-src 'nonce-...' 'strict-dynamic'.",
+        "Make nonces unique per response.",
+        "Do not auto-add nonces to every script tag in middleware.",
+        "Set object-src 'none'.",
+        "Use frame-ancestors instead of X-Frame-Options."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "CSP script-src containing 'unsafe-inline' or 'unsafe-eval'",
+          "Wildcard * sources",
+          "Static nonce literal"
+        ],
+        "review": [
+          "CSP report analysis"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C8"
+      ]
+    },
+    {
+      "id": "html5-security-cheat-sheet",
+      "name": "HTML5 Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html",
+      "summary": "Guidance on HTML5 features including CORS, postMessage and web storage.",
+      "prevention": [
+        "Allow only selected trusted domains in Access-Control-Allow-Origin; never * or blindly reflected Origin for sensitive content.",
+        "Specify an exact target origin in postMessage, not *.",
+        "Check message origin by exact FQDN match, not indexOf.",
+        "Avoid keeping sensitive data in localStorage; prefer sessionStorage when persistence is not needed."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) cors() with no options (defaults to *)",
+          "cors({ origin: true | '*', credentials: true }) or origin: (o, cb) => cb(null, true)",
+          "res.setHeader('Access-Control-Allow-Origin', req.headers.origin)"
+        ],
+        "review": [
+          "Origins actually allowed in production"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V3",
+        "(inferred) api-top10-2023:API8:2023"
+      ]
+    },
+    {
+      "id": "cryptographic-storage-cheat-sheet",
+      "name": "Cryptographic Storage Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html",
+      "summary": "Guidance on algorithms, modes, randomness and key handling for data at rest.",
+      "prevention": [
+        "Use AES with a 128-bit or larger (ideally 256-bit) key in authenticated modes (GCM/CCM).",
+        "Do not use ECB outside very specific circumstances.",
+        "Use RSA-OAEP for RSA encryption.",
+        "Never reuse an IV with the same key.",
+        "Use CSPRNGs: Node crypto.randomBytes/randomInt/randomUUID; Apple SecRandomCopyBytes or arc4random.",
+        "Do not use UUID v1 for secrets."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Math.random() near token/otp/secret/password/reset/session identifiers",
+          "createCipheriv('aes-...-ecb') or deprecated createCipher(",
+          "Static IV literal",
+          "uuid.v1() for tokens",
+          "(inferred) Swift rand()/random()/GKRandomSource for tokens; kCCOptionECBMode"
+        ],
+        "review": [
+          "Key management practices"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A04:2025",
+        "(inferred) asvs-5.0:V11"
+      ]
+    },
+    {
+      "id": "transport-layer-security-cheat-sheet",
+      "name": "Transport Layer Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html",
+      "summary": "Guidance on TLS versions, cipher suites and HTTPS enforcement; supersedes the deprecated Transport Layer Protection Cheat Sheet.",
+      "prevention": [
+        "Default to TLS 1.3, allow TLS 1.2 for compatibility, and disable TLS 1.0/1.1.",
+        "Use AEAD cipher suites.",
+        "Redirect HTTP to HTTPS and use HSTS.",
+        "On iOS, use App Transport Security and always use HTTPS."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "http:// API base URLs in client or Swift code",
+          "(inferred) Info.plist NSAllowsArbitraryLoads = true",
+          "(inferred) Node rejectUnauthorized: false or NODE_TLS_REJECT_UNAUTHORIZED=0",
+          "(inferred) URLSessionDelegate that accepts any server trust"
+        ],
+        "review": [
+          "Live server TLS configuration"
+        ]
+      },
+      "related": [
+        "(inferred) asvs-5.0:V12",
+        "(inferred) top10-2025:A04:2025"
+      ]
+    },
+    {
+      "id": "logging-cheat-sheet",
+      "name": "Logging Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+      "summary": "What to log, what never to log, and how to protect log integrity.",
+      "prevention": [
+        "Do not log session IDs, access tokens, passwords, connection strings, keys, card or bank data, sensitive PII or source code; remove, mask, hash or encrypt them.",
+        "Sanitize event data against log injection (CR, LF, delimiters).",
+        "Log authentication, authorization and session failures, including suspicious JWT validation failures."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "console.log(req.body) / console.log(password | token | session | authorization)",
+          "(inferred) Swift print/NSLog/os_log with token or password values"
+        ],
+        "review": [
+          "Log retention, monitoring and alerting"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A09:2025",
+        "(inferred) proactive-controls-2024:C9"
+      ]
+    },
+    {
+      "id": "error-handling-cheat-sheet",
+      "name": "Error Handling Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html",
+      "summary": "How to handle unexpected errors with a global handler that returns generic responses.",
+      "prevention": [
+        "Configure a global error handler for unexpected errors.",
+        "Return a generic response to clients.",
+        "Log error details server-side only."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "res.send(err) / res.json({ error: err.stack })",
+          "(inferred) Express apps without a 4-argument error middleware"
+        ],
+        "review": [
+          "Error responses across all paths"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A10:2025"
+      ]
+    },
+    {
+      "id": "denial-of-service-cheat-sheet",
+      "name": "Denial of Service Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Denial_of_Service_Cheat_Sheet.html",
+      "summary": "Application and infrastructure measures against resource-exhaustion attacks.",
+      "prevention": [
+        "Limit file upload size and extensions and total request size.",
+        "Prevent input-based resource allocation and input-driven loops.",
+        "Beware of user lockout being abused as DoS.",
+        "Rate limit at infrastructure or application level.",
+        "Set minimum ingress data rates and timeouts."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) limit/take read from req.query without a cap",
+          "new Array(req.body.n)",
+          "(inferred) No express-rate-limit (or similar) on auth or AI-proxy endpoints"
+        ],
+        "review": [
+          "Infrastructure-level rate limiting"
+        ]
+      },
+      "related": [
+        "(inferred) api-top10-2023:API4:2023"
+      ]
+    },
+    {
+      "id": "third-party-javascript-management-cheat-sheet",
+      "name": "Third Party JavaScript Management Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html",
+      "summary": "How to reduce risk from third-party scripts such as tags and analytics.",
+      "prevention": [
+        "Mirror third-party scripts in-house where possible.",
+        "Use Subresource Integrity.",
+        "Transmit scripts securely.",
+        "Sandbox third-party code; a data layer is not a sandbox because tag managers can run custom JS."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "<script src=\"https://cdn...\"> without integrity= and crossorigin"
+        ],
+        "review": [
+          "Tag manager configurations"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A08:2025"
+      ]
+    },
+    {
+      "id": "os-command-injection-defense-cheat-sheet",
+      "name": "OS Command Injection Defense Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html",
+      "summary": "Defenses against OS command and argument injection.",
+      "prevention": [
+        "Avoid calling OS commands directly; prefer library APIs.",
+        "Escape values for the target OS when commands are unavoidable.",
+        "Use parameterization together with input validation.",
+        "Guard against argument injection as well as command injection."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) child_process.exec/execSync with interpolated input",
+          "(inferred) spawn with shell: true"
+        ],
+        "review": [
+          "Exploitability through argument handling"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) asvs-5.0:V1"
+      ]
+    },
+    {
+      "id": "mobile-application-security-cheat-sheet",
+      "name": "Mobile Application Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Mobile_Application_Security_Cheat_Sheet.html",
+      "summary": "Mobile app guidance, including iOS-relevant rules on server-side enforcement, credential storage and transport.",
+      "prevention": [
+        "Perform authentication and authorization server-side; assume client-side controls can be bypassed.",
+        "Do not hard-code credentials or store user passwords on the device.",
+        "Use the Keychain and Secure Enclave for sensitive storage.",
+        "Do not use spoofable device identifiers for authentication and do not allow 4-digit PINs.",
+        "Avoid caching, logging or snapshotting sensitive data; use platform crypto APIs.",
+        "Use ATS, always use HTTPS, avoid sensitive data in plist files, and require auth for sensitive App Intents."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) UserDefaults.standard.set(token | password ...) instead of Keychain",
+          "(inferred) API keys or secret literals in Swift",
+          "(inferred) UIDevice.current.identifierForVendor used as an auth credential",
+          "(inferred) NSAllowsArbitraryLoads"
+        ],
+        "review": [
+          "Runtime storage and snapshot behavior"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025"
+      ]
+    },
+    {
+      "id": "secure-coding-with-ai-cheat-sheet",
+      "name": "Secure Coding with AI Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secure_Coding_with_AI_Cheat_Sheet.html",
+      "summary": "Risks specific to AI-assisted coding, such as hallucinated or outdated dependencies, rules files, fabricated tests and markdown/Unicode injection.",
+      "prevention": [
+        "Check AI-suggested dependencies exist and are legitimate (hallucinated dependencies).",
+        "Check suggested dependency versions for known CVEs.",
+        "Review AI rules files as part of the codebase.",
+        "Watch for fabricated or deleted tests.",
+        "Guard against Markdown/Unicode injection."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Dependencies not resolvable on the registry",
+          "(inferred) Outdated dependency versions with known CVEs"
+        ],
+        "review": [
+          "Rules-file content and test integrity"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025"
+      ]
+    },
+    {
+      "id": "multi-tenant-security-cheat-sheet",
+      "name": "Multi-Tenant Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html",
+      "summary": "Guidance on tenant isolation, including PostgreSQL row level security as a database-enforced boundary.",
+      "prevention": [
+        "Enable row level security on tenant tables.",
+        "Force row level security so table owners are also subject to it.",
+        "Create tenant-isolation policies keyed on the current tenant ID."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Supabase/Postgres migrations creating tables without enable row level security",
+          "(inferred) Policies using (true)"
+        ],
+        "review": [
+          "Tenant isolation across all data paths"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) top10-2025:A06:2025"
+      ]
+    },
+    {
+      "id": "ci-cd-security-cheat-sheet",
+      "name": "CI/CD Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/CI_CD_Security_Cheat_Sheet.html",
+      "summary": "Practices for securing source control, pipelines and their dependencies and secrets.",
+      "prevention": [
+        "Avoid auto-merge and require reviews that cannot be bypassed.",
+        "Use signed commits and MFA.",
+        "Pin dependencies and verify hashes; sign artifacts (e.g. Sigstore).",
+        "Detect secrets with tools such as git-leaks and git-secrets and keep secrets in vaults.",
+        "Avoid Docker --privileged, scope npm packages, commit .npmrc and never log secrets."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Auto-merge workflow steps",
+          "(inferred) Unpinned third-party actions",
+          "(inferred) Secrets echoed in workflow steps"
+        ],
+        "review": [
+          "SCM review and protection settings"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-1",
+        "(inferred) cicd-top10:CICD-SEC-6",
+        "(inferred) cicd-top10:CICD-SEC-9"
+      ]
+    },
+    {
+      "id": "docker-security-cheat-sheet",
+      "name": "Docker Security Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html",
+      "summary": "Rules for securing Docker hosts, daemons, images and containers.",
+      "prevention": [
+        "Keep host and Docker updated and never expose the daemon socket (TCP or mounted docker.sock).",
+        "Set a non-root USER and run rootless where possible.",
+        "Drop all capabilities, never use --privileged, and set no-new-privileges.",
+        "Bind ports to 127.0.0.1 where appropriate, limit resources and use seccomp/AppArmor/SELinux.",
+        "Use read-only filesystems and Docker secrets.",
+        "Lint and scan images (Trivy/Grype, secret scanners) and produce SBOMs and signatures."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) No USER directive or USER root/0 as the final user",
+          "(inferred) ENV/ARG secret-like names with literal values",
+          "(inferred) COPY .env, or COPY . . without a .dockerignore excluding .env",
+          "(inferred) FROM x:latest or untagged; ADD http...; curl | sh",
+          "(inferred) Compose privileged: true, /var/run/docker.sock volume, network_mode: host, cap_add: ALL",
+          "(inferred) Database ports published on 0.0.0.0 (5432, 6379, 27017)"
+        ],
+        "review": [
+          "Host and daemon configuration"
+        ]
+      },
+      "related": [
+        "(inferred) k8s-top10-2025:K01",
+        "(inferred) k8s-top10-2025:K03",
+        "(inferred) cicd-top10:CICD-SEC-6",
+        "(inferred) nhi-top10-2025:NHI2:2025"
+      ]
+    }
+  ]
+}

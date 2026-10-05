@@ -1,0 +1,2461 @@
+{
+  "schema_version": 1,
+  "description": "Deterministic security rules for reinhardt, mapped to OWASP. Maintained separately from the engine; every rule ships positive and negative test vectors that the engine test suite must execute.",
+  "disclaimer": "Heuristic static patterns. A match is a lead for verification, not proof of a vulnerability; no match is not evidence of safety.",
+  "vector_format": "tests.positive/negative are {path, text, with?}. text may be an array of strings joined with no separator (used so credential-shaped samples never appear contiguously in this file). with lists extra files present in the same repository.",
+  "ref_format": "<standard-id>:<item-id> resolving to data/owasp/<standard-id>.json items[].id (split on the FIRST colon only). asvs entries are version-pinned ASVS 5.0.0 L1 requirement ids.",
+  "test_path_regex": "(?:^|/)(?:test|tests|__tests__|__mocks__|spec|specs|fixtures?|examples?|e2e|cypress|mocks?|testdata)(?:/|$)|\\.(?:test|spec)\\.[cm]?[jt]sx?$",
+  "file_classes": {
+    "js": {
+      "extensions": [
+        "js",
+        "jsx",
+        "ts",
+        "tsx",
+        "mjs",
+        "cjs",
+        "mts",
+        "cts",
+        "vue",
+        "svelte",
+        "astro"
+      ]
+    },
+    "swift": {
+      "extensions": [
+        "swift"
+      ]
+    },
+    "objc": {
+      "extensions": [
+        "m",
+        "mm"
+      ]
+    },
+    "python": {
+      "extensions": [
+        "py"
+      ]
+    },
+    "html": {
+      "extensions": [
+        "html",
+        "htm"
+      ]
+    },
+    "sql": {
+      "extensions": [
+        "sql"
+      ]
+    },
+    "plist": {
+      "extensions": [
+        "plist"
+      ]
+    },
+    "config": {
+      "extensions": [
+        "json",
+        "yml",
+        "yaml",
+        "toml",
+        "xcconfig",
+        "properties",
+        "ini"
+      ]
+    },
+    "firebase-rules": {
+      "extensions": [
+        "rules"
+      ],
+      "basenames": [
+        "database.rules.json"
+      ]
+    },
+    "workflow": {
+      "path_regex": "(?:^|/)\\.github/workflows/[^/]+\\.ya?ml$"
+    },
+    "dockerfile": {
+      "path_regex": "(?:^|/)(?:Dockerfile(?:\\.[^/]+)?|[^/]+\\.dockerfile)$"
+    },
+    "next-config": {
+      "path_regex": "(?:^|/)next\\.config\\.(?:js|mjs|cjs|ts|mts)$"
+    },
+    "mcp-config": {
+      "path_regex": "(?:^|/)(?:\\.mcp\\.json|mcp\\.json|claude_desktop_config\\.json)$"
+    }
+  },
+  "rules": [
+    {
+      "kind": "pattern",
+      "id": "hardcoded-secret",
+      "title": "Live credential committed to the repository",
+      "severity": "high",
+      "confidence": "high",
+      "category": "secrets",
+      "files": [
+        "js",
+        "swift",
+        "objc",
+        "python",
+        "html",
+        "config",
+        "plist",
+        "dockerfile",
+        "workflow",
+        "mcp-config",
+        "firebase-rules",
+        "next-config"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "stripe-secret-key",
+          "regex": "\\b(?:sk|rk)_live_[0-9A-Za-z]{20,}",
+          "flags": ""
+        },
+        {
+          "label": "aws-access-key-id",
+          "regex": "\\b(?:AKIA|ASIA)[0-9A-Z]{16}\\b",
+          "flags": ""
+        },
+        {
+          "label": "github-token",
+          "regex": "\\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}\\b|\\bgithub_pat_[A-Za-z0-9_]{22,}",
+          "flags": ""
+        },
+        {
+          "label": "slack-token",
+          "regex": "\\bxox[abpe]-[0-9A-Za-z-]{10,}",
+          "flags": ""
+        },
+        {
+          "label": "anthropic-key",
+          "regex": "\\bsk-ant-[a-z]+\\d{2}-[A-Za-z0-9_-]{20,}",
+          "flags": ""
+        },
+        {
+          "label": "openai-key",
+          "regex": "\\bsk-(?:proj|svcacct|admin)-[A-Za-z0-9_-]{20,}|\\bsk-[A-Za-z0-9]{20}T3BlbkFJ[A-Za-z0-9]{20}\\b",
+          "flags": ""
+        },
+        {
+          "label": "supabase-secret-key",
+          "regex": "\\bsb_secret_[A-Za-z0-9_-]{16,}",
+          "flags": ""
+        },
+        {
+          "label": "private-key-block",
+          "regex": "-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY(?: BLOCK)?-----",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "nhi-top10-2025:NHI2:2025",
+        "nhi-top10-2025:NHI7:2025",
+        "top10-2025:A04:2025",
+        "top10-2025:A07:2025",
+        "mobile-top10-2024:M1",
+        "maswe:MASWE-0004",
+        "cicd-top10:CICD-SEC-6"
+      ],
+      "guidance": [
+        "cheatsheets:secrets-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-798"
+      ],
+      "asvs": [],
+      "detail": "A string matching a documented provider credential format appears in tracked source. Anything committed must be treated as exposed, including in git history and in shipped client bundles.",
+      "suggested_fix": "Revoke and rotate the credential first, then remove it from the code, load it from a server-side secret store or environment variable, and purge it from history if the repository is or was public.",
+      "tests": {
+        "positive": [
+          {
+            "path": "src/pay.js",
+            "text": [
+              "const stripe = new Stripe('sk_",
+              "live_51Habcdefghijklmnopqrstuv');"
+            ]
+          },
+          {
+            "path": "Config.swift",
+            "text": [
+              "let key = \"AKIA",
+              "IOSFODNN7EXAMPLE\""
+            ]
+          },
+          {
+            "path": "deploy/key.yml",
+            "text": [
+              "key: |\n  -----BEGIN RSA PRIVATE",
+              " KEY-----\n  MIIE"
+            ]
+          },
+          {
+            "path": "lib/ai.ts",
+            "text": [
+              "const c = new Anthropic({ apiKey: 'sk-ant-",
+              "api03-abcdefghijklmnopqrstuvwxyz0123456789' })"
+            ]
+          }
+        ],
+        "negative": [
+          {
+            "path": "src/pay.js",
+            "text": "const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);"
+          },
+          {
+            "path": "src/pk.js",
+            "text": "const pk = 'pk_live_51Habcdefghijklmnopqrstuv';"
+          },
+          {
+            "path": "test/pay.test.js",
+            "text": [
+              "const k = 'sk_",
+              "live_51Habcdefghijklmnopqrstuv';"
+            ]
+          },
+          {
+            "path": "src/a.js",
+            "text": "const t = 'sk_test_51Habcdefghijklmnopqrstuv';"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "client-exposed-secret-env",
+      "title": "Secret read through a client-exposed environment variable",
+      "severity": "high",
+      "confidence": "high",
+      "category": "secrets",
+      "files": [
+        "js",
+        "config",
+        "python",
+        "swift",
+        "next-config"
+      ],
+      "skip_test_paths": false,
+      "patterns": [
+        {
+          "label": "public-env-secret",
+          "regex": "\\b(?:NEXT_PUBLIC|VITE|EXPO_PUBLIC|REACT_APP|NUXT_PUBLIC|GATSBY|PUBLIC)_[A-Z0-9_]*(?:SECRET|SERVICE_ROLE|PRIVATE|PASSWORD|OPENAI|ANTHROPIC|GEMINI|GROQ|MISTRAL|REPLICATE|ELEVENLABS|SK_|ADMIN|AWS_SECRET|DATABASE_URL|DB_URL|RESEND|SENDGRID|TWILIO_AUTH)[A-Z0-9_]*",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A04:2025",
+        "top10-2025:A02:2025",
+        "llm-top10-2026:LLM02:2026",
+        "nhi-top10-2025:NHI2:2025",
+        "client-side-top10:CS10",
+        "mobile-top10-2024:M1"
+      ],
+      "guidance": [
+        "cheatsheets:next-js-security-cheat-sheet",
+        "cheatsheets:secrets-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-798",
+        "CWE-200"
+      ],
+      "asvs": [
+        "v5.0.0-14.2.1"
+      ],
+      "detail": "Framework prefixes such as NEXT_PUBLIC_, VITE_, EXPO_PUBLIC_ and REACT_APP_ inline the value into the browser or app bundle, where anyone can read it. The variable name indicates a server-only secret (service-role key, model-provider key, private key or database URL).",
+      "suggested_fix": "Rename the variable without the public prefix, read it only in server code (route handler, server action, edge function), and rotate the value because previously built bundles already contain it.",
+      "tests": {
+        "positive": [
+          {
+            "path": "lib/supabase.ts",
+            "text": "createClient(url, process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!)"
+          },
+          {
+            "path": "src/ai.js",
+            "text": "const key = import.meta.env.VITE_OPENAI_API_KEY;"
+          },
+          {
+            "path": "app.config.json",
+            "text": "{\"extra\": {\"EXPO_PUBLIC_STRIPE_SECRET_KEY\": \"x\"}}"
+          }
+        ],
+        "negative": [
+          {
+            "path": "lib/supabase.ts",
+            "text": "createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)"
+          },
+          {
+            "path": "src/pay.js",
+            "text": "loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)"
+          },
+          {
+            "path": "server/ai.ts",
+            "text": "const key = process.env.OPENAI_API_KEY;"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "llm-sdk-in-browser",
+      "title": "LLM provider SDK enabled in the browser",
+      "severity": "high",
+      "confidence": "high",
+      "category": "llm",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "dangerously-allow-browser",
+          "regex": "\\bdangerouslyAllowBrowser\\s*:\\s*true\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "llm-top10-2026:LLM02:2026",
+        "llm-top10-2026:LLM06:2026",
+        "top10-2025:A04:2025",
+        "client-side-top10:CS10",
+        "nhi-top10-2025:NHI2:2025"
+      ],
+      "guidance": [
+        "cheatsheets:secrets-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-798"
+      ],
+      "asvs": [
+        "v5.0.0-14.2.1"
+      ],
+      "detail": "The OpenAI and Anthropic JavaScript SDKs refuse to run in a browser unless dangerouslyAllowBrowser is true, because the API key then ships to every visitor, who can spend against it without limits.",
+      "suggested_fix": "Call the model from a server route that holds the key, authenticates the user, and enforces rate limits and output-token caps; remove dangerouslyAllowBrowser and rotate the exposed key.",
+      "tests": {
+        "positive": [
+          {
+            "path": "src/chat.tsx",
+            "text": "const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });"
+          }
+        ],
+        "negative": [
+          {
+            "path": "src/chat.tsx",
+            "text": "const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: false });"
+          },
+          {
+            "path": "server/chat.ts",
+            "text": "const openai = new OpenAI();"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "supabase-privileged-key-in-client",
+      "title": "Supabase privileged key referenced in client code",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "access-control",
+      "files": [
+        "js",
+        "swift"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "service-role-reference",
+          "regex": "\\bservice_role\\b|SUPABASE_SERVICE_ROLE(?:_KEY)?\\b|\\bsb_secret_",
+          "flags": ""
+        }
+      ],
+      "context_any": [
+        {
+          "regex": "^\\s*['\"]use client['\"]",
+          "flags": "m"
+        }
+      ],
+      "path_any": [
+        "\\.(?:swift|vue|svelte)$",
+        "(?:^|/)(?:components|hooks|screens|views)/"
+      ],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "api-top10-2023:API1:2023",
+        "nhi-top10-2025:NHI5:2025",
+        "mobile-top10-2024:M1"
+      ],
+      "guidance": [
+        "cheatsheets:authorization-cheat-sheet",
+        "cheatsheets:multi-tenant-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-284",
+        "CWE-798"
+      ],
+      "asvs": [
+        "v5.0.0-8.3.1"
+      ],
+      "detail": "Supabase service_role and sb_secret_ keys bypass Row Level Security. Referencing one from a client component, mobile view or browser framework file means every user can read and write every row.",
+      "suggested_fix": "Use only the anon or publishable key on clients; move privileged operations to a server route or Edge Function that checks the caller and uses the secret key there. Rotate the key if it was ever bundled.",
+      "tests": {
+        "positive": [
+          {
+            "path": "app/admin/page.tsx",
+            "text": "'use client'\nconst sb = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!)"
+          },
+          {
+            "path": "Sources/App/Supabase.swift",
+            "text": "let client = SupabaseClient(supabaseURL: url, supabaseKey: Secrets.service_role)"
+          }
+        ],
+        "negative": [
+          {
+            "path": "app/api/admin/route.ts",
+            "text": "const sb = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!)"
+          },
+          {
+            "path": "src/components/List.tsx",
+            "text": "const sb = createClient(url, anonKey)"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "supabase-rls",
+      "id": "supabase-table-without-rls",
+      "title": "Supabase table created without Row Level Security",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "access-control",
+      "files": [
+        "sql"
+      ],
+      "skip_test_paths": true,
+      "patterns": [],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "api-top10-2023:API1:2023",
+        "top10-2025:A02:2025",
+        "proactive-controls-2024:C1"
+      ],
+      "guidance": [
+        "cheatsheets:authorization-cheat-sheet",
+        "cheatsheets:multi-tenant-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-284",
+        "CWE-862"
+      ],
+      "asvs": [
+        "v5.0.0-8.2.2"
+      ],
+      "detail": "A table in the public (API-exposed) schema is created in a migration, but no SQL file enables Row Level Security on it. With the anon key shipped to clients, anyone can query the table through the auto-generated API.",
+      "suggested_fix": "Add `alter table <name> enable row level security;` and owner-scoped policies (for example `using (auth.uid() = user_id)`), or move the table to a schema that is not exposed.",
+      "algorithm": "Collect every `create table [if not exists] [public.]<name>` in .sql files (schema omitted or public; quoted names allowed, compare case-insensitively without quotes). Collect every `alter table [only] [if exists] [public.]<name> enable row level security` across all .sql files. Report each created table that never has RLS enabled; evidence is the create statement line.",
+      "tests": {
+        "positive": [
+          {
+            "path": "supabase/migrations/001_init.sql",
+            "text": "create table public.profiles (\n  id uuid primary key,\n  bio text\n);"
+          },
+          {
+            "path": "supabase/migrations/001.sql",
+            "text": "CREATE TABLE IF NOT EXISTS \"Notes\" (id int);\nalter table profiles enable row level security;"
+          }
+        ],
+        "negative": [
+          {
+            "path": "supabase/migrations/001_init.sql",
+            "text": "create table public.profiles (id uuid primary key);\nalter table public.profiles enable row level security;"
+          },
+          {
+            "path": "db/private.sql",
+            "text": "create table private.jobs (id int);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "supabase-permissive-write-policy",
+      "title": "Supabase write policy allows every row",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "access-control",
+      "files": [
+        "sql"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "using-true",
+          "regex": "create\\s+policy[^;]{0,400}?\\bfor\\s+(?:all|insert|update|delete)\\b[^;]{0,400}?(?:using|with\\s+check)\\s*\\(\\s*true\\s*\\)",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "api-top10-2023:API1:2023",
+        "api-top10-2023:API5:2023"
+      ],
+      "guidance": [
+        "cheatsheets:authorization-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-285",
+        "CWE-863"
+      ],
+      "asvs": [
+        "v5.0.0-8.2.2"
+      ],
+      "detail": "A Row Level Security policy for write operations uses `true` as its condition, so any role the policy applies to can modify any row. RLS is enabled but provides no ownership check.",
+      "suggested_fix": "Scope the policy to the owner, e.g. `using (auth.uid() = user_id) with check (auth.uid() = user_id)`, and restrict it `to authenticated`.",
+      "tests": {
+        "positive": [
+          {
+            "path": "supabase/migrations/002.sql",
+            "text": "create policy \"edit\" on posts for update using (true);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "supabase/migrations/002.sql",
+            "text": "create policy \"read\" on posts for select using (true);\ncreate policy \"edit\" on posts for update using (auth.uid() = author_id);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "firebase-open-rules",
+      "title": "Firebase security rules allow unrestricted access",
+      "severity": "high",
+      "confidence": "high",
+      "category": "access-control",
+      "files": [
+        "firebase-rules",
+        "config"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "allow-if-true",
+          "regex": "\\ballow\\s+[a-z, ]{0,60}?\\b(?:read|write|get|list|create|update|delete)\\b[a-z, ]{0,60}:\\s*if\\s+true\\s*;",
+          "flags": ""
+        },
+        {
+          "label": "allow-without-condition",
+          "regex": "\\ballow\\s+(?:read|write|get|list|create|update|delete)(?:\\s*,\\s*(?:read|write|get|list|create|update|delete))*\\s*;",
+          "flags": ""
+        },
+        {
+          "label": "test-mode-expiry",
+          "regex": "\\ballow\\s+[a-z, ]{1,60}:\\s*if\\s+request\\.time\\s*<\\s*timestamp\\.date\\s*\\(",
+          "flags": ""
+        },
+        {
+          "label": "rtdb-public",
+          "regex": "\"\\.(?:read|write)\"\\s*:\\s*(?:true|\"true\")",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "top10-2025:A02:2025",
+        "api-top10-2023:API1:2023",
+        "citizen-dev-top10:CD-SEC-05"
+      ],
+      "guidance": [
+        "cheatsheets:authorization-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-284",
+        "CWE-732"
+      ],
+      "asvs": [
+        "v5.0.0-8.2.2"
+      ],
+      "detail": "Firestore, Storage or Realtime Database rules grant access with no condition, `if true`, or the expiring test-mode rule. The Firebase client config is public by design, so these rules are the only access control.",
+      "suggested_fix": "Deny by default and grant per document, e.g. `allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId;`. Note that `request.auth != null` alone still exposes every user's data to every signed-in user.",
+      "tests": {
+        "positive": [
+          {
+            "path": "firestore.rules",
+            "text": "match /{document=**} {\n  allow read, write: if true;\n}"
+          },
+          {
+            "path": "firestore.rules",
+            "text": "allow read, write: if request.time < timestamp.date(2026, 11, 1);"
+          },
+          {
+            "path": "database.rules.json",
+            "text": "{ \"rules\": { \".read\": true, \".write\": true } }"
+          },
+          {
+            "path": "storage.rules",
+            "text": "allow read;"
+          }
+        ],
+        "negative": [
+          {
+            "path": "firestore.rules",
+            "text": "allow read, write: if request.auth != null && request.auth.uid == userId;"
+          },
+          {
+            "path": "database.rules.json",
+            "text": "{ \"rules\": { \".read\": \"auth != null\" } }"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "mass-assignment",
+      "title": "Request body written directly to the database",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "access-control",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "orm-write-request-body",
+          "regex": "\\.(?:create|insert|update|updateOne|updateMany|upsert|findOneAndUpdate|findByIdAndUpdate|set)\\(\\s*(?:[\\w.]+\\s*,\\s*)?(?:\\{\\s*data\\s*:\\s*)?(?:\\.\\.\\.)?(?:req|request)\\.body\\s*[,)}]",
+          "flags": ""
+        },
+        {
+          "label": "orm-data-request-body",
+          "regex": "\\bdata\\s*:\\s*(?:\\.\\.\\.)?(?:req|request)\\.body\\b",
+          "flags": ""
+        },
+        {
+          "label": "object-assign-body",
+          "regex": "\\bObject\\.assign\\(\\s*[\\w.]+\\s*,\\s*(?:req|request)\\.body\\s*\\)",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "api-top10-2023:API3:2023",
+        "top10-2025:A01:2025",
+        "top10-2025:A08:2025"
+      ],
+      "guidance": [
+        "cheatsheets:mass-assignment-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-915"
+      ],
+      "asvs": [],
+      "detail": "The whole client-supplied body is passed to a create/update call, so a user can set fields they should not control, such as role, is_admin, owner id or price.",
+      "suggested_fix": "Validate the body with a schema (zod, valibot) and copy only allow-listed fields; set ownership and privilege fields on the server.",
+      "tests": {
+        "positive": [
+          {
+            "path": "api/users.js",
+            "text": "await User.create(req.body);"
+          },
+          {
+            "path": "api/posts.ts",
+            "text": "await prisma.post.update({ where: { id }, data: req.body })"
+          },
+          {
+            "path": "api/p.js",
+            "text": "Object.assign(user, req.body);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "api/users.js",
+            "text": "await User.create({ name: body.name });"
+          },
+          {
+            "path": "api/users.js",
+            "text": "const data = schema.parse(req.body); await User.create(data);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "cors-credentials-any-origin",
+      "title": "CORS allows credentials from any origin",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "config",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "wildcard-or-reflected-origin",
+          "regex": "\\borigin\\s*:\\s*(?:['\"]\\*['\"]|true\\b)",
+          "flags": ""
+        }
+      ],
+      "require_file_all": [
+        {
+          "regex": "\\bcredentials\\s*:\\s*true\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "top10-2025:A02:2025",
+        "api-top10-2023:API8:2023"
+      ],
+      "guidance": [
+        "cheatsheets:html5-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-942",
+        "CWE-346"
+      ],
+      "asvs": [
+        "v5.0.0-3.4.2"
+      ],
+      "detail": "CORS is configured with credentials and an origin of `*` or `true` (reflect any origin). Any website can then make authenticated requests on behalf of a signed-in user and read the responses.",
+      "suggested_fix": "Use an explicit allow-list of trusted origins when credentials are enabled.",
+      "tests": {
+        "positive": [
+          {
+            "path": "server.js",
+            "text": "app.use(cors({ origin: true, credentials: true }));"
+          }
+        ],
+        "negative": [
+          {
+            "path": "server.js",
+            "text": "app.use(cors({ origin: '*' }));"
+          },
+          {
+            "path": "server.js",
+            "text": "app.use(cors({ origin: ['https://app.example.com'], credentials: true }));"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "open-redirect",
+      "title": "Redirect target taken from the request",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "access-control",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "redirect-from-request",
+          "regex": "\\b(?:res\\.redirect|redirect|NextResponse\\.redirect)\\(\\s*(?:\\d{3}\\s*,\\s*)?(?:new\\s+URL\\(\\s*)?(?:(?:req|request)\\.(?:query|body|params)\\b|(?:request\\.nextUrl\\.)?searchParams\\.get\\()",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A01:2025"
+      ],
+      "guidance": [
+        "cheatsheets:unvalidated-redirects-and-forwards-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-601"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.2"
+      ],
+      "detail": "The redirect destination comes from a query, body or route parameter, which lets attackers craft links on your domain that forward victims to phishing pages or leak OAuth codes.",
+      "suggested_fix": "Redirect only to relative paths or to destinations on an allow-list; reject absolute URLs and protocol-relative `//` values.",
+      "tests": {
+        "positive": [
+          {
+            "path": "routes/login.js",
+            "text": "res.redirect(req.query.next);"
+          },
+          {
+            "path": "app/auth/route.ts",
+            "text": "return NextResponse.redirect(new URL(searchParams.get('next')!, request.url))"
+          }
+        ],
+        "negative": [
+          {
+            "path": "routes/login.js",
+            "text": "res.redirect('/dashboard');"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "ssrf-request-url",
+      "title": "Server fetches a URL supplied by the request",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "injection",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "fetch-request-url",
+          "regex": "\\b(?:fetch|axios(?:\\.(?:get|post|put|patch|delete|request))?|got|needle|superagent\\.get|https?\\.get)\\(\\s*(?:`[^`]{0,500}?\\$\\{\\s*)?(?:(?:req|request)\\.(?:query|body|params)\\b|(?:request\\.nextUrl\\.)?searchParams\\.get\\()",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A01:2025",
+        "api-top10-2023:API7:2023",
+        "proactive-controls-2024:C10"
+      ],
+      "guidance": [
+        "cheatsheets:server-side-request-forgery-prevention-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-918"
+      ],
+      "asvs": [],
+      "detail": "A server-side HTTP request uses a URL or host from the incoming request. Attackers can make the server reach internal services or cloud metadata endpoints (169.254.169.254).",
+      "suggested_fix": "Allow-list destination hosts, resolve and block private/link-local addresses, and disable automatic redirect following for user-influenced requests.",
+      "tests": {
+        "positive": [
+          {
+            "path": "api/proxy.js",
+            "text": "const r = await fetch(req.query.url);"
+          },
+          {
+            "path": "app/api/img/route.ts",
+            "text": "const r = await fetch(searchParams.get('src')!)"
+          },
+          {
+            "path": "api/p.js",
+            "text": "await axios.get(`${req.body.host}/status`)"
+          }
+        ],
+        "negative": [
+          {
+            "path": "api/proxy.js",
+            "text": "const r = await fetch('https://api.example.com/items');"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "sql-string-building",
+      "title": "SQL query built with string interpolation",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "injection",
+      "files": [
+        "js",
+        "python"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "template-literal-query",
+          "regex": "\\.(?:query|execute|raw|unsafe|\\$queryRawUnsafe|\\$executeRawUnsafe|sql)\\(\\s*`[^`]{0,2000}?\\$\\{",
+          "flags": ""
+        },
+        {
+          "label": "concatenated-query",
+          "regex": "\\.(?:query|execute|raw)\\(\\s*(?:\"[^\"\\n]*\\b(?:SELECT|INSERT|UPDATE|DELETE)\\b[^\"\\n]*\"|'[^'\\n]*\\b(?:SELECT|INSERT|UPDATE|DELETE)\\b[^'\\n]*')\\s*\\+",
+          "flags": "i"
+        },
+        {
+          "label": "python-fstring-query",
+          "regex": "\\.execute\\(\\s*f[\"'][^\"'\\n]*\\b(?:SELECT|INSERT|UPDATE|DELETE)\\b[^\"'\\n]*\\{",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "proactive-controls-2024:C3"
+      ],
+      "guidance": [
+        "cheatsheets:sql-injection-prevention-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-89"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.4"
+      ],
+      "detail": "Values are interpolated into SQL text instead of being passed as parameters, so input containing quotes or SQL can change the query.",
+      "suggested_fix": "Use parameter placeholders ($1, ?) with a values array, a tagged template that parameterizes (sql``, Prisma $queryRaw``), or the query builder.",
+      "tests": {
+        "positive": [
+          {
+            "path": "db.js",
+            "text": "await pool.query(`SELECT * FROM users WHERE id = ${req.params.id}`);"
+          },
+          {
+            "path": "db.js",
+            "text": "db.query(\"SELECT * FROM users WHERE email = '\" + email + \"'\")"
+          },
+          {
+            "path": "app.py",
+            "text": "cur.execute(f\"SELECT * FROM users WHERE id = {user_id}\")"
+          }
+        ],
+        "negative": [
+          {
+            "path": "db.js",
+            "text": "await pool.query('SELECT * FROM users WHERE id = $1', [id]);"
+          },
+          {
+            "path": "db.ts",
+            "text": "await prisma.$queryRaw`SELECT * FROM users WHERE id = ${id}`"
+          },
+          {
+            "path": "db.ts",
+            "text": "await sql`select * from users where id = ${id}`"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "command-injection",
+      "title": "Shell command built from dynamic input",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "injection",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "exec-dynamic",
+          "regex": "(?:(?<![.\\w$])exec|\\b(?:cp|childProcess|child_process)\\.exec|\\bexecSync|\\bspawn(?:Sync)?|\\bexecFile(?:Sync)?)\\(\\s*(?:`[^`]{0,2000}?\\$\\{|[\\w.]+\\s*\\+|['\"][^'\"\\n]*['\"]\\s*\\+)",
+          "flags": ""
+        }
+      ],
+      "require_file_all": [
+        {
+          "regex": "child_process|\\bshelljs\\b|\\bexeca\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "llm-top10-2026:LLM10:2026",
+        "agentic-top10-2026:ASI05"
+      ],
+      "guidance": [
+        "cheatsheets:os-command-injection-defense-cheat-sheet",
+        "cheatsheets:node-js-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-78"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.5"
+      ],
+      "detail": "A child-process call receives a command string assembled at runtime. If any part comes from a user, an LLM, or a file name, shell metacharacters can run arbitrary commands.",
+      "suggested_fix": "Prefer a library API over a shell; otherwise use execFile/spawn with a fixed binary and an argument array (no shell: true) and validate arguments against an allow-list.",
+      "tests": {
+        "positive": [
+          {
+            "path": "tools/run.js",
+            "text": "import { exec } from 'node:child_process';\nexec(`convert ${file} out.png`);"
+          },
+          {
+            "path": "t.js",
+            "text": "const cp = require('child_process');\ncp.execSync('git log ' + branch);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "tools/run.js",
+            "text": "import { execFile } from 'node:child_process';\nexecFile('convert', [file, 'out.png']);"
+          },
+          {
+            "path": "t.js",
+            "text": "const m = /a(b)/.exec(`${s}`);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "dynamic-code-execution",
+      "title": "eval or Function constructor on dynamic input",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "injection",
+      "files": [
+        "js",
+        "html"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "eval-dynamic",
+          "regex": "(?<![.\\w$])(?:eval|new\\s+Function)\\(\\s*(?!['\"][^'\"`$]*['\"]\\s*\\))",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "llm-top10-2026:LLM10:2026",
+        "agentic-top10-2026:ASI05"
+      ],
+      "guidance": [
+        "cheatsheets:javascript-and-typescript-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-95"
+      ],
+      "asvs": [
+        "v5.0.0-1.3.2"
+      ],
+      "detail": "Code is evaluated from a non-literal string. When the string can contain user input or model output, this is remote code execution.",
+      "suggested_fix": "Replace eval with JSON.parse for data, a lookup table for dispatch, or a sandboxed interpreter; never evaluate LLM output.",
+      "tests": {
+        "positive": [
+          {
+            "path": "a.js",
+            "text": "const result = eval(completion.choices[0].message.content);"
+          },
+          {
+            "path": "b.js",
+            "text": "const f = new Function(userCode);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "a.js",
+            "text": "const x = eval('2 + 2');"
+          },
+          {
+            "path": "a.js",
+            "text": "await redis.eval(script, 1, key);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "unsanitized-html-sink",
+      "title": "HTML inserted without sanitization",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "injection",
+      "files": [
+        "js",
+        "html"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "dangerouslySetInnerHTML",
+          "regex": "\\bdangerouslySetInnerHTML\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:",
+          "flags": ""
+        },
+        {
+          "label": "innerHTML-assignment",
+          "regex": "\\.(?:innerHTML|outerHTML)\\s*\\+?=(?!=)(?!\\s*(?:''|\"\"|``)\\s*[;\\n])",
+          "flags": ""
+        },
+        {
+          "label": "insertAdjacentHTML",
+          "regex": "\\.insertAdjacentHTML\\(",
+          "flags": ""
+        },
+        {
+          "label": "v-html",
+          "regex": "\\sv-html\\s*=",
+          "flags": ""
+        },
+        {
+          "label": "svelte-html",
+          "regex": "\\{@html\\s",
+          "flags": ""
+        },
+        {
+          "label": "document-write",
+          "regex": "\\bdocument\\.write(?:ln)?\\(",
+          "flags": ""
+        }
+      ],
+      "suppress_if_file": [
+        {
+          "regex": "DOMPurify|sanitize-html|sanitizeHtml|isomorphic-dompurify|\\bxss\\(|rehype-sanitize",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "client-side-top10:CS2",
+        "llm-top10-2026:LLM10:2026"
+      ],
+      "guidance": [
+        "cheatsheets:cross-site-scripting-prevention-cheat-sheet",
+        "cheatsheets:dom-based-xss-prevention-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-79"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.1",
+        "v5.0.0-3.2.2"
+      ],
+      "detail": "Markup is written into the DOM through a raw-HTML sink and no sanitizer is referenced in the file. User content or model output rendered this way can run script in your users' sessions.",
+      "suggested_fix": "Render text with framework bindings or textContent; if HTML is required, sanitize with DOMPurify (or rehype-sanitize for Markdown) immediately before the sink.",
+      "tests": {
+        "positive": [
+          {
+            "path": "src/Msg.tsx",
+            "text": "<div dangerouslySetInnerHTML={{ __html: message.body }} />"
+          },
+          {
+            "path": "src/chat.js",
+            "text": "el.innerHTML = reply;"
+          }
+        ],
+        "negative": [
+          {
+            "path": "src/Msg.tsx",
+            "text": "import DOMPurify from 'dompurify';\n<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(body) }} />"
+          },
+          {
+            "path": "src/chat.js",
+            "text": "el.innerHTML = '';"
+          },
+          {
+            "path": "src/chat.js",
+            "text": "el.textContent = reply;"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "jwt-none-algorithm",
+      "title": "JWT verification accepts the none algorithm",
+      "severity": "high",
+      "confidence": "high",
+      "category": "auth",
+      "files": [
+        "js",
+        "python"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "alg-none",
+          "regex": "\\balgorithms?\\s*[:=]\\s*\\[?\\s*(?:['\"][A-Za-z0-9]+['\"]\\s*,\\s*)*['\"]none['\"]",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A07:2025",
+        "top10-2025:A04:2025",
+        "api-top10-2023:API2:2023"
+      ],
+      "guidance": [
+        "cheatsheets:json-web-token-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-347",
+        "CWE-327"
+      ],
+      "asvs": [
+        "v5.0.0-9.1.2"
+      ],
+      "detail": "The accepted algorithm list includes `none`, so unsigned tokens pass verification and anyone can forge a session.",
+      "suggested_fix": "Pin a single expected algorithm (e.g. `algorithms: [\"HS256\"]` or `[\"RS256\"]`) and never include none.",
+      "tests": {
+        "positive": [
+          {
+            "path": "auth.js",
+            "text": "jwt.verify(token, key, { algorithms: ['HS256', 'none'] });"
+          }
+        ],
+        "negative": [
+          {
+            "path": "auth.js",
+            "text": "jwt.verify(token, key, { algorithms: ['HS256'] });"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "jwt-decoded-without-verification",
+      "title": "JWT decoded without signature verification on the server",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "auth",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "decode-only",
+          "regex": "\\bjwt\\.decode\\(|\\bdecodeJwt\\(|\\bjwtDecode\\(|\\bjwt_decode\\(",
+          "flags": ""
+        }
+      ],
+      "require_file_all": [
+        {
+          "regex": "\\b(?:req|request)\\.(?:headers|cookies)\\b|\\bcookies\\(\\)|\\bheaders\\(\\)|NextRequest|\\bmiddleware\\b",
+          "flags": ""
+        }
+      ],
+      "suppress_if_file": [
+        {
+          "regex": "\\bjwt\\.verify\\(|\\bjwtVerify\\(|\\.auth\\.getUser\\(",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A07:2025",
+        "api-top10-2023:API2:2023"
+      ],
+      "guidance": [
+        "cheatsheets:json-web-token-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-347"
+      ],
+      "asvs": [
+        "v5.0.0-9.1.1"
+      ],
+      "detail": "A token from the incoming request is decoded but not verified in the same file. Decoding only base64-parses the payload; claims such as sub or role can be forged.",
+      "suggested_fix": "Verify the signature, issuer, audience and expiry (jwt.verify, jose jwtVerify, or supabase.auth.getUser) before trusting any claim.",
+      "tests": {
+        "positive": [
+          {
+            "path": "middleware.ts",
+            "text": "import { decodeJwt } from 'jose';\nexport function middleware(request: NextRequest) { const c = decodeJwt(request.cookies.get('t')!.value); }"
+          }
+        ],
+        "negative": [
+          {
+            "path": "middleware.ts",
+            "text": "import { jwtVerify } from 'jose';\nexport async function middleware(request: NextRequest) { await jwtVerify(t, key); }"
+          },
+          {
+            "path": "src/useUser.ts",
+            "text": "const claims = jwtDecode(localToken);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "weak-password-hashing",
+      "title": "Passwords hashed with a fast or weak function",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "crypto",
+      "files": [
+        "js",
+        "python"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "fast-hash-password",
+          "regex": "^[^\\n]{0,300}?(?:createHash\\(\\s*['\"](?:md5|sha1|sha256|sha512)['\"]|hashlib\\.(?:md5|sha1|sha256|sha512)\\()[^\\n]{0,300}?\\b(?:password|passwd|pwd)\\b|^[^\\n]{0,300}?\\b(?:password|passwd|pwd)\\b[^\\n]{0,300}?(?:createHash\\(\\s*['\"](?:md5|sha1|sha256|sha512)['\"]|hashlib\\.(?:md5|sha1|sha256|sha512)\\()",
+          "flags": "im"
+        },
+        {
+          "label": "bcrypt-low-cost",
+          "regex": "\\bbcrypt(?:js)?\\.(?:hash|hashSync|genSalt|genSaltSync)\\([^)\\n]{0,200}?(?:,\\s*|\\()[1-9]\\s*\\)",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A04:2025",
+        "top10-2025:A07:2025"
+      ],
+      "guidance": [
+        "cheatsheets:password-storage-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-916",
+        "CWE-328"
+      ],
+      "asvs": [
+        "v5.0.0-11.4.1"
+      ],
+      "detail": "Passwords are hashed with a general-purpose hash (MD5/SHA family) or bcrypt with a work factor below 10. Leaked hashes of this kind are cracked quickly.",
+      "suggested_fix": "Use Argon2id (m=19 MiB, t=2, p=1) or scrypt; if bcrypt is required, use a work factor of 10 or more. Better: delegate passwords to your auth provider.",
+      "tests": {
+        "positive": [
+          {
+            "path": "auth.js",
+            "text": "const hash = crypto.createHash('sha256').update(password).digest('hex');"
+          },
+          {
+            "path": "auth.js",
+            "text": "const h = await bcrypt.hash(pw, 8);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "auth.js",
+            "text": "const h = await bcrypt.hash(pw, 12);"
+          },
+          {
+            "path": "etag.js",
+            "text": "const etag = crypto.createHash('md5').update(body).digest('hex');"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "weak-hash-algorithm",
+      "title": "MD5 or SHA-1 used",
+      "severity": "low",
+      "confidence": "low",
+      "category": "crypto",
+      "files": [
+        "js",
+        "swift",
+        "objc",
+        "python"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "md5-sha1",
+          "regex": "createHash\\(\\s*['\"](?:md5|sha1)['\"]|\\bCC_(?:MD5|SHA1)\\(|\\bInsecure\\.(?:MD5|SHA1)\\b|hashlib\\.(?:md5|sha1)\\(",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A04:2025",
+        "mobile-top10-2024:M10",
+        "masvs-2.1:MASVS-CRYPTO-1",
+        "maswe:MASWE-0008"
+      ],
+      "guidance": [
+        "cheatsheets:cryptographic-storage-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-328"
+      ],
+      "asvs": [
+        "v5.0.0-11.4.1"
+      ],
+      "detail": "MD5 and SHA-1 are broken for security purposes. This is fine for cache keys or checksums, but not for signatures, tokens, passwords or integrity checks against an attacker.",
+      "suggested_fix": "Confirm the use is non-security; otherwise switch to SHA-256 or stronger (or HMAC-SHA-256 for integrity with a key).",
+      "tests": {
+        "positive": [
+          {
+            "path": "a.js",
+            "text": "crypto.createHash('md5').update(x)"
+          },
+          {
+            "path": "H.swift",
+            "text": "let d = Insecure.MD5.hash(data: data)"
+          }
+        ],
+        "negative": [
+          {
+            "path": "a.js",
+            "text": "crypto.createHash('sha256').update(x)"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "insecure-randomness",
+      "title": "Math.random used for a security value",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "crypto",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "math-random-secret",
+          "regex": "^[^\\n]{0,300}?\\b(?:token|secret|password|passwd|otp|nonce|salt|session_?id|sessionId|api_?key|apiKey|reset_?code|resetCode|invite_?code|verification_?code)\\b[^\\n]{0,300}?Math\\.random\\(\\)|^[^\\n]{0,300}?Math\\.random\\(\\)[^\\n]{0,300}?\\b(?:token|secret|password|otp|nonce|salt|sessionId|apiKey|resetCode|inviteCode)\\b",
+          "flags": "im"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A04:2025",
+        "top10-2025:A07:2025"
+      ],
+      "guidance": [
+        "cheatsheets:cryptographic-storage-cheat-sheet",
+        "cheatsheets:session-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-338"
+      ],
+      "asvs": [
+        "v5.0.0-7.2.3"
+      ],
+      "detail": "Math.random is not cryptographically secure; tokens, codes and IDs derived from it can be predicted.",
+      "suggested_fix": "Use crypto.randomBytes, crypto.randomUUID or crypto.getRandomValues (crypto.randomInt for numeric codes).",
+      "tests": {
+        "positive": [
+          {
+            "path": "a.js",
+            "text": "const token = Math.random().toString(36).slice(2);"
+          },
+          {
+            "path": "a.js",
+            "text": "const resetCode = Math.floor(Math.random() * 1e6);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "a.js",
+            "text": "const jitter = Math.random() * 100;"
+          },
+          {
+            "path": "a.js",
+            "text": "const token = crypto.randomBytes(32).toString('hex');"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "insecure-cookie-flags",
+      "title": "Cookie security flag explicitly disabled",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "auth",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "flag-disabled",
+          "regex": "\\bhttpOnly\\s*:\\s*false\\b|\\bsecure\\s*:\\s*false\\b",
+          "flags": "i"
+        }
+      ],
+      "require_file_all": [
+        {
+          "regex": "\\bcookies?\\b|\\bsession\\b",
+          "flags": "i"
+        }
+      ],
+      "suppress_if_file": [
+        {
+          "regex": "nodemailer|createTransport|smtp",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A07:2025",
+        "top10-2025:A02:2025",
+        "privacy-top10-2021:P8"
+      ],
+      "guidance": [
+        "cheatsheets:session-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-1004",
+        "CWE-614"
+      ],
+      "asvs": [
+        "v5.0.0-3.3.1"
+      ],
+      "detail": "A cookie or session is configured with HttpOnly or Secure turned off, letting scripts read the session token or sending it over plain HTTP.",
+      "suggested_fix": "Set `httpOnly: true, secure: true, sameSite: \"lax\"` (or \"strict\") and prefer the `__Host-` cookie name prefix.",
+      "tests": {
+        "positive": [
+          {
+            "path": "server.js",
+            "text": "app.use(session({ secret, cookie: { httpOnly: false } }));"
+          },
+          {
+            "path": "api/login.ts",
+            "text": "cookies().set('sid', id, { secure: false })"
+          }
+        ],
+        "negative": [
+          {
+            "path": "server.js",
+            "text": "app.use(session({ secret, cookie: { httpOnly: true, secure: true } }));"
+          },
+          {
+            "path": "mail.js",
+            "text": "nodemailer.createTransport({ host, port: 587, secure: false }); // session"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "token-in-web-storage",
+      "title": "Auth token stored in unprotected client storage",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "storage",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "web-storage",
+          "regex": "\\b(?:localStorage|sessionStorage)\\.setItem\\(\\s*['\"`][^'\"`]*(?:token|jwt|password|passwd|secret|session|api_?key|apikey|credential|auth)",
+          "flags": "i"
+        },
+        {
+          "label": "async-storage",
+          "regex": "\\bAsyncStorage\\.setItem\\(\\s*['\"`][^'\"`]*(?:token|jwt|password|passwd|secret|session|api_?key|apikey|credential|auth)",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "client-side-top10:CS7",
+        "top10-2025:A07:2025",
+        "mobile-top10-2024:M9",
+        "masvs-2.1:MASVS-STORAGE-1"
+      ],
+      "guidance": [
+        "cheatsheets:session-management-cheat-sheet",
+        "cheatsheets:html5-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-922"
+      ],
+      "asvs": [
+        "v5.0.0-14.3.1"
+      ],
+      "detail": "Session tokens or secrets are written to localStorage/sessionStorage (readable by any script, so one XSS steals them) or to React Native AsyncStorage (unencrypted on device).",
+      "suggested_fix": "On the web, keep sessions in HttpOnly Secure cookies; in React Native/Expo, use expo-secure-store or the Keychain/Keystore.",
+      "tests": {
+        "positive": [
+          {
+            "path": "src/auth.ts",
+            "text": "localStorage.setItem('access_token', data.token);"
+          },
+          {
+            "path": "src/auth.native.ts",
+            "text": "await AsyncStorage.setItem('authToken', t);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "src/theme.ts",
+            "text": "localStorage.setItem('theme', 'dark');"
+          },
+          {
+            "path": "src/auth.native.ts",
+            "text": "await SecureStore.setItemAsync('authToken', t);"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "tls-verification-disabled",
+      "title": "TLS certificate verification disabled",
+      "severity": "high",
+      "confidence": "high",
+      "category": "network",
+      "files": [
+        "js",
+        "swift",
+        "python"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "reject-unauthorized-false",
+          "regex": "\\brejectUnauthorized\\s*:\\s*false\\b|NODE_TLS_REJECT_UNAUTHORIZED['\"]?\\]?\\s*=\\s*['\"]?0",
+          "flags": ""
+        },
+        {
+          "label": "python-verify-false",
+          "regex": "\\brequests\\.(?:get|post|put|patch|delete|request)\\([^)\\n]{0,300}?\\bverify\\s*=\\s*False\\b",
+          "flags": ""
+        },
+        {
+          "label": "swift-trust-all",
+          "regex": "\\bURLCredential\\(\\s*trust\\s*:",
+          "flags": ""
+        }
+      ],
+      "suppress_if_file": [
+        {
+          "regex": "\\bSecTrustEvaluateWithError\\b|\\bSecTrustEvaluate\\(",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A04:2025",
+        "mobile-top10-2024:M5",
+        "masvs-2.1:MASVS-NETWORK-1",
+        "maswe:MASWE-0027"
+      ],
+      "guidance": [
+        "cheatsheets:transport-layer-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-295"
+      ],
+      "asvs": [
+        "v5.0.0-12.2.2"
+      ],
+      "detail": "Certificate validation is turned off (or an iOS trust challenge is answered without evaluating the server trust), so anyone on the network path can impersonate the server and read or alter traffic.",
+      "suggested_fix": "Remove the override. For self-signed internal services, pin or add the specific CA instead; on iOS call SecTrustEvaluateWithError before creating URLCredential(trust:).",
+      "tests": {
+        "positive": [
+          {
+            "path": "db.js",
+            "text": "new Pool({ ssl: { rejectUnauthorized: false } })"
+          },
+          {
+            "path": "Net.swift",
+            "text": "completionHandler(.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))"
+          }
+        ],
+        "negative": [
+          {
+            "path": "Net.swift",
+            "text": "guard SecTrustEvaluateWithError(trust, nil) else { return }\ncompletionHandler(.useCredential, URLCredential(trust: trust))"
+          },
+          {
+            "path": "db.js",
+            "text": "new Pool({ ssl: true })"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "ios-ats-disabled",
+      "title": "App Transport Security allows cleartext HTTP",
+      "severity": "medium",
+      "confidence": "high",
+      "category": "network",
+      "files": [
+        "plist"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "ats-exception",
+          "regex": "<key>\\s*(?:NSAllowsArbitraryLoads(?:InWebContent|ForMedia)?|NSExceptionAllowsInsecureHTTPLoads)\\s*<\\/key>\\s*<true\\s*\\/>",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "mobile-top10-2024:M5",
+        "mobile-top10-2024:M8",
+        "masvs-2.1:MASVS-NETWORK-1",
+        "maswe:MASWE-0026",
+        "top10-2025:A04:2025"
+      ],
+      "guidance": [
+        "cheatsheets:mobile-application-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-319"
+      ],
+      "asvs": [
+        "v5.0.0-12.2.1"
+      ],
+      "detail": "Info.plist disables App Transport Security globally or for a domain, allowing unencrypted HTTP connections that can be read or modified on public Wi-Fi.",
+      "suggested_fix": "Remove the exception and use HTTPS everywhere; if a specific legacy host is unavoidable, scope a per-domain exception and document why (App Review asks).",
+      "tests": {
+        "positive": [
+          {
+            "path": "App/Info.plist",
+            "text": "<key>NSAppTransportSecurity</key><dict><key>NSAllowsArbitraryLoads</key><true/></dict>"
+          }
+        ],
+        "negative": [
+          {
+            "path": "App/Info.plist",
+            "text": "<key>NSAllowsArbitraryLoads</key><false/>"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "ios-cleartext-url",
+      "title": "Hardcoded http:// URL in iOS code",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "network",
+      "files": [
+        "swift",
+        "objc"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "http-url",
+          "regex": "\"http:\\/\\/(?!localhost\\b|127\\.0\\.0\\.1\\b|0\\.0\\.0\\.0\\b|\\[::1\\])[^\"\\s]+\"",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "mobile-top10-2024:M5",
+        "masvs-2.1:MASVS-NETWORK-1",
+        "maswe:MASWE-0026"
+      ],
+      "guidance": [
+        "cheatsheets:transport-layer-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-319"
+      ],
+      "asvs": [
+        "v5.0.0-12.2.1"
+      ],
+      "detail": "The app references a plain-HTTP endpoint. Traffic to it is unencrypted (or fails under ATS).",
+      "suggested_fix": "Switch the endpoint to https://.",
+      "tests": {
+        "positive": [
+          {
+            "path": "Api.swift",
+            "text": "let base = URL(string: \"http://api.example.com/v1\")!"
+          }
+        ],
+        "negative": [
+          {
+            "path": "Api.swift",
+            "text": "let base = URL(string: \"https://api.example.com/v1\")!"
+          },
+          {
+            "path": "Dev.swift",
+            "text": "let dev = URL(string: \"http://localhost:3000\")!"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "ios-sensitive-data-in-userdefaults",
+      "title": "Sensitive value stored in UserDefaults",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "storage",
+      "files": [
+        "swift"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "userdefaults-set",
+          "regex": "UserDefaults[^\\n]{0,200}?\\.set\\([^\\n]{0,200}?forKey:\\s*\"[^\"]*(?:token|jwt|password|passwd|secret|session|api_?key|apikey|credential|auth)[^\"]*\"",
+          "flags": "i"
+        },
+        {
+          "label": "appstorage",
+          "regex": "@AppStorage\\(\\s*\"[^\"]*(?:token|jwt|password|passwd|secret|session|api_?key|apikey|credential|auth)",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "mobile-top10-2024:M9",
+        "masvs-2.1:MASVS-STORAGE-1",
+        "maswe:MASWE-0001"
+      ],
+      "guidance": [
+        "cheatsheets:mobile-application-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-312",
+        "CWE-922"
+      ],
+      "asvs": [],
+      "detail": "UserDefaults (and SwiftUI @AppStorage, which wraps it) is an unencrypted plist included in device backups. Tokens and credentials stored there can be extracted.",
+      "suggested_fix": "Store tokens and secrets in the Keychain (e.g. via a small Keychain wrapper or the Supabase/Firebase SDK session storage).",
+      "tests": {
+        "positive": [
+          {
+            "path": "Auth.swift",
+            "text": "UserDefaults.standard.set(session.accessToken, forKey: \"accessToken\")"
+          },
+          {
+            "path": "Settings.swift",
+            "text": "@AppStorage(\"authToken\") var token = \"\""
+          }
+        ],
+        "negative": [
+          {
+            "path": "Settings.swift",
+            "text": "@AppStorage(\"hasSeenOnboarding\") var seen = false"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "sensitive-data-logged",
+      "title": "Sensitive value written to logs",
+      "severity": "low",
+      "confidence": "low",
+      "category": "logging",
+      "files": [
+        "swift",
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "swift-log",
+          "regex": "\\b(?:print|debugPrint|NSLog|os_log)\\([^\\n]{0,200}?\\\\\\([^)\\n]{0,100}?\\b(?:token|password|secret|apiKey|accessToken|refreshToken|jwt)\\b",
+          "flags": "i"
+        },
+        {
+          "label": "js-log",
+          "regex": "\\bconsole\\.(?:log|info|debug|warn|error)\\([^\\n]{0,200}?(?:\\$\\{|,\\s*|\\+\\s*)[\\w.]*\\b(?:password|accessToken|refreshToken|apiKey|secret|jwt|authorization)\\b",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "top10-2025:A09:2025",
+        "mobile-top10-2024:M9",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "maswe:MASWE-0005",
+        "privacy-top10-2021:P2"
+      ],
+      "guidance": [
+        "cheatsheets:logging-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-532"
+      ],
+      "asvs": [],
+      "detail": "A credential-like variable is interpolated into a log statement. Logs are copied to consoles, crash tools and log services with wider access than the secret itself.",
+      "suggested_fix": "Remove the value from the message or log a redacted form (last 4 characters, a hash, or a boolean).",
+      "tests": {
+        "positive": [
+          {
+            "path": "Auth.swift",
+            "text": "print(\"token: \\(session.accessToken)\")"
+          },
+          {
+            "path": "auth.js",
+            "text": "console.log(\"login\", password);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "auth.js",
+            "text": "console.log('token refreshed');"
+          },
+          {
+            "path": "Auth.swift",
+            "text": "print(\"signed in\")"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ios-privacy-manifest",
+      "id": "ios-privacy-manifest-missing",
+      "title": "iOS app has no privacy manifest",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "privacy",
+      "files": [
+        "swift",
+        "objc"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "required-reason-api",
+          "regex": "\\bUserDefaults\\b|@AppStorage\\b|\\.(?:creationDate|modificationDate)\\b|attributesOfItem\\(|\\bsystemUptime\\b|\\bmach_absolute_time\\(|volumeAvailableCapacity|activeInputModes",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "mobile-top10-2024:M6",
+        "masvs-2.1:MASVS-PRIVACY-3",
+        "maswe:MASWE-0073",
+        "privacy-top10-2021:P5"
+      ],
+      "guidance": [
+        "cheatsheets:mobile-application-security-cheat-sheet"
+      ],
+      "cwe": [],
+      "asvs": [],
+      "detail": "Swift/Objective-C code uses APIs Apple classifies as required-reason APIs (UserDefaults, file timestamps, system boot time, disk space, active keyboards), but the repository contains no PrivacyInfo.xcprivacy. App Store Connect rejects such uploads since May 1, 2024.",
+      "suggested_fix": "Add PrivacyInfo.xcprivacy to the app target declaring NSPrivacyAccessedAPITypes with the matching reason codes (e.g. CA92.1 for app-only UserDefaults), plus collected data types and tracking domains.",
+      "algorithm": "Report once per scan when at least one pattern matches in a Swift/Objective-C file and no walked file has basename PrivacyInfo.xcprivacy. Evidence: every matching line (cap at 20).",
+      "tests": {
+        "positive": [
+          {
+            "path": "App/Settings.swift",
+            "text": "UserDefaults.standard.set(true, forKey: \"seen\")"
+          }
+        ],
+        "negative": [
+          {
+            "path": "App/Settings.swift",
+            "text": "UserDefaults.standard.set(true, forKey: \"seen\")",
+            "with": [
+              {
+                "path": "App/PrivacyInfo.xcprivacy",
+                "text": "<plist></plist>"
+              }
+            ]
+          },
+          {
+            "path": "App/Other.swift",
+            "text": "let x = 1"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "gha-pull-request-target-checkout",
+      "title": "pull_request_target workflow checks out untrusted PR code",
+      "severity": "high",
+      "confidence": "high",
+      "category": "supply-chain",
+      "files": [
+        "workflow"
+      ],
+      "skip_test_paths": false,
+      "patterns": [
+        {
+          "label": "pr-head-checkout",
+          "regex": "\\$\\{\\{\\s*github\\.event\\.pull_request\\.head\\.(?:sha|ref)\\s*\\}\\}|refs\\/pull\\/\\$\\{\\{",
+          "flags": ""
+        }
+      ],
+      "require_file_all": [
+        {
+          "regex": "\\bpull_request_target\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "cicd-top10:CICD-SEC-4",
+        "top10-2025:A08:2025",
+        "top10-2025:A03:2025"
+      ],
+      "guidance": [
+        "cheatsheets:ci-cd-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-829"
+      ],
+      "asvs": [],
+      "detail": "pull_request_target runs with repository secrets and a write token, and this workflow checks out the pull request head. Anyone opening a PR can run code with those privileges (poisoned pipeline execution).",
+      "suggested_fix": "Use `pull_request` for building untrusted code; if pull_request_target is required, never check out or execute the PR head in that job.",
+      "tests": {
+        "positive": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "text": "on: pull_request_target\njobs:\n  b:\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}"
+          }
+        ],
+        "negative": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "text": "on: pull_request\njobs:\n  b:\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "gha-script-injection",
+      "title": "Untrusted event text interpolated into a workflow",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "supply-chain",
+      "files": [
+        "workflow"
+      ],
+      "skip_test_paths": false,
+      "patterns": [
+        {
+          "label": "untrusted-context",
+          "regex": "\\$\\{\\{\\s*(?:github\\.event\\.(?:issue\\.(?:title|body)|pull_request\\.(?:title|body|head\\.ref|head\\.label)|comment\\.body|review\\.body|review_comment\\.body|head_commit\\.(?:message|author\\.(?:name|email))|discussion\\.(?:title|body)|workflow_run\\.head_branch|pages\\.[^}]*page_name)|github\\.head_ref)\\s*\\}\\}",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "cicd-top10:CICD-SEC-4",
+        "top10-2025:A05:2025"
+      ],
+      "guidance": [
+        "cheatsheets:ci-cd-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-78",
+        "CWE-94"
+      ],
+      "asvs": [],
+      "detail": "Attacker-controlled event text (issue or PR titles, branch names, comments) is expanded by `${{ }}` before the shell runs, so a crafted title can execute commands with the workflow token and secrets.",
+      "suggested_fix": "Pass the value through an environment variable (`env: TITLE: ${{ github.event.issue.title }}`) and reference \"$TITLE\" in the script.",
+      "tests": {
+        "positive": [
+          {
+            "path": ".github/workflows/triage.yml",
+            "text": "on: issues\njobs:\n  t:\n    steps:\n      - run: echo \"${{ github.event.issue.title }}\""
+          }
+        ],
+        "negative": [
+          {
+            "path": ".github/workflows/triage.yml",
+            "text": "jobs:\n  t:\n    steps:\n      - env:\n          TITLE: ${{ github.event.issue.number }}\n        run: echo \"$TITLE\""
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "gha-excessive-permissions",
+      "title": "Workflow token has write-all permissions",
+      "severity": "medium",
+      "confidence": "high",
+      "category": "supply-chain",
+      "files": [
+        "workflow"
+      ],
+      "skip_test_paths": false,
+      "patterns": [
+        {
+          "label": "write-all",
+          "regex": "^[ \\t]*permissions[ \\t]*:[ \\t]*write-all\\b",
+          "flags": "m"
+        }
+      ],
+      "owasp": [
+        "cicd-top10:CICD-SEC-5",
+        "cicd-top10:CICD-SEC-2",
+        "nhi-top10-2025:NHI5:2025"
+      ],
+      "guidance": [
+        "cheatsheets:ci-cd-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-250"
+      ],
+      "asvs": [],
+      "detail": "The GITHUB_TOKEN is granted write access to every scope, so any compromised step can push code, create releases or alter settings.",
+      "suggested_fix": "Set `permissions: contents: read` at the top level and grant specific write scopes only to the jobs that need them.",
+      "tests": {
+        "positive": [
+          {
+            "path": ".github/workflows/release.yml",
+            "text": "permissions: write-all\njobs: {}"
+          }
+        ],
+        "negative": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "text": "permissions:\n  contents: read"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "gha-unpinned-action",
+      "title": "Third-party action not pinned to a commit SHA",
+      "severity": "low",
+      "confidence": "high",
+      "category": "supply-chain",
+      "files": [
+        "workflow"
+      ],
+      "skip_test_paths": false,
+      "patterns": [
+        {
+          "label": "mutable-ref",
+          "regex": "^[ \\t]*(?:-[ \\t]*)?uses[ \\t]*:\\s*['\"]?(?!\\.\\/|docker:\\/\\/|actions\\/|github\\/)[\\w.-]+\\/[\\w./-]+@(?![0-9a-f]{40}\\b)[\\w./-]+",
+          "flags": "m"
+        }
+      ],
+      "owasp": [
+        "cicd-top10:CICD-SEC-3",
+        "cicd-top10:CICD-SEC-8",
+        "top10-2025:A03:2025"
+      ],
+      "guidance": [
+        "cheatsheets:ci-cd-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-829"
+      ],
+      "asvs": [],
+      "detail": "A third-party action is referenced by a tag or branch, which its owner (or an attacker who compromises it) can repoint to new code that runs with your secrets.",
+      "suggested_fix": "Pin to the full 40-character commit SHA and keep a version comment, e.g. `uses: owner/action@<sha> # v2.1.0`; let Dependabot update it.",
+      "tests": {
+        "positive": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "text": "      - uses: some-org/deploy-action@main"
+          }
+        ],
+        "negative": [
+          {
+            "path": ".github/workflows/ci.yml",
+            "text": "      - uses: actions/checkout@v4\n      - uses: some-org/deploy-action@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v2"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "docker-secret-in-image",
+      "title": "Secret baked into a Docker image",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "secrets",
+      "files": [
+        "dockerfile"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "env-secret",
+          "regex": "^[ \\t]*(?:ENV|ARG)(?=([ \\t]+))\\1[^\\n]{0,300}?\\b[A-Z0-9_]*(?:SECRET|PASSWORD|TOKEN|API_KEY|PRIVATE_KEY|ACCESS_KEY)[A-Z0-9_]*(?:[ \\t]*=[ \\t]*|[ \\t]+)(?![$\\s])\\S+",
+          "flags": "m"
+        }
+      ],
+      "owasp": [
+        "nhi-top10-2025:NHI2:2025",
+        "top10-2025:A02:2025",
+        "k8s-top10-2025:K01"
+      ],
+      "guidance": [
+        "cheatsheets:docker-security-cheat-sheet",
+        "cheatsheets:secrets-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-798",
+        "CWE-538"
+      ],
+      "asvs": [],
+      "detail": "ENV and ARG values are stored in image layers and history, so anyone who can pull the image can read the secret.",
+      "suggested_fix": "Use BuildKit secret mounts (`RUN --mount=type=secret`) at build time and inject runtime secrets from the orchestrator.",
+      "tests": {
+        "positive": [
+          {
+            "path": "Dockerfile",
+            "text": "FROM node:20\nENV STRIPE_SECRET_KEY=sk_test_abc"
+          },
+          {
+            "path": "Dockerfile",
+            "text": "ARG NPM_TOKEN=abc123"
+          }
+        ],
+        "negative": [
+          {
+            "path": "Dockerfile",
+            "text": "ARG NPM_TOKEN\nENV NODE_ENV=production"
+          },
+          {
+            "path": "Dockerfile",
+            "text": "ENV API_KEY=$API_KEY"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "mcp-server-unpinned",
+      "title": "MCP server launched from an unpinned package",
+      "severity": "low",
+      "confidence": "high",
+      "category": "supply-chain",
+      "files": [
+        "mcp-config"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "npx-unpinned",
+          "regex": "\"(?:-y|--yes)\"\\s*,\\s*\"(?:@[\\w.-]+\\/)?[\\w.-]+\"",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "llm-top10-2026:LLM04:2026",
+        "llm-top10-2026:LLM01:2026",
+        "agentic-top10-2026:ASI04",
+        "top10-2025:A03:2025"
+      ],
+      "guidance": [
+        "cheatsheets:npm-security-cheat-sheet",
+        "cheatsheets:secure-coding-with-ai-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-1357",
+        "CWE-829"
+      ],
+      "asvs": [],
+      "detail": "An MCP server is started with `npx -y <package>` and no version, so each launch runs whatever the registry currently serves for that name, with the agent's tool permissions.",
+      "suggested_fix": "Pin an exact version (`<package>@1.2.3`), review the server before upgrading, and keep tokens out of the config file.",
+      "tests": {
+        "positive": [
+          {
+            "path": ".mcp.json",
+            "text": "{\"mcpServers\":{\"fs\":{\"command\":\"npx\",\"args\":[\"-y\",\"@modelcontextprotocol/server-filesystem\",\".\"]}}}"
+          }
+        ],
+        "negative": [
+          {
+            "path": ".mcp.json",
+            "text": "{\"mcpServers\":{\"fs\":{\"command\":\"npx\",\"args\":[\"-y\",\"@modelcontextprotocol/server-filesystem@2025.8.21\",\".\"]}}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "postmessage-wildcard-origin",
+      "title": "postMessage sent to any origin",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "client",
+      "files": [
+        "js",
+        "html"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "target-star",
+          "regex": "\\.postMessage\\([^;\\n]{0,300}?,\\s*['\"]\\*['\"]\\s*\\)",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "client-side-top10:CS9",
+        "client-side-top10:CS3",
+        "top10-2025:A01:2025"
+      ],
+      "guidance": [
+        "cheatsheets:html5-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-345"
+      ],
+      "asvs": [],
+      "detail": "Messages posted with target origin `*` are delivered to whatever page currently occupies the window, including an attacker's.",
+      "suggested_fix": "Pass the exact expected origin, and check `event.origin` in every message listener.",
+      "tests": {
+        "positive": [
+          {
+            "path": "src/embed.js",
+            "text": "parent.postMessage({ token }, '*');"
+          }
+        ],
+        "negative": [
+          {
+            "path": "src/embed.js",
+            "text": "parent.postMessage({ ok: true }, 'https://app.example.com');"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "third-party-script-without-sri",
+      "title": "Third-party script loaded without integrity check",
+      "severity": "low",
+      "confidence": "low",
+      "category": "client",
+      "files": [
+        "html",
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "cdn-script-no-integrity",
+          "regex": "<script\\b(?![^>]{0,500}\\bintegrity\\s*=)[^>]{0,500}?\\bsrc\\s*=\\s*[\"'](?:https?:)?\\/\\/[^\"'>]{1,500}[\"'](?![^>]{0,500}\\bintegrity\\s*=)[^>]{0,500}>",
+          "flags": "i"
+        }
+      ],
+      "owasp": [
+        "client-side-top10:CS5",
+        "client-side-top10:CS9",
+        "top10-2025:A08:2025",
+        "top10-2025:A03:2025"
+      ],
+      "guidance": [
+        "cheatsheets:third-party-javascript-management-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-353",
+        "CWE-829"
+      ],
+      "asvs": [],
+      "detail": "A script is loaded from another origin without Subresource Integrity, so a compromise of that CDN or vendor runs arbitrary code in your pages.",
+      "suggested_fix": "Pin a version and add `integrity=\"sha384-…\" crossorigin=\"anonymous\"`, or self-host the file. Dynamic vendor loaders that cannot use SRI belong in your privacy disclosures and CSP allow-list.",
+      "tests": {
+        "positive": [
+          {
+            "path": "index.html",
+            "text": "<script src=\"https://cdn.jsdelivr.net/npm/lib@1/dist/lib.js\"></script>"
+          }
+        ],
+        "negative": [
+          {
+            "path": "index.html",
+            "text": "<script src=\"https://cdn.jsdelivr.net/npm/lib@1/dist/lib.js\" integrity=\"sha384-abc\" crossorigin=\"anonymous\"></script>"
+          },
+          {
+            "path": "index.html",
+            "text": "<script src=\"/assets/app.js\"></script>"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "nextjs-browser-source-maps",
+      "title": "Production browser source maps enabled",
+      "severity": "low",
+      "confidence": "high",
+      "category": "config",
+      "files": [
+        "next-config"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "source-maps-on",
+          "regex": "\\bproductionBrowserSourceMaps\\s*:\\s*true\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "client-side-top10:CS10",
+        "top10-2025:A02:2025"
+      ],
+      "guidance": [
+        "cheatsheets:next-js-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-540"
+      ],
+      "asvs": [],
+      "detail": "Next.js publishes original source for every client bundle, exposing comments, internal routes and any secrets that slipped into client code.",
+      "suggested_fix": "Remove productionBrowserSourceMaps or upload maps privately to your error tracker instead.",
+      "tests": {
+        "positive": [
+          {
+            "path": "next.config.js",
+            "text": "module.exports = { productionBrowserSourceMaps: true }"
+          }
+        ],
+        "negative": [
+          {
+            "path": "next.config.js",
+            "text": "module.exports = { reactStrictMode: true }"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "upload-without-size-limit",
+      "title": "File upload handler without a size limit",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "config",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "multer-no-limits",
+          "regex": "\\bmulter\\(\\s*\\)|\\bmulter\\(\\s*\\{(?![^}]*\\blimits\\b)[^}]*\\}\\s*\\)",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "api-top10-2023:API4:2023",
+        "top10-2025:A06:2025"
+      ],
+      "guidance": [
+        "cheatsheets:file-upload-cheat-sheet",
+        "cheatsheets:denial-of-service-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-400",
+        "CWE-770"
+      ],
+      "asvs": [
+        "v5.0.0-5.2.1"
+      ],
+      "detail": "The upload middleware accepts files of any size and count, letting one request exhaust disk, memory or storage costs.",
+      "suggested_fix": "Set `limits: { fileSize, files }`, validate type by extension and magic bytes, and store uploads outside executable paths.",
+      "tests": {
+        "positive": [
+          {
+            "path": "upload.js",
+            "text": "const upload = multer({ dest: 'uploads/' });"
+          }
+        ],
+        "negative": [
+          {
+            "path": "upload.js",
+            "text": "const upload = multer({ dest: 'uploads/', limits: { fileSize: 5e6 } });"
+          }
+        ]
+      }
+    }
+  ],
+  "privacy_rules": {
+    "undisclosed-sdk": [
+      "privacy-top10-2021:P5",
+      "privacy-top10-2021:P2",
+      "privacy-top10-2021:P10",
+      "mobile-top10-2024:M6",
+      "masvs-2.1:MASVS-PRIVACY-3",
+      "maswe:MASWE-0073",
+      "client-side-top10:CS3"
+    ],
+    "generic-disclosure-only": [
+      "privacy-top10-2021:P5",
+      "mobile-top10-2024:M6",
+      "masvs-2.1:MASVS-PRIVACY-3",
+      "maswe:MASWE-0072"
+    ],
+    "no-policy": [
+      "privacy-top10-2021:P5",
+      "mobile-top10-2024:M6",
+      "masvs-2.1:MASVS-PRIVACY-3",
+      "maswe:MASWE-0072"
+    ],
+    "no-consent-mechanism": [
+      "privacy-top10-2021:P4",
+      "privacy-top10-2021:P10",
+      "masvs-2.1:MASVS-PRIVACY-4",
+      "maswe:MASWE-0078",
+      "client-side-top10:CS3"
+    ],
+    "missing-att": [
+      "privacy-top10-2021:P4",
+      "mobile-top10-2024:M6",
+      "masvs-2.1:MASVS-PRIVACY-1",
+      "maswe:MASWE-0068"
+    ]
+  }
+}

@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "id": "llm-top10-2026",
+  "name": "OWASP Top 10 for LLM Applications",
+  "edition": "2026",
+  "status": "released",
+  "maturity": "lab",
+  "released": "2026-08-04",
+  "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+  "source_notes": "Verified against the OWASP GenAI-Security-Project/GenAI-LLM-Top10 repo (2026/final, commit 9253e38) including Appendix A CWE mappings.",
+  "caveats": [
+    "The repo gives the release date as 2026-08-04; the genai.owasp.org landing page shows 2026-08-03.",
+    "A secondary news site published an incorrect 2026 list (e.g. \"Insecure Output Handling\", \"Vector and Memory Flaws\"); ignore it.",
+    "CWE lists are the primary (●) mappings from Appendix A; LLM08 CWE-798 is a secondary (○) mapping and LLM07 CWE-494 comes from the Appendix A slopsquatting note.",
+    "LLM08:2026 replaces and broadens LLM07:2025 System Prompt Leakage; it explicitly excludes client-side bundle inspection, so API keys in client bundles map to LLM02:2026.",
+    "Maturity 'lab' reflects the legacy owasp.org LLM Top 10 project entry (level 3, label inferred); the list itself is maintained by the OWASP GenAI Security Project.",
+    "detection.static entries are reinhardt rule ideas inferred from the OWASP text, not OWASP-published detections; AI SDK helper names (e.g. stepCountIs) are unverified.",
+    "related ASI links come from the OWASP Appendix A LLM-to-ASI crosswalk unless prefixed (inferred)."
+  ],
+  "items": [
+    {
+      "id": "LLM01:2026",
+      "name": "Prompt Injection",
+      "previous_id": "LLM01:2025",
+      "summary": "Crafted content changes model behavior in unintended ways; the 2026 scope covers direct input, retrieved content, tool output, image/audio/video, intermediate reasoning and persistent memory, and notes there is no clean equivalent of parameterized queries.",
+      "prevention": [
+        "Constrain the model's role and capabilities and require a strict output schema that trusted code (not a second LLM) validates.",
+        "Keep credentials and state-changing capability in application code, with least privilege per operation.",
+        "Route external content through a separate provenance-labeled channel and filter at every modality boundary.",
+        "Strip invisible Unicode (tag-block, variation-selector, zero-width) at ingest and render boundaries.",
+        "Require human confirmation for privileged, irreversible or externally visible actions, and treat memory writes as privileged.",
+        "Pin, sign and verify MCP servers and tool packages, audit tool descriptions, and test adaptively."
+      ],
+      "cwe": [
+        "CWE-1427"
+      ],
+      "detection": {
+        "static": [
+          "User input (req.body, searchParams) concatenated or templated into the system message instead of a separate user-role message",
+          "Fetched web/RAG/file content inserted into the prompt without delimiting or provenance labeling",
+          "No stripping of tag-block (U+E0000-E007F), variation-selector (U+FE00-FE0F) or zero-width (U+200B-U+200D, U+2060) characters before prompt assembly or rendering",
+          "MCP config (mcp.json, .cursor/mcp.json, claude_desktop_config.json) running packages via npx -y without a version pin or with @latest",
+          "MCP filesystem server rooted at / or ~, or tokens inlined in the MCP server env block"
+        ],
+        "review": [
+          "Apply the 'Rule of Two': flag flows that combine untrusted input, sensitive data and state change or external communication.",
+          "Audit tool and MCP descriptions for hidden instructions.",
+          "Adaptive injection testing (e.g. AgentDojo, JailbreakBench)."
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM01:2025",
+        "agentic-top10-2026:ASI01",
+        "agentic-top10-2026:ASI02",
+        "agentic-top10-2026:ASI03",
+        "agentic-top10-2026:ASI05",
+        "agentic-top10-2026:ASI06",
+        "agentic-top10-2026:ASI08",
+        "agentic-top10-2026:ASI09"
+      ]
+    },
+    {
+      "id": "LLM02:2026",
+      "name": "Sensitive Information Disclosure",
+      "previous_id": "LLM02:2025",
+      "summary": "Personal data, secrets or proprietary information leak through model inputs, outputs, retrieval, logs or traces.",
+      "prevention": [
+        "Minimize the context sent to external model providers.",
+        "Authorize retrieval inside the index query, before results reach the model.",
+        "Never place secrets, credentials or regulated data in system prompts.",
+        "Detect sensitive data with classifiers rather than regex alone, and apply per-user query budgets.",
+        "Scrub logs and traces before APM ingestion; gate log-probabilities and redact reasoning traces."
+      ],
+      "cwe": [
+        "CWE-200",
+        "CWE-359",
+        "CWE-212",
+        "CWE-532"
+      ],
+      "detection": {
+        "static": [
+          "new OpenAI({ dangerouslyAllowBrowser: true }) or new Anthropic({ dangerouslyAllowBrowser: true }) in client code",
+          "Public-prefixed AI key env names: NEXT_PUBLIC_OPENAI_API_KEY, NEXT_PUBLIC_ANTHROPIC_API_KEY, VITE_OPENAI_API_KEY, EXPO_PUBLIC_*_API_KEY, REACT_APP_OPENAI_API_KEY",
+          "Literal sk-... / sk-ant-... keys in 'use client' files or other client bundles",
+          "console.log(messages) or logging of full prompts/completions to third-party APM/observability"
+        ],
+        "review": [
+          "Which user/regulated data is sent to which model provider",
+          "Retrieval authorization and observability/trace pipelines"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM02:2025"
+      ]
+    },
+    {
+      "id": "LLM03:2026",
+      "name": "Excessive Agency",
+      "previous_id": "LLM06:2025",
+      "summary": "An LLM-driven system can take damaging actions because it has excessive functionality, permissions or autonomy.",
+      "prevention": [
+        "Minimize the number of tools and the functionality each exposes; avoid open-ended tools such as shell or arbitrary URL fetch.",
+        "Give every tool a strict input schema and validate arguments before use.",
+        "Grant tools minimal permissions (e.g. a read-only DB identity) and execute in the user's context with minimal OAuth scope.",
+        "Require user approval for impactful actions and enforce authorization in code (complete mediation), not by the model.",
+        "Limit damage with tool-use monitoring, rate limits and circuit breakers."
+      ],
+      "cwe": [
+        "CWE-285",
+        "CWE-732"
+      ],
+      "detection": {
+        "static": [
+          "Tool definitions (tool({...}), tools: [...], LangChain DynamicTool, MCP server.tool(...)) whose execute calls exec/spawn/fs.writeFile/fs.rm or arbitrary fetch with model-chosen arguments and no allowlist",
+          "Tool input schemas that accept a free-form command or path (e.g. z.string() for a shell command or file path)",
+          "Destructive tools (delete/send/pay/transfer) with no confirmation or human-approval step",
+          "Admin/service-role DB credentials (e.g. Supabase service_role key) used inside AI tool routes",
+          "Authorization expressed only in prompt text (e.g. 'only admins may...') with no code check before the tool runs"
+        ],
+        "review": [
+          "Tool inventory and scope versus actual need",
+          "Preservation of user scope across chained agents"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM06:2025",
+        "agentic-top10-2026:ASI01",
+        "agentic-top10-2026:ASI02",
+        "agentic-top10-2026:ASI03",
+        "agentic-top10-2026:ASI05",
+        "agentic-top10-2026:ASI07",
+        "agentic-top10-2026:ASI08",
+        "agentic-top10-2026:ASI09"
+      ]
+    },
+    {
+      "id": "LLM04:2026",
+      "name": "Supply Chain",
+      "previous_id": "LLM03:2025",
+      "summary": "Third-party models, datasets, adapters, packages, tools and MCP servers can be vulnerable or malicious; the 2026 scope adds trust failures in promoted artifacts.",
+      "prevention": [
+        "Maintain an SBOM/AIBOM for models and components.",
+        "Use signed models and verify hashes.",
+        "Pin, sign and verify every MCP server and third-party tool package.",
+        "Apply standard vulnerable-and-outdated-component practices to AI dependencies."
+      ],
+      "cwe": [
+        "CWE-494",
+        "CWE-829"
+      ],
+      "detection": {
+        "static": [
+          "MCP config (mcp.json, .cursor/mcp.json, claude_desktop_config.json) running packages via npx -y without a version pin or with @latest",
+          "MCP filesystem server rooted at / or ~, or tokens inlined in the MCP server env block",
+          "trust_remote_code=True, torch.load / pickle.load of downloaded models, or unpinned Hugging Face model revisions"
+        ],
+        "review": [
+          "Provenance of models, adapters and datasets promoted into production"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM03:2025",
+        "agentic-top10-2026:ASI04",
+        "(inferred) ml-top10-2023:ML06:2023"
+      ]
+    },
+    {
+      "id": "LLM05:2026",
+      "name": "Data and Model Poisoning",
+      "previous_id": "LLM04:2025",
+      "summary": "Pre-training, fine-tuning or embedding data, or model artifacts, are manipulated to introduce backdoors, bias or vulnerabilities; 2026 folds in fine-tuning subversion.",
+      "prevention": [
+        "Treat chat templates, tokenizer configs, LoRA/PEFT adapters and quantization artifacts as security-relevant code."
+      ],
+      "cwe": [
+        "CWE-349",
+        "CWE-829"
+      ],
+      "detection": {
+        "static": [
+          "trust_remote_code=True, torch.load / pickle.load of downloaded models, or unpinned Hugging Face model revisions"
+        ],
+        "review": [
+          "Training/fine-tuning data provenance and integrity"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM04:2025"
+      ]
+    },
+    {
+      "id": "LLM06:2026",
+      "name": "Unbounded Consumption",
+      "previous_id": "LLM10:2025",
+      "summary": "Uncontrolled inference leads to denial of service, runaway cost (denial of wallet) or model extraction; 2026 adds reasoning-token exhaustion, multimodal cost, agent-tool loops and MCP fan-out.",
+      "prevention": [
+        "Enforce tokens-per-minute and per-day limits with pre-flight token estimation.",
+        "Set hard spending caps that halt inference.",
+        "Add agent circuit breakers: step, recursion-depth, time and per-run cost limits, with state hashing to detect loops.",
+        "Require authentication on all inference endpoints.",
+        "Monitor cost attribution continuously."
+      ],
+      "cwe": [
+        "CWE-400",
+        "CWE-770"
+      ],
+      "detection": {
+        "static": [
+          "LLM calls with no max_tokens / maxOutputTokens / max_completion_tokens",
+          "Agent loops with no step cap (AI SDK stopWhen step-count condition, LangChain maxIterations)",
+          "AI API routes with no rate-limit middleware",
+          "Public AI API route with no auth check (open proxy to a paid model)",
+          "new OpenAI({ dangerouslyAllowBrowser: true }) or new Anthropic({ dangerouslyAllowBrowser: true }) in client code",
+          "Public-prefixed AI key env names: NEXT_PUBLIC_OPENAI_API_KEY, NEXT_PUBLIC_ANTHROPIC_API_KEY, VITE_OPENAI_API_KEY, EXPO_PUBLIC_*_API_KEY, REACT_APP_OPENAI_API_KEY",
+          "Literal sk-... / sk-ant-... keys in 'use client' files or other client bundles"
+        ],
+        "review": [
+          "Spending caps and cost alerts configured at the provider",
+          "Load/cost testing of agent loops"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM10:2025",
+        "agentic-top10-2026:ASI02",
+        "agentic-top10-2026:ASI08",
+        "(inferred) agentic-threats-2025:T4"
+      ]
+    },
+    {
+      "id": "LLM07:2026",
+      "name": "Misinformation",
+      "previous_id": "LLM09:2025",
+      "summary": "The model produces false or misleading output (including hallucinated package names) that people or systems act on.",
+      "prevention": [
+        "Separate generation from execution (Claim-Check-Act).",
+        "Validate tool calls: arguments, authorization and preconditions before acting."
+      ],
+      "cwe": [
+        "CWE-1426",
+        "CWE-494"
+      ],
+      "detection": {
+        "static": [
+          "package.json dependencies that do not exist on the registry or are newly published (hallucinated package names / slopsquatting; needs a registry lookup)"
+        ],
+        "review": [
+          "Human verification of model claims used in decisions"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM09:2025"
+      ]
+    },
+    {
+      "id": "LLM08:2026",
+      "name": "Hidden Context Exposure",
+      "previous_id": "LLM07:2025",
+      "summary": "Hidden context (system prompt, developer instructions, retrieved policy text, tool/function schemas incl. MCP tool descriptions) is revealed; severity is high when it embeds credentials or when authorization relies on it staying secret.",
+      "prevention": [
+        "Do not put credentials, connection strings, tokens or other sensitive data in hidden context.",
+        "Use deterministic guardrails rather than prompt instructions.",
+        "Enforce authorization independently of the LLM."
+      ],
+      "cwe": [
+        "CWE-200",
+        "CWE-798"
+      ],
+      "detection": {
+        "static": [
+          "Secret-looking values (API keys, DB URLs, passwords, tokens) interpolated into system / role:'system' strings or instructions",
+          "Credentials embedded in tool/function schemas or MCP tool descriptions",
+          "Authorization expressed only in prompt text (e.g. 'only admins may...') with no code check before the tool runs"
+        ],
+        "review": [
+          "Whether any security decision depends on the secrecy of the prompt"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM07:2025",
+        "agentic-top10-2026:ASI06",
+        "agentic-top10-2026:ASI07"
+      ]
+    },
+    {
+      "id": "LLM09:2026",
+      "name": "Vector and Embedding Weaknesses",
+      "previous_id": "LLM08:2025",
+      "summary": "Weaknesses in how embeddings and vector stores are built, stored and queried (e.g. in RAG) allow data leakage across users, poisoning or manipulation.",
+      "prevention": [
+        "Apply permission-aware access control to vector retrieval.",
+        "Validate data, authenticate sources and track provenance.",
+        "Segregate data by trust tier.",
+        "Use anomaly detection and monitoring.",
+        "Manage the storage lifecycle of embeddings."
+      ],
+      "cwe": [
+        "CWE-200",
+        "CWE-285"
+      ],
+      "detection": {
+        "static": [
+          "Vector queries with no tenant/user filter (e.g. similaritySearch(q) with no filter)",
+          "Model output persisted to long-term memory or a vector store without validation or per-user namespacing"
+        ],
+        "review": [
+          "Tenant isolation design of the vector store"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM08:2025"
+      ]
+    },
+    {
+      "id": "LLM10:2026",
+      "name": "Improper Output Handling",
+      "previous_id": "LLM05:2025",
+      "summary": "Model output reaches downstream interpreters (shell, eval, HTML/Markdown, SQL, file paths, terminals) without validation or encoding; 2026 adds ANSI/OSC escapes, Markdown-image exfiltration and insecure AI-generated code.",
+      "prevention": [
+        "Treat model output as untrusted (zero trust) and apply ASVS-style validation.",
+        "Use context-aware output encoding and parameterized queries.",
+        "Deploy a strict CSP and strip control characters before writing to terminals or logs.",
+        "Disable auto-rendering of Markdown images, previews and iframes by default, or allowlist/proxy them.",
+        "Do not auto-deploy LLM-generated code without review."
+      ],
+      "cwe": [
+        "CWE-1426",
+        "CWE-116",
+        "CWE-79"
+      ],
+      "detection": {
+        "static": [
+          "Model output (completion.choices[0].message.content, result.text, toolCall.args) flowing into eval, new Function, vm.runIn*, child_process.exec/execSync or spawn(..., {shell:true})",
+          "Model output written to innerHTML, dangerouslySetInnerHTML, v-html, document.write, or a Markdown renderer with raw HTML enabled (e.g. rehype-raw, marked without a sanitizer)",
+          "Model output used in raw SQL ($queryRawUnsafe, sequelize.query(str), string-built db.query)",
+          "Model output used in fs paths / path.join without normalization, or as a fetch(url) target (SSRF)",
+          "Chat UI auto-rendering model Markdown images or link previews without a URL allowlist (exfiltration via query string)"
+        ],
+        "review": [
+          "Pipelines that deploy or execute AI-generated code without review"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM05:2025",
+        "agentic-top10-2026:ASI02",
+        "agentic-top10-2026:ASI05",
+        "agentic-top10-2026:ASI09"
+      ]
+    }
+  ]
+}

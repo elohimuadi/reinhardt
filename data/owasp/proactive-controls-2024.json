@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "id": "proactive-controls-2024",
+  "name": "OWASP Top 10 Proactive Controls",
+  "edition": "2024",
+  "status": "released",
+  "maturity": "lab",
+  "released": "2024",
+  "url": "https://top10proactive.owasp.org/",
+  "source_notes": "Verified against the official OWASP/www-project-proactive-controls GitHub repo, docs/the-top-10/ (cloned 2026-10-05).",
+  "caveats": [
+    "Publication date beyond the year 2024 (and copyright 2024) is not confirmed.",
+    "Maturity \"lab\" comes from the OWASP projects data (level 3); the numeric-to-label mapping for level 3 is inferred.",
+    "Each control's Implementation and \"Vulnerabilities Prevented\" sections were not extracted, so prevention bullets are reinhardt inferences drawn from related Top 10:2025 and cheat-sheet guidance in the notes, and no CWEs are attributed.",
+    "C3 and C8 summaries draw partly on content beyond the first Description sentence, which was only partly extracted.",
+    "C10 Stop Server Side Request Forgery is new compared with the 2018 edition. Related links to the Top 10 are reinhardt's mapping, not OWASP's."
+  ],
+  "items": [
+    {
+      "id": "C1",
+      "name": "Implement Access Control",
+      "summary": "Allow or deny each subject's request to access an object according to a defined policy.",
+      "prevention": [
+        "(inferred) Deny by default and enforce checks on every request in trusted server-side code.",
+        "(inferred) Enforce record ownership rather than trusting client-supplied IDs.",
+        "(inferred) Never rely on client-side checks as the deciding control."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Handlers with data access and no authorization check",
+          "Supabase tables without RLS; open Firebase rules",
+          "Role checks only in UI components"
+        ],
+        "review": [
+          "Policy design and cross-account testing"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) asvs-5.0:V8"
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "Use Cryptography to Protect Data",
+      "summary": "Give extra protection to sensitive data such as passwords, card numbers, health records, PII and secrets, especially data under GDPR or PCI DSS, both at rest and in transit.",
+      "prevention": [
+        "(inferred) Encrypt sensitive data at rest and use TLS in transit.",
+        "(inferred) Hash passwords with a slow, salted algorithm such as Argon2id.",
+        "(inferred) Keep keys in a KMS/HSM and use a CSPRNG for security values."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Weak hashes or ECB mode",
+          "Math.random for tokens",
+          "Hard-coded keys",
+          "http:// endpoints"
+        ],
+        "review": [
+          "Data classification and key management"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A04:2025",
+        "(inferred) asvs-5.0:V11",
+        "(inferred) asvs-5.0:V12"
+      ]
+    },
+    {
+      "id": "C3",
+      "name": "Validate all Input & Handle Exceptions",
+      "summary": "Let only properly formatted data enter software components, encode output for client-side contexts, and handle exceptions safely.",
+      "prevention": [
+        "(inferred) Validate input with allowlists on the server using a schema validator.",
+        "(inferred) Use parameterized queries and context-aware output encoding.",
+        "(inferred) Handle errors centrally, fail closed and return generic messages."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Unvalidated req.body use",
+          "SQL string interpolation",
+          "Empty catch blocks and err.stack in responses"
+        ],
+        "review": [
+          "Completeness of validation rules"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) top10-2025:A10:2025",
+        "(inferred) asvs-5.0:V1",
+        "(inferred) asvs-5.0:V2"
+      ]
+    },
+    {
+      "id": "C4",
+      "name": "Address Security from the Start",
+      "summary": "Design a secure architecture up front so vulnerabilities are prevented from entering the application.",
+      "prevention": [
+        "(inferred) Threat-model key flows such as authentication, access control and business logic.",
+        "(inferred) Reuse secure design patterns and paved-road components.",
+        "(inferred) Write security requirements into user stories and test misuse cases."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Client-trusted prices/roles",
+          "Missing rate limits on sensitive flows"
+        ],
+        "review": [
+          "Architecture and threat-model review"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A06:2025"
+      ]
+    },
+    {
+      "id": "C5",
+      "name": "Secure By Default Configurations",
+      "summary": "Products should resist common exploitation out of the box, with the most secure settings as the defaults.",
+      "prevention": [
+        "(inferred) Harden configurations repeatably and remove unused features.",
+        "(inferred) Send security headers and avoid verbose errors.",
+        "(inferred) Prefer short-lived credentials over static secrets in config."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Missing helmet/security headers",
+          "Debug flags or source maps in production",
+          "Permissive CORS defaults"
+        ],
+        "review": [
+          "Deployed configuration"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) asvs-5.0:V13"
+      ]
+    },
+    {
+      "id": "C6",
+      "name": "Keep your Components Secure",
+      "summary": "Use secure libraries and frameworks with built-in security, and keep third-party components safe and up to date.",
+      "prevention": [
+        "(inferred) Maintain an SBOM and monitor dependencies with SCA.",
+        "(inferred) Commit and enforce lockfiles and pin versions deliberately.",
+        "(inferred) Replace unmaintained components."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Missing lockfile",
+          "Wildcard or latest versions",
+          "Known-vulnerable versions"
+        ],
+        "review": [
+          "Provenance of components"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025",
+        "(inferred) asvs-5.0:V15"
+      ]
+    },
+    {
+      "id": "C7",
+      "name": "Secure Digital Identities",
+      "summary": "Handle digital identities, authentication and sessions robustly, verifying that subjects are who they claim to be.",
+      "prevention": [
+        "(inferred) Offer MFA and enforce sound password policy.",
+        "(inferred) Rotate session IDs on login and invalidate on logout.",
+        "(inferred) Throttle authentication attempts."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Hard-coded credentials",
+          "No login rate limiting",
+          "Tokens in localStorage"
+        ],
+        "review": [
+          "MFA and session invalidation behavior"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) asvs-5.0:V6",
+        "(inferred) asvs-5.0:V7"
+      ]
+    },
+    {
+      "id": "C8",
+      "name": "Leverage Browser Security Features",
+      "summary": "Use browser-side policies and mechanisms such as security headers and cookie attributes to protect users.",
+      "prevention": [
+        "(inferred) Deploy a strict nonce- or hash-based CSP.",
+        "(inferred) Set HSTS, X-Content-Type-Options and frame-ancestors.",
+        "(inferred) Use Secure, HttpOnly and SameSite cookie attributes."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "CSP with 'unsafe-inline'/'unsafe-eval'",
+          "Cookies missing security flags",
+          "Missing HSTS"
+        ],
+        "review": [
+          "Headers served in production"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) asvs-5.0:V3"
+      ]
+    },
+    {
+      "id": "C9",
+      "name": "Implement Security Logging and Monitoring",
+      "summary": "Log security-relevant information at runtime and monitor it to detect and respond to attacks.",
+      "prevention": [
+        "(inferred) Log authentication, authorization and validation failures with context.",
+        "(inferred) Never log secrets, tokens or sensitive PII; encode log data.",
+        "(inferred) Alert on suspicious activity."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Sensitive values in logs",
+          "No logging in auth failure paths"
+        ],
+        "review": [
+          "Monitoring and alerting setup"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A09:2025",
+        "(inferred) asvs-5.0:V16"
+      ]
+    },
+    {
+      "id": "C10",
+      "name": "Stop Server Side Request Forgery",
+      "summary": "Prevent the server from being tricked into making unintended requests to internal or external services.",
+      "prevention": [
+        "(inferred) Allowlist destination hosts, schemes and ports.",
+        "(inferred) Disable redirect following and validate resolved IPs.",
+        "(inferred) Block private and metadata addresses and segment the network."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "fetch/axios on user-supplied URLs",
+          "Next.js images.remotePatterns hostname \"**\""
+        ],
+        "review": [
+          "Network egress controls"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) api-top10-2023:API7:2023"
+      ]
+    }
+  ]
+}

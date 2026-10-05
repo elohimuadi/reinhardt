@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "id": "client-side-top10",
+  "name": "OWASP Top 10 Client-Side Security Risks",
+  "edition": null,
+  "status": "candidate",
+  "maturity": "incubator",
+  "released": null,
+  "url": "https://owasp.org/www-project-top-10-client-side-security-risks/",
+  "source_notes": "Candidate list and status verified on the owasp.org project page and its index.md (front-matter level 2, type documentation).",
+  "caveats": [
+    "OWASP assigns no official prefix; CSn is reinhardt's local label for list position n. Cite as e.g. \"OWASP Client-Side Top 10 (candidate) #6 JavaScript Drift\".",
+    "Still a candidate list; the promised full draft (planned for later in 2022) never appeared, so the project is effectively stalled. No release or last-updated date.",
+    "Maturity 'incubator' is from front-matter level 2 and the page badge.",
+    "Prevention is [] because the list itself provides no countermeasures; related guidance lives in the Third Party JavaScript Management, HTML5 Security and CSP cheat sheets.",
+    "detection.static entries are reinhardt rule ideas, not OWASP text."
+  ],
+  "items": [
+    {
+      "id": "CS1",
+      "name": "Broken Client-side Access Control",
+      "position": 1,
+      "summary": "JavaScript access to client-side data and code is not adequately controlled, enabling exfiltration or malicious DOM manipulation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "window.addEventListener('message', ...) handlers with no event.origin check",
+          "postMessage(data, '*')",
+          "Origin checks using indexOf / substring matching"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS2",
+      "name": "DOM-based XSS",
+      "position": 2,
+      "summary": "DOM manipulation or abuse allows cross-site scripting.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "innerHTML / outerHTML / insertAdjacentHTML / document.write / eval / new Function / setTimeout(string) fed from location, URLSearchParams or postMessage data",
+          "React dangerouslySetInnerHTML or Vue v-html with unsanitized input"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS3",
+      "name": "Sensitive Data Leakage",
+      "position": 3,
+      "summary": "Trackers and pixels across a web property are not detected or controlled, risking privacy-law violations.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party tracking pixels and tag-manager snippets (e.g. GTM gtm.js, Segment) whose downstream recipients are unknown",
+          "Tokens or PII in URL query strings that leak via Referer to third parties"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS4",
+      "name": "Vulnerable and Outdated Components",
+      "position": 4,
+      "summary": "Outdated or known-vulnerable JavaScript libraries are not detected and updated.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Lockfile entries matching known-vulnerable library versions (RetireJS-style)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS5",
+      "name": "Lack of Third-party Origin Control",
+      "position": 5,
+      "summary": "Resources from third-party origins are not restricted according to their origin.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party <script src=\"https://...\"> includes",
+          "No CSP restricting script sources"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS6",
+      "name": "JavaScript Drift",
+      "position": 6,
+      "summary": "Changes to client-side JavaScript assets and code are not detected.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party scripts loaded from CDNs without integrity= (SRI) and crossorigin",
+          "Tag managers that can inject arbitrary scripts"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS7",
+      "name": "Sensitive Data Stored Client-Side",
+      "position": 7,
+      "summary": "Sensitive data is kept in LocalStorage, the browser cache or transient JavaScript state.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "localStorage/sessionStorage.setItem('token'|'jwt'|'session'|'access_token'|'refresh...', ...)",
+          "PII keys written to browser storage"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS8",
+      "name": "Client-side Security Logging and Monitoring Failures",
+      "position": 8,
+      "summary": "Client-side changes and data access are not monitored or detected.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Requires runtime client-side monitoring; not statically detectable"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CS9",
+      "name": "Not Using Standard Browser Security Controls",
+      "position": 9,
+      "summary": "Standard browser controls such as CSP, Subresource Integrity and iframe sandboxing are not used.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party <script>/<link> without integrity=",
+          "No CSP header/meta in framework config (next.config.js headers, vercel.json, helmet)",
+          "CSP containing 'unsafe-inline', 'unsafe-eval' or wildcard sources",
+          "iframes embedding untrusted content without sandbox"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CS10",
+      "name": "Including Proprietary Information on the Client-Side",
+      "position": 10,
+      "summary": "Sensitive business logic, developer comments, proprietary algorithms or system information ship to the client.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Production source maps (e.g. productionBrowserSourceMaps: true)",
+          "Secrets or private keys in NEXT_PUBLIC_* / VITE_* env vars",
+          "Developer comments shipped in bundles"
+        ],
+        "review": []
+      },
+      "related": []
+    }
+  ]
+}

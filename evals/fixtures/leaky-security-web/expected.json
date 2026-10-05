@@ -1,0 +1,140 @@
+{
+  "findings": [
+    {
+      "id": "client-exposed-secret-env",
+      "sdk_id": null
+    },
+    {
+      "id": "command-injection",
+      "sdk_id": null
+    },
+    {
+      "id": "cors-credentials-any-origin",
+      "sdk_id": null
+    },
+    {
+      "id": "docker-secret-in-image",
+      "sdk_id": null
+    },
+    {
+      "id": "dynamic-code-execution",
+      "sdk_id": null
+    },
+    {
+      "id": "firebase-open-rules",
+      "sdk_id": null
+    },
+    {
+      "id": "gha-excessive-permissions",
+      "sdk_id": null
+    },
+    {
+      "id": "gha-pull-request-target-checkout",
+      "sdk_id": null
+    },
+    {
+      "id": "gha-script-injection",
+      "sdk_id": null
+    },
+    {
+      "id": "gha-unpinned-action",
+      "sdk_id": null
+    },
+    {
+      "id": "hardcoded-secret",
+      "sdk_id": null
+    },
+    {
+      "id": "insecure-cookie-flags",
+      "sdk_id": null
+    },
+    {
+      "id": "insecure-randomness",
+      "sdk_id": null
+    },
+    {
+      "id": "jwt-decoded-without-verification",
+      "sdk_id": null
+    },
+    {
+      "id": "jwt-none-algorithm",
+      "sdk_id": null
+    },
+    {
+      "id": "llm-sdk-in-browser",
+      "sdk_id": null
+    },
+    {
+      "id": "mass-assignment",
+      "sdk_id": null
+    },
+    {
+      "id": "mcp-server-unpinned",
+      "sdk_id": null
+    },
+    {
+      "id": "nextjs-browser-source-maps",
+      "sdk_id": null
+    },
+    {
+      "id": "open-redirect",
+      "sdk_id": null
+    },
+    {
+      "id": "postmessage-wildcard-origin",
+      "sdk_id": null
+    },
+    {
+      "id": "sensitive-data-logged",
+      "sdk_id": null
+    },
+    {
+      "id": "sql-string-building",
+      "sdk_id": null
+    },
+    {
+      "id": "ssrf-request-url",
+      "sdk_id": null
+    },
+    {
+      "id": "supabase-permissive-write-policy",
+      "sdk_id": null
+    },
+    {
+      "id": "supabase-privileged-key-in-client",
+      "sdk_id": null
+    },
+    {
+      "id": "supabase-table-without-rls",
+      "sdk_id": null
+    },
+    {
+      "id": "third-party-script-without-sri",
+      "sdk_id": null
+    },
+    {
+      "id": "tls-verification-disabled",
+      "sdk_id": null
+    },
+    {
+      "id": "token-in-web-storage",
+      "sdk_id": null
+    },
+    {
+      "id": "unsanitized-html-sink",
+      "sdk_id": null
+    },
+    {
+      "id": "upload-without-size-limit",
+      "sdk_id": null
+    },
+    {
+      "id": "weak-hash-algorithm",
+      "sdk_id": null
+    },
+    {
+      "id": "weak-password-hashing",
+      "sdk_id": null
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "id": "k8s-top10-2025",
+  "name": "OWASP Kubernetes Top Ten",
+  "edition": "2025",
+  "status": "draft",
+  "maturity": "incubator",
+  "released": null,
+  "url": "https://owasp.org/www-project-kubernetes-top-ten/",
+  "source_notes": "Verified against the OWASP Kubernetes Top Ten project page and repo (index.md, 2025/en/src K01 and K03 pages).",
+  "caveats": [
+    "Project page says \"2025 Top 10 Risks now available Feedback welcome\"; it is unclear whether 2025 is final, so status is \"draft\". Exact release date not confirmed.",
+    "IDs have no year suffix (K01..K10); the 2022 edition reuses the same IDs with different meanings (e.g. K02:2022 Supply Chain Vulnerabilities), so always qualify with the edition.",
+    "Only K01 and K03 detail pages were read; other items have summaries based on their names, and prevention is empty or reinhardt inference.",
+    "The notes attribute no CWEs to these items.",
+    "Kubernetes checks are lower priority for vibe-coded apps; manifest/Helm signals are reinhardt inferences."
+  ],
+  "items": [
+    {
+      "id": "K01",
+      "name": "Insecure Workload Configurations",
+      "summary": "Workloads run with dangerous defaults or settings such as root users, default capabilities, auto-mounted service-account tokens, unconfined seccomp, no resource limits, privileged mode or host namespaces.",
+      "prevention": [
+        "Run as a non-root user and group (runAsUser/runAsGroup, hostUsers: false on Kubernetes 1.33+).",
+        "Set allowPrivilegeEscalation: false and privileged: false.",
+        "Use readOnlyRootFilesystem: true.",
+        "Drop all capabilities (capabilities.drop: [ALL]).",
+        "Avoid host namespaces and set resource limits."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "privileged: true; hostNetwork/hostPID/hostIPC: true",
+          "allowPrivilegeEscalation unset or true; runAsNonRoot missing",
+          "No resources.limits",
+          "automountServiceAccountToken not false",
+          "Dockerfile without USER or ending as root"
+        ],
+        "review": [
+          "Admission policies applied in the cluster"
+        ]
+      },
+      "related": [
+        "(inferred) cheatsheets:docker-security-cheat-sheet"
+      ]
+    },
+    {
+      "id": "K02",
+      "name": "Overly Permissive Authorization Configurations",
+      "summary": "Authorization (e.g. RBAC) configuration grants broader access than needed.",
+      "prevention": [
+        "(inferred) Avoid binding subjects to cluster-admin.",
+        "(inferred) Avoid wildcard RBAC verbs and resources."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "ClusterRoleBinding to cluster-admin",
+          "RBAC verbs: [\"*\"]",
+          "resources: [\"secrets\"] with list/watch"
+        ],
+        "review": [
+          "Effective RBAC across bindings"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI5:2025"
+      ]
+    },
+    {
+      "id": "K03",
+      "name": "Secrets Management Failures",
+      "summary": "Secrets are exposed through images, ConfigMaps, environment variables, repositories, broad WATCH/LIST access or logs.",
+      "prevention": [
+        "Encrypt secrets in etcd via --encryption-provider-config.",
+        "Apply strict RBAC to secrets.",
+        "Use Workload Identity Federation or the External Secrets Operator.",
+        "Use the TokenRequest API for short-lived service-account tokens."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "kind: Secret with literal data/stringData committed",
+          "Secrets in ConfigMaps or container env literals",
+          "Secrets baked into images (Dockerfile ENV/ARG)"
+        ],
+        "review": [
+          "etcd encryption and secret access in the cluster"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI2:2025",
+        "(inferred) cicd-top10:CICD-SEC-6"
+      ]
+    },
+    {
+      "id": "K04",
+      "name": "Lack Of Cluster Level Policy Enforcement",
+      "summary": "The cluster lacks centrally enforced security policies; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Policy engine/admission controller configuration"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K05",
+      "name": "Missing Network Segmentation Controls",
+      "summary": "Network traffic between workloads is not segmented; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Namespaces without NetworkPolicy manifests"
+        ],
+        "review": [
+          "Effective network policies"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K06",
+      "name": "Overly Exposed Kubernetes Components",
+      "summary": "Kubernetes components are exposed more widely than necessary; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Services of type LoadBalancer for internal components"
+        ],
+        "review": [
+          "Network exposure of cluster components"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K07",
+      "name": "Misconfigured And Vulnerable Cluster Components",
+      "summary": "Cluster components are misconfigured or run vulnerable versions; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Component versions and configuration"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K08",
+      "name": "Cluster To Cloud Lateral Movement",
+      "summary": "An attacker in the cluster can move laterally into the underlying cloud environment; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Cloud IAM bindings for workloads and node identities"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K09",
+      "name": "Broken Authentication Mechanisms",
+      "summary": "Authentication to the cluster is weak or broken; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Cluster authentication configuration"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "K10",
+      "name": "Inadequate Logging And Monitoring",
+      "summary": "Cluster activity is not logged or monitored adequately; detail page not read.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Audit logging and monitoring setup"
+        ]
+      },
+      "related": []
+    }
+  ]
+}

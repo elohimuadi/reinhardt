@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "id": "privacy-top10-2021",
+  "name": "OWASP Top 10 Privacy Risks",
+  "edition": "2.0 (2021)",
+  "status": "archived",
+  "maturity": "lab",
+  "released": "2021",
+  "url": "https://owasp.org/www-project-top-10-privacy-risks/",
+  "source_notes": "IDs and titles from the owasp.org project page; type, frequency, impact and descriptions from tab_topprivacy.md in the OWASP GitHub repo.",
+  "caveats": [
+    "The GitHub repo was archived (read-only) on 2025-03-15; treat the list as frozen.",
+    "Countermeasures exist only in a separate v2.0 PDF that was not read, so prevention is [] for all items.",
+    "P6 is \"Insufficient Deletion of User Data\" on the project page and \"Insufficient Deletion of Personal Data\" in tab_topprivacy.md.",
+    "There is no item literally named third-party data sharing; it falls under P2, P4, P5 and P10.",
+    "Frequency/impact scale: Low 0-1.5, Medium 1.5-1.9, High 1.9-2.3, Very High >2.3.",
+    "detection.static entries are reinhardt rule ideas inferred from the descriptions, not OWASP text."
+  ],
+  "items": [
+    {
+      "id": "P1",
+      "name": "Web Application Vulnerabilities",
+      "risk_type": "Technical",
+      "frequency": "High",
+      "impact": "Very High",
+      "summary": "Weaknesses in design, implementation, patching or detection of systems that hold user data put that data at risk; this includes the broader OWASP Top 10.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Classic web vulnerabilities (see top10-2025 categories)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P2",
+      "name": "Operator-sided Data Leakage",
+      "risk_type": "Organizational & Technical",
+      "frequency": "High",
+      "impact": "Very High",
+      "summary": "User data reaches unauthorized parties through malice or careless mistakes, typically due to weak access control, insecure storage, data duplication or poor training.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "PII in logs (console.log/logger calls with password, token, email, req.body, req.headers.authorization)",
+          "PII or secrets in client bundles; user data sent to AI/LLM vendors",
+          "Over-permissive database rules (e.g. Supabase tables without RLS, open Firebase rules)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P3",
+      "name": "Insufficient Data Breach Response",
+      "risk_type": "Organizational & Technical",
+      "frequency": "High",
+      "impact": "Very High",
+      "summary": "Failing to notify affected people, fix the root cause or contain damage after a breach.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Organizational process; not statically detectable"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "P4",
+      "name": "Consent on Everything",
+      "risk_type": "Organizational",
+      "frequency": "Very High",
+      "impact": "High",
+      "summary": "Consent is bundled across purposes instead of being collected separately for each one.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Analytics, advertising or session-replay SDKs initialized at app start with no consent gate",
+          "IDFA access without a prior requestTrackingAuthorization call (iOS)",
+          "A single consent toggle that enables several SDKs"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P5",
+      "name": "Non-transparent Policies, Terms and Conditions",
+      "risk_type": "Organizational",
+      "frequency": "Very High",
+      "impact": "High",
+      "summary": "Users are not given enough information about how their data is collected, stored and processed.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party SDKs or data recipients found in code/manifests but not named in the privacy policy",
+          "Tag managers whose downstream recipients cannot be determined statically"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P6",
+      "name": "Insufficient Deletion of User Data",
+      "alt_names": [
+        "Insufficient Deletion of Personal Data"
+      ],
+      "risk_type": "Organizational & Technical",
+      "frequency": "High",
+      "impact": "High",
+      "summary": "Personal data is not deleted effectively or in time once its purpose ends or the user asks.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No account-deletion endpoint or UI (heuristic)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P7",
+      "name": "Insufficient Data Quality",
+      "risk_type": "Organizational & Technical",
+      "frequency": "Medium",
+      "impact": "Very High",
+      "summary": "Outdated, incorrect or bogus user data is used and not corrected.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Organizational process; not statically detectable"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "P8",
+      "name": "Missing or Insufficient Session Expiration",
+      "risk_type": "Technical",
+      "frequency": "Medium",
+      "impact": "Very High",
+      "summary": "Sessions are not terminated effectively, which can lead to collecting more data without the user being aware.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Session cookies or JWTs with no expiry or a very long maxAge/expiresIn",
+          "No logout or session-invalidation route"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) business-logic-abuse-top10-2025:BLA5:2025"
+      ]
+    },
+    {
+      "id": "P9",
+      "name": "Inability of Users to Access and Modify Data",
+      "risk_type": "Organizational & Technical",
+      "frequency": "High",
+      "impact": "High",
+      "summary": "Users cannot access, change or delete data about them.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No data-export or profile-edit endpoint/UI (heuristic)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "P10",
+      "name": "Collection of Data Not Required for the User-Consented Purpose",
+      "risk_type": "Organizational",
+      "frequency": "High",
+      "impact": "High",
+      "summary": "More descriptive, demographic or other user data is collected than the purpose needs, or without proper consent.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "SDKs or code collecting precise location, contacts, IDFA or device fingerprints beyond the stated purpose",
+          "Autocapture or session replay without input masking",
+          "Analytics track()/identify() calls carrying raw email or phone; PII sent to AI APIs"
+        ],
+        "review": []
+      },
+      "related": []
+    }
+  ]
+}

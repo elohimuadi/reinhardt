@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "id": "cicd-top10",
+  "name": "OWASP Top 10 CI/CD Security Risks",
+  "edition": "1.0 (2022)",
+  "status": "released",
+  "maturity": "lab",
+  "released": "2022",
+  "url": "https://owasp.org/www-project-top-10-ci-cd-security-risks/",
+  "source_notes": "Verified against the OWASP project page and its per-risk pages, plus the project repo index.md; GitHub Actions hardening signals from GitHub's own security-hardening docs.",
+  "caveats": [
+    "Only edition is v1.0 (2022, described as September-October 2022 by a summarizing fetch); no 2024-2026 update found. Effectively unmaintained but still canonical.",
+    "Maturity is uncertain: repo front-matter shows only level: 3 (Lab per the inferred mapping); a summary also described it as \"Lab/Incubator\".",
+    "Authors Daniel Krivelevich and Omer Gil (Cider Security); Cider's later acquisition is unverified.",
+    "IDs have no year suffix (CICD-SEC-n).",
+    "The notes attribute no CWEs to these items.",
+    "GitHub Actions detection signals come from GitHub's hardening guide and reinhardt inference, not OWASP text."
+  ],
+  "items": [
+    {
+      "id": "CICD-SEC-1",
+      "name": "Insufficient Flow Control Mechanisms",
+      "summary": "An attacker with access to one CI/CD system can push malicious code or artifacts down the pipeline alone because no additional approval or review is enforced.",
+      "prevention": [
+        "Protect branches without exclusions.",
+        "Limit auto-merge rules.",
+        "Require approval for production pipelines.",
+        "Accept only artifacts from pre-approved CI service accounts.",
+        "Detect configuration drift."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Auto-merge workflows (gh pr merge --auto, unconditional Dependabot auto-merge)",
+          "Deploy on push to any branch (branches: [\"**\"]) with production secrets"
+        ],
+        "review": [
+          "Branch protection and required-review settings in the SCM"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-2",
+      "name": "Inadequate Identity and Access Management",
+      "summary": "Identities across CI/CD systems are poorly managed: stale, overprivileged, shared or unmanaged accounts.",
+      "prevention": [
+        "Continuously map identities and remove unneeded permissions.",
+        "Disable stale accounts and use a central IdP.",
+        "Give external collaborators expiring access; no personal emails or self-registration.",
+        "Avoid broad base permissions and shared accounts."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "permissions: write-all or no top-level permissions key in workflows",
+          "contents: write / id-token: write on PR-triggered jobs"
+        ],
+        "review": [
+          "SCM and CI user and permission inventory"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI5:2025",
+        "(inferred) nhi-top10-2025:NHI10:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-3",
+      "name": "Dependency Chain Abuse",
+      "summary": "A malicious package is fetched and executed by the build, through dependency confusion, typosquatting and similar techniques.",
+      "prevention": [
+        "Pull packages through an internal proxy.",
+        "Verify checksums and signatures.",
+        "Do not configure clients to pull the latest version.",
+        "Register private packages under the organization scope and commit .npmrc.",
+        "Isolate install scripts from secrets and do not publish internal project names."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "npm install without a lockfile or with --no-package-lock; no npm ci",
+          "Docker FROM image:latest or no digest",
+          "Unscoped internal package names",
+          "curl | bash in steps"
+        ],
+        "review": [
+          "Registry and proxy configuration"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025",
+        "(inferred) cheatsheets:npm-security-cheat-sheet"
+      ]
+    },
+    {
+      "id": "CICD-SEC-4",
+      "name": "Poisoned Pipeline Execution (PPE)",
+      "summary": "Attackers run malicious commands in a pipeline by modifying its config (direct PPE), files it invokes (indirect PPE), or via anonymous PRs on public repos (public PPE).",
+      "prevention": [
+        "Run unreviewed code on isolated nodes without access to secrets.",
+        "Require manual approval for pipelines triggered by fork PRs.",
+        "Align branch protection with pipeline triggers.",
+        "Review CI configuration changes.",
+        "Grant pipeline credentials least privilege."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "pull_request_target or workflow_run with actions/checkout of head.sha/head.ref followed by run steps",
+          "${{ github.event.(issue|pull_request|comment|review|head_commit).* }} or github.head_ref interpolated in run:",
+          "self-hosted runners on public repos"
+        ],
+        "review": [
+          "Which files the pipeline executes and who can change them"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-5",
+      "name": "Insufficient PBAC (Pipeline-Based Access Controls)",
+      "summary": "Pipeline execution nodes and steps get more access to secrets, systems and network than they need.",
+      "prevention": [
+        "Do not share nodes across sensitivity levels.",
+        "Scope secrets per pipeline and step.",
+        "Revert nodes to a pristine state after runs.",
+        "Run with a least-privilege OS user.",
+        "Restrict network and internet egress."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "permissions: write-all",
+          "secrets: inherit to reusable workflows",
+          "Job-wide secrets where a single step needs them"
+        ],
+        "review": [
+          "Runner isolation and network policy"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI5:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-6",
+      "name": "Insufficient Credential Hygiene",
+      "summary": "Credentials used across CI/CD are static, shared, over-scoped or leaked into code, logs and artifacts.",
+      "prevention": [
+        "Map credentials and do not share them across contexts.",
+        "Prefer temporary over static credentials and scope them to IP or identity.",
+        "Detect secrets in the IDE, on push and in history.",
+        "Prevent secrets printing to console.",
+        "Verify secrets are removed from artifacts such as image layers, binaries and Helm charts."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Literal secrets in workflow env: instead of ${{ secrets.X }}",
+          "echo ${{ secrets.X }}",
+          "ACTIONS_ALLOW_UNSECURE_COMMANDS: true",
+          "Long-lived AWS_ACCESS_KEY_ID secrets instead of OIDC role-to-assume",
+          "Dockerfile ENV/ARG with secret-like literals"
+        ],
+        "review": [
+          "Secret rotation and history scanning"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI2:2025",
+        "(inferred) nhi-top10-2025:NHI6:2025",
+        "(inferred) nhi-top10-2025:NHI7:2025",
+        "(inferred) cheatsheets:secrets-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "CICD-SEC-7",
+      "name": "Insecure System Configuration",
+      "summary": "CI/CD systems (SCM, CI servers, registries) run with insecure settings, outdated versions or excessive access.",
+      "prevention": [
+        "Inventory and patch CI/CD systems.",
+        "Restrict network access to the minimum.",
+        "Review configuration periodically.",
+        "Apply least privilege on execution nodes and be careful with debug access."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "ACTIONS_STEP_DEBUG or set -x alongside secrets (weak signal)"
+        ],
+        "review": [
+          "SCM/CI server configuration, mostly outside the repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CICD-SEC-8",
+      "name": "Ungoverned Usage of 3rd Party Services",
+      "summary": "Third-party services connected to CI/CD (marketplace apps, plugins, OAuth apps, PATs) are adopted and granted access without governance.",
+      "prevention": [
+        "Require approval before integrating third parties.",
+        "Maintain visibility of permissions granted versus used.",
+        "Deprovision unused integrations.",
+        "Run third parties in the build with limited access to secrets and code and strict ingress/egress filters."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Third-party actions given broad tokens or secrets"
+        ],
+        "review": [
+          "Installed apps and OAuth grants in the SCM"
+        ]
+      },
+      "related": [
+        "(inferred) nhi-top10-2025:NHI3:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-9",
+      "name": "Improper Artifact Integrity Validation",
+      "summary": "Code and artifacts can be tampered with along the pipeline because their integrity is not validated.",
+      "prevention": [
+        "Sign code and artifacts.",
+        "Verify artifacts with tools such as in-toto, SLSA and Sigstore.",
+        "Detect configuration drift.",
+        "Check hashes of third-party scripts fetched in the build against official published hashes."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "uses: owner/action@main, @master, mutable tags (e.g. @v1) or no ref instead of a full commit SHA",
+          "curl | sh / ADD http... without hash verification",
+          "Docker images without digest pinning"
+        ],
+        "review": [
+          "Signing and verification in release flows"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A08:2025",
+        "(inferred) top10-2025:A03:2025"
+      ]
+    },
+    {
+      "id": "CICD-SEC-10",
+      "name": "Insufficient Logging and Visibility",
+      "summary": "CI/CD activity is not logged or monitored well enough to detect or investigate attacks.",
+      "prevention": [
+        "Map the environment and enable logging, which is often off by default.",
+        "Ship logs to a SIEM.",
+        "Alert on anomalies."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Audit log configuration and alerting for SCM and CI"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A09:2025"
+      ]
+    }
+  ]
+}

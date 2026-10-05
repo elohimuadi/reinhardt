@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "id": "agentic-threats-2025",
+  "name": "Agentic AI – Threats and Mitigations",
+  "edition": "1.0",
+  "status": "released",
+  "maturity": "unknown",
+  "released": "2025-02-17",
+  "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/",
+  "source_notes": "Release date from the genai.owasp.org resource page; T1-T15 names from a secondary vendor mapping document (pipelock).",
+  "caveats": [
+    "Threat IDs and names come from a secondary source (pipelock mapping doc); the primary PDF was not read.",
+    "Edition '1.0' is a local label for the first ASI guide; the notes give no version string.",
+    "Summaries are short paraphrases of the threat names only; the guide's mitigation playbooks were not retrieved, so prevention is [] for all items.",
+    "All related links (T-number to ASI/LLM) are inferred, not an OWASP-published crosswalk.",
+    "This guide is the precursor taxonomy to the Agentic Top 10 (agentic-top10-2026)."
+  ],
+  "items": [
+    {
+      "id": "T1",
+      "name": "Memory Poisoning",
+      "summary": "Agent short- or long-term memory is corrupted to influence later decisions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI06"
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "Tool Misuse",
+      "summary": "Attackers steer an agent into abusing the tools it is authorized to use.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI02"
+      ]
+    },
+    {
+      "id": "T3",
+      "name": "Privilege Compromise",
+      "summary": "Weak permission management lets an agent or attacker gain or misuse privileges.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI03"
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "Resource Overload",
+      "summary": "Agent compute, memory or service capacity is exhausted.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI08",
+        "(inferred) llm-top10-2026:LLM06:2026"
+      ]
+    },
+    {
+      "id": "T5",
+      "name": "Cascading Hallucination Attacks",
+      "summary": "Hallucinated information propagates and compounds across agent steps or systems.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI08"
+      ]
+    },
+    {
+      "id": "T6",
+      "name": "Intent Breaking & Goal Manipulation",
+      "summary": "An agent's goals or planning are manipulated away from the intended intent.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI01"
+      ]
+    },
+    {
+      "id": "T7",
+      "name": "Misaligned & Deceptive Behaviors",
+      "summary": "An agent performs harmful or deceptive actions while appearing to pursue its goal.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "T8",
+      "name": "Repudiation & Untraceability",
+      "summary": "Agent actions cannot be reliably attributed or traced due to insufficient logging.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "T9",
+      "name": "Identity Spoofing & Impersonation",
+      "summary": "Attackers impersonate agents or users to perform unauthorized actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI03"
+      ]
+    },
+    {
+      "id": "T10",
+      "name": "Overwhelming Human-in-the-Loop",
+      "summary": "Human reviewers are flooded with requests so oversight degrades.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "T11",
+      "name": "Unexpected RCE and Code Attacks",
+      "summary": "Agent-generated or injected code runs in the agent environment.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI05"
+      ]
+    },
+    {
+      "id": "T12",
+      "name": "Agent Communication Poisoning",
+      "summary": "Messages between agents are manipulated to spread false information or instructions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI07"
+      ]
+    },
+    {
+      "id": "T13",
+      "name": "Rogue Agents in Multi-Agent Systems",
+      "summary": "Malicious or compromised agents operate outside monitoring within a multi-agent system.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI10"
+      ]
+    },
+    {
+      "id": "T14",
+      "name": "Human Attacks on Multi-Agent Systems",
+      "summary": "Attackers exploit delegation and trust relationships between agents.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "T15",
+      "name": "Human Manipulation",
+      "summary": "Users' trust in an agent is exploited to manipulate them into harmful actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": [
+        "(inferred) agentic-top10-2026:ASI09"
+      ]
+    }
+  ]
+}

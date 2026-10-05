@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "id": "mobile-top10-2024",
+  "name": "OWASP Mobile Top 10",
+  "edition": "2024",
+  "status": "released",
+  "maturity": "lab",
+  "released": "2024",
+  "url": "https://owasp.org/www-project-mobile-top-10/",
+  "source_notes": "IDs and names verified from index.md and risk pages in a clone of OWASP/www-project-mobile-top-10 (last commit 2025-10-09).",
+  "caveats": [
+    "Risk pages live under a 2023-risks/ folder but this is the 2024 final release; do not label it 2023. No exact publication day was found.",
+    "IDs M1..M10 collide with the 2016 list (e.g. 2016 M2 was Insecure Data Storage); qualify them with the edition (e.g. OWASP-MOBILE-2024:M5).",
+    "M7 is \"Insufficient Binary Protections\" on the index but \"Insufficient Binary Protection\" on its risk page.",
+    "All MASVS/MASWE links are inferred; OWASP publishes no MASWE/MASVS-to-Top-10 mapping.",
+    "M7 prevention was not captured in the notes.",
+    "Candidates not on the 2024 list: Data Leakage, Hardcoded Secrets, Insecure Access Control, Path Overwrite and Path Traversal, Unprotected Endpoints, Unsafe Sharing.",
+    "Maturity 'lab' comes from the OWASP project catalog (level 3; label inferred)."
+  ],
+  "items": [
+    {
+      "id": "M1",
+      "name": "Improper Credential Usage",
+      "summary": "Credentials or API keys are hardcoded or user credentials are mishandled, letting attackers impersonate users or abuse backend services.",
+      "prevention": [
+        "Never hardcode credentials or API keys in app code or configuration files.",
+        "Transmit user credentials securely and do not store them on the device.",
+        "Use revocable tokens instead of long-lived credentials."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "API keys or secret literals in Swift string constants or Info.plist",
+          "EXPO_PUBLIC_* / NEXT_PUBLIC_* / VITE_* variables named like SECRET, PRIVATE, SERVICE_ROLE or a non-publishable KEY",
+          "Raw key literals passed to SecKeyCreateWithData, CCCrypt or CryptoKit init(rawRepresentation:)",
+          "React Native AsyncStorage.setItem(...) storing tokens or credentials"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CRYPTO-2",
+        "(inferred) masvs-2.1:MASVS-STORAGE-1",
+        "(inferred) masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) maswe:MASWE-0001",
+        "(inferred) maswe:MASWE-0003",
+        "(inferred) maswe:MASWE-0004"
+      ]
+    },
+    {
+      "id": "M2",
+      "name": "Inadequate Supply Chain Security",
+      "summary": "Compromised or vulnerable third-party libraries, SDKs or build/distribution steps introduce weaknesses into the app.",
+      "prevention": [
+        "Apply secure coding and code review across the supply chain.",
+        "Secure app signing and distribution.",
+        "Use only trusted, validated third-party libraries and control their updates.",
+        "Monitor dependencies for issues."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Podfile.lock / Package.resolved / JS lockfile dependencies with known vulnerabilities",
+          "Missing lockfile for the mobile project"
+        ],
+        "review": [
+          "Vetting of third-party SDKs and build pipeline integrity"
+        ]
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CODE-3",
+        "(inferred) maswe:MASWE-0044"
+      ]
+    },
+    {
+      "id": "M3",
+      "name": "Insecure Authentication/Authorization",
+      "summary": "Weak authentication or authorization (e.g. client-side-only checks or offline auth without the server) lets attackers bypass identity or access controls.",
+      "prevention": [
+        "Avoid weak patterns such as client-only authentication or authorization.",
+        "Enforce authentication and authorization on the server.",
+        "Do not perform offline authentication without server verification."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Role/permission checks only in client code guarding sensitive actions",
+          "URL scheme / universal link handlers that trigger sensitive actions without validation"
+        ],
+        "review": [
+          "Server-side enforcement of authorization for every API"
+        ]
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CODE-4",
+        "(inferred) masvs-2.1:MASVS-PLATFORM-1",
+        "(inferred) masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) maswe:MASWE-0029"
+      ]
+    },
+    {
+      "id": "M4",
+      "name": "Insufficient Input/Output Validation",
+      "summary": "Untrusted input or output is not validated or encoded, enabling injection, XSS in WebViews, path traversal and similar attacks.",
+      "prevention": [
+        "Strictly validate input and enforce length limits.",
+        "Encode and sanitize output (e.g. against XSS).",
+        "Apply context-specific validation against path traversal and injection.",
+        "Check data integrity."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Deep link / universal link handlers using URL parameters (amounts, paths, HTML) without validation",
+          "WKUserContentController.add(_:name:) JS bridges exposing native functionality",
+          "WebView loading attacker-controllable URLs"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CODE-4",
+        "(inferred) masvs-2.1:MASVS-PLATFORM-1",
+        "(inferred) masvs-2.1:MASVS-PLATFORM-2",
+        "(inferred) masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) maswe:MASWE-0029",
+        "(inferred) maswe:MASWE-0033",
+        "(inferred) maswe:MASWE-0034",
+        "(inferred) maswe:MASWE-0035"
+      ]
+    },
+    {
+      "id": "M5",
+      "name": "Insecure Communication",
+      "summary": "Data in transit is exposed because TLS is missing, weakened or certificate validation is bypassed.",
+      "prevention": [
+        "Assume the network is hostile.",
+        "Apply TLS to all transport channels, including third-party SDK traffic.",
+        "Avoid mixed secure/insecure sessions.",
+        "Validate certificates properly and pin where possible."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "NSAllowsArbitraryLoads / NSAllowsArbitraryLoadsInWebContent / NSAllowsArbitraryLoadsForMedia / NSExceptionAllowsInsecureHTTPLoads in Info.plist",
+          "NSExceptionMinimumTLSVersion below TLSv1.2 or NSExceptionRequiresForwardSecrecy = false",
+          "Hardcoded http:// API URLs",
+          "URLSession challenge handlers calling .useCredential without SecTrustEvaluateWithError",
+          "No NSPinnedDomains for developer-controlled endpoints"
+        ],
+        "review": [
+          "Traffic outside the URL Loading System (Network.framework/CFNetwork) is not governed by ATS"
+        ]
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-NETWORK-1",
+        "(inferred) masvs-2.1:MASVS-NETWORK-2",
+        "(inferred) maswe:MASWE-0026",
+        "(inferred) maswe:MASWE-0027",
+        "(inferred) maswe:MASWE-0028"
+      ]
+    },
+    {
+      "id": "M6",
+      "name": "Inadequate Privacy Controls",
+      "summary": "Personal data is collected, used, shared or retained beyond what is needed, or without consent and transparency.",
+      "prevention": [
+        "Minimize the amount and variety of PII collected.",
+        "Prefer coarse over fine data (e.g. coarse location) and reduce collection frequency.",
+        "Anonymize or blur data where possible and delete it after expiry.",
+        "Obtain user consent for optional processing."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Missing PrivacyInfo.xcprivacy or required-reason APIs not declared in NSPrivacyAccessedAPITypes",
+          "Known tracking domains not declared in NSPrivacyTrackingDomains",
+          "Over-broad permissions, entitlements or inaccurate purpose strings",
+          "PII written to logs or the general pasteboard"
+        ],
+        "review": [
+          "Whether collected data matches the declared purpose and privacy policy"
+        ]
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-PLATFORM-1",
+        "(inferred) masvs-2.1:MASVS-PRIVACY-1",
+        "(inferred) masvs-2.1:MASVS-PRIVACY-3",
+        "(inferred) masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) maswe:MASWE-0005",
+        "(inferred) maswe:MASWE-0030",
+        "(inferred) maswe:MASWE-0066",
+        "(inferred) maswe:MASWE-0073",
+        "(inferred) maswe:MASWE-0074"
+      ]
+    },
+    {
+      "id": "M7",
+      "name": "Insufficient Binary Protections",
+      "alt_names": [
+        "Insufficient Binary Protection"
+      ],
+      "summary": "App binaries can be reverse engineered or tampered with, exposing hardcoded secrets, logic or enabling repackaging.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Hardcoded sensitive data (keys, secrets) recoverable from the binary"
+        ],
+        "review": [
+          "Need for obfuscation, anti-tampering and integrity checks given the app's threat model"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "M8",
+      "name": "Security Misconfiguration",
+      "summary": "Insecure defaults or settings (permissions, cleartext traffic, exported components, backups) weaken the app.",
+      "prevention": [
+        "Use secure default settings and remove default credentials.",
+        "Avoid world-readable/writable files and request least-privilege permissions.",
+        "Disallow cleartext traffic and pin certificates when possible.",
+        "Disable backups (Android) and limit exported components."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "ATS exceptions allowing cleartext in Info.plist",
+          "Unjustified permissions or entitlements"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-NETWORK-1",
+        "(inferred) masvs-2.1:MASVS-PRIVACY-1",
+        "(inferred) maswe:MASWE-0026",
+        "(inferred) maswe:MASWE-0066"
+      ]
+    },
+    {
+      "id": "M9",
+      "name": "Insecure Data Storage",
+      "summary": "Sensitive data stored on the device is unprotected and can be read by other apps, backups or attackers with device access.",
+      "prevention": [
+        "Encrypt sensitive data at rest with strong algorithms.",
+        "Use platform secure storage such as Keychain (iOS) or Keystore (Android).",
+        "Apply input validation and secure session management.",
+        "Keep dependencies patched."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UserDefaults / @AppStorage storing tokens, passwords or API keys",
+          "React Native AsyncStorage storing tokens or secrets",
+          "print / NSLog / os_log with sensitive values",
+          "Sensitive files not excluded from backup",
+          "UIPasteboard.general writes of sensitive data"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CRYPTO-2",
+        "(inferred) masvs-2.1:MASVS-PLATFORM-1",
+        "(inferred) masvs-2.1:MASVS-STORAGE-1",
+        "(inferred) masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) maswe:MASWE-0001",
+        "(inferred) maswe:MASWE-0005",
+        "(inferred) maswe:MASWE-0006",
+        "(inferred) maswe:MASWE-0030"
+      ]
+    },
+    {
+      "id": "M10",
+      "name": "Insufficient Cryptography",
+      "summary": "Weak algorithms, short keys, poor randomness or bad key management undermine confidentiality and integrity.",
+      "prevention": [
+        "Use strong, current algorithms (e.g. AES, RSA, ECC).",
+        "Avoid deprecated or weak algorithms.",
+        "Use sufficient key lengths.",
+        "Manage keys securely."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "CC_MD5 / CC_SHA1 / Insecure.MD5 / Insecure.SHA1",
+          "rand() / random() / drand48 in security contexts",
+          "Hardcoded cryptographic keys"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) masvs-2.1:MASVS-CRYPTO-1",
+        "(inferred) masvs-2.1:MASVS-CRYPTO-2",
+        "(inferred) masvs-2.1:MASVS-STORAGE-1",
+        "(inferred) maswe:MASWE-0003",
+        "(inferred) maswe:MASWE-0008",
+        "(inferred) maswe:MASWE-0012"
+      ]
+    }
+  ]
+}

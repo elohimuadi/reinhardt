@@ -1,0 +1,36 @@
+{
+  "findings": [
+    {
+      "id": "hardcoded-secret",
+      "sdk_id": null
+    },
+    {
+      "id": "ios-ats-disabled",
+      "sdk_id": null
+    },
+    {
+      "id": "ios-cleartext-url",
+      "sdk_id": null
+    },
+    {
+      "id": "ios-privacy-manifest-missing",
+      "sdk_id": null
+    },
+    {
+      "id": "ios-sensitive-data-in-userdefaults",
+      "sdk_id": null
+    },
+    {
+      "id": "sensitive-data-logged",
+      "sdk_id": null
+    },
+    {
+      "id": "tls-verification-disabled",
+      "sdk_id": null
+    },
+    {
+      "id": "weak-hash-algorithm",
+      "sdk_id": null
+    }
+  ]
+}
