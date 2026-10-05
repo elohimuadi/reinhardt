@@ -48,16 +48,16 @@
     - No query → `{ disclaimer, standards: [{ id, name, edition, status, maturity, url, item_count }] }` sorted by id.
     - Otherwise `{ disclaimer, query, results: [{ ref, standard: { id, name, edition, status, url }, item }] }`, matched in this precedence, first non-empty wins: (1) exact ref; (2) exact standard id → all its items in file order; (3) item id equal case-insensitively across all standards (e.g. `a01:2025`, `M5` returns every standard's `M5`); (4) `CWE-<n>` → items whose `cwe` includes it; (5) case-insensitive substring of item `name` or `summary`, capped at 25. Results sorted by standard id, then item order in its file. No match → `results: []` (not an error).
 
-- [ ] **Step 1: Write failing tests** in `test/owasp.test.js`:
+- [x] **Step 1: Write failing tests** in `test/owasp.test.js`:
   - `every standard file parses, ids match file stems, item ids are unique per standard`
   - `every related ref in every item resolves` (strip a leading `(inferred) ` before resolving)
   - `resolveRef handles colons in item ids`: `resolveRef('top10-2025:A01:2025').item.name === 'Broken Access Control'`; `resolveRef('nope:X') === null`
   - `lookup precedence`: `lookup('llm-top10-2026:LLM01:2026').results.length === 1`; `lookup('api-top10-2023').results.length === 10`; `lookup('a05:2025').results[0].item.name === 'Injection'`; `lookup('CWE-918').results.some(r => r.ref === 'top10-2025:A01:2025')`; `lookup('row level security')` returns ≤ 25 results; `lookup('zzzz-no-match').results` deep-equals `[]`
   - `lookup without query lists 22 standards sorted by id, each with disclaimer at top level`
-- [ ] **Step 2:** `node --test test/owasp.test.js` → FAIL (module not found).
-- [ ] **Step 3:** Implement `src/engine/owasp.js` with `readFileSync` + `new URL('../../data/owasp/', import.meta.url)`.
-- [ ] **Step 4:** `node --test test/owasp.test.js` → PASS.
-- [ ] **Step 5:** `git commit -m "feat: load OWASP knowledge base and add lookup"`
+- [x] **Step 2:** `node --test test/owasp.test.js` → FAIL (module not found).
+- [x] **Step 3:** Implement `src/engine/owasp.js` with `readFileSync` + `new URL('../../data/owasp/', import.meta.url)`.
+- [x] **Step 4:** `node --test test/owasp.test.js` → PASS.
+- [x] **Step 5:** `git commit -m "feat: load OWASP knowledge base and add lookup"`
 
 ### Task 2: Rule interpreter that passes every rule vector
 
