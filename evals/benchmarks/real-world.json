@@ -1,0 +1,521 @@
+{
+  "schema_version": 1,
+  "description": "Real-world benchmark for reinhardt security rules. Repositories are pinned to exact commits. Every finding produced at labelling time carries a human verdict from reading the code: tp (real issue), fp (false positive), unresolved (needs product context). Unlabelled findings in a future run are new behaviour and must be triaged by the knowledge maintainer before the benchmark is updated.",
+  "labelled_on": "2026-10-05",
+  "metrics": "precision = tp / (tp + fp) over labelled findings; unresolved are excluded and reported separately. Recall is not computed numerically: known_misses lists verified vulnerabilities the rules do not detect.",
+  "repos": [
+    {
+      "name": "NodeGoat",
+      "url": "https://github.com/OWASP/NodeGoat",
+      "commit": "c5cb68a7084e4ae7dcc60e6a98768720a81841e8",
+      "kind": "intentionally-vulnerable",
+      "stack": "Express, MongoDB, Swig",
+      "findings": [
+        {
+          "rule": "dynamic-code-execution",
+          "file": "app/routes/contributions.js",
+          "line": 32,
+          "verdict": "tp"
+        },
+        {
+          "rule": "dynamic-code-execution",
+          "file": "app/routes/contributions.js",
+          "line": 33,
+          "verdict": "tp"
+        },
+        {
+          "rule": "dynamic-code-execution",
+          "file": "app/routes/contributions.js",
+          "line": 34,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "app/data/allocations-dao.js",
+          "line": 73,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "app/data/allocations-dao.js",
+          "line": 78,
+          "verdict": "tp"
+        },
+        {
+          "rule": "open-redirect",
+          "file": "app/routes/index.js",
+          "line": 72,
+          "verdict": "tp"
+        },
+        {
+          "rule": "template-autoescape-disabled",
+          "file": "server.js",
+          "line": 137,
+          "verdict": "tp"
+        }
+      ],
+      "known_misses": [
+        {
+          "description": "SSRF: research route fetches a URL assembled from req.query via needle (requires data-flow tracking)",
+          "file": "app/routes/research.js",
+          "owasp": [
+            "top10-2025:A01:2025",
+            "api-top10-2023:API7:2023"
+          ]
+        },
+        {
+          "description": "Session cookie lacks secure flag and maxAge (absence of a setting is not detectable by current rules)",
+          "file": "server.js",
+          "owasp": [
+            "top10-2025:A07:2025"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "juice-shop",
+      "url": "https://github.com/juice-shop/juice-shop",
+      "commit": "1618a611b173b4bf114028e6e02549950606e29d",
+      "kind": "intentionally-vulnerable",
+      "stack": "Express, Angular, Sequelize, MarsDB",
+      "findings": [
+        {
+          "rule": "dynamic-code-execution",
+          "file": "routes/captcha.ts",
+          "line": 22,
+          "verdict": "fp",
+          "note": "eval of a server-generated arithmetic string from Math.random digits and fixed operators; no user input reaches it"
+        },
+        {
+          "rule": "dynamic-code-execution",
+          "file": "routes/userProfile.ts",
+          "line": 65,
+          "verdict": "tp"
+        },
+        {
+          "rule": "gha-unpinned-action",
+          "file": ".github/workflows/ci.yml",
+          "line": 188,
+          "verdict": "tp"
+        },
+        {
+          "rule": "gha-unpinned-action",
+          "file": ".github/workflows/image_actions.yml",
+          "line": 33,
+          "verdict": "tp"
+        },
+        {
+          "rule": "gha-unpinned-action",
+          "file": ".github/workflows/image_actions.yml",
+          "line": 42,
+          "verdict": "tp"
+        },
+        {
+          "rule": "hardcoded-secret",
+          "file": "lib/insecurity.ts",
+          "line": 21,
+          "verdict": "tp"
+        },
+        {
+          "rule": "insecure-randomness",
+          "file": "lib/insecurity.ts",
+          "line": 53,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "data/static/codefixes/chatbotGreedyInjectionChallenge_1.ts",
+          "line": 65,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "data/static/codefixes/chatbotGreedyInjectionChallenge_2_correct.ts",
+          "line": 66,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "data/static/codefixes/chatbotGreedyInjectionChallenge_3.ts",
+          "line": 66,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "data/static/codefixes/chatbotGreedyInjectionChallenge_4.ts",
+          "line": 66,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "routes/chat.ts",
+          "line": 149,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "routes/showProductReviews.ts",
+          "line": 36,
+          "verdict": "tp"
+        },
+        {
+          "rule": "nosql-injection",
+          "file": "routes/trackOrder.ts",
+          "line": 18,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/dbSchemaChallenge_1.ts",
+          "line": 5,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/dbSchemaChallenge_3.ts",
+          "line": 11,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginAdminChallenge_1.ts",
+          "line": 18,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginAdminChallenge_2.ts",
+          "line": 15,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginBenderChallenge_1.ts",
+          "line": 18,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginBenderChallenge_3.ts",
+          "line": 15,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginBenderChallenge_4.ts",
+          "line": 15,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginJimChallenge_2.ts",
+          "line": 15,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/loginJimChallenge_4.ts",
+          "line": 18,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/unionSqlInjectionChallenge_1.ts",
+          "line": 6,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "data/static/codefixes/unionSqlInjectionChallenge_3.ts",
+          "line": 10,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "routes/login.ts",
+          "line": 34,
+          "verdict": "tp"
+        },
+        {
+          "rule": "sql-string-building",
+          "file": "routes/search.ts",
+          "line": 23,
+          "verdict": "tp"
+        },
+        {
+          "rule": "token-in-web-storage",
+          "file": "frontend/src/app/login/login.component.ts",
+          "line": 102,
+          "verdict": "tp"
+        },
+        {
+          "rule": "token-in-web-storage",
+          "file": "frontend/src/app/login/login.component.ts",
+          "line": 121,
+          "verdict": "tp"
+        },
+        {
+          "rule": "token-in-web-storage",
+          "file": "frontend/src/app/oauth/oauth.component.ts",
+          "line": 52,
+          "verdict": "tp"
+        },
+        {
+          "rule": "token-in-web-storage",
+          "file": "frontend/src/app/payment/payment.component.ts",
+          "line": 233,
+          "verdict": "tp"
+        },
+        {
+          "rule": "token-in-web-storage",
+          "file": "frontend/src/app/two-factor-auth-enter/two-factor-auth-enter.component.ts",
+          "line": 54,
+          "verdict": "tp"
+        },
+        {
+          "rule": "unsanitized-html-sink",
+          "file": "frontend/src/app/data-export/data-export.component.ts",
+          "line": 72,
+          "verdict": "tp"
+        },
+        {
+          "rule": "unsanitized-html-sink",
+          "file": "frontend/src/hacking-instructor/index.ts",
+          "line": 126,
+          "verdict": "fp",
+          "note": "hint text is static tutorial content rendered through snarkdown"
+        },
+        {
+          "rule": "weak-hash-algorithm",
+          "file": "lib/insecurity.ts",
+          "line": 41,
+          "verdict": "tp"
+        },
+        {
+          "rule": "weak-hash-algorithm",
+          "file": "scripts/package.mjs",
+          "line": 121,
+          "verdict": "fp",
+          "note": "MD5 used as a packaging checksum, not for security"
+        }
+      ],
+      "known_misses": [
+        {
+          "description": "XXE via XML upload parsing, JWT weaknesses and many business-logic challenges are outside current rule coverage",
+          "file": "routes/fileUpload.ts",
+          "owasp": [
+            "top10-2025:A02:2025",
+            "top10-2025:A07:2025",
+            "top10-2025:A06:2025"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "iGoat-Swift",
+      "url": "https://github.com/OWASP/iGoat-Swift",
+      "commit": "8c8a8ed6051279f06098f72d6d5aeeb65f8905f2",
+      "kind": "intentionally-vulnerable",
+      "stack": "iOS, Swift",
+      "findings": [
+        {
+          "rule": "ios-ats-disabled",
+          "file": "iGoat-Swift/iGoat-Swift/Info.plist",
+          "line": 38,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-cleartext-url",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/BinaryCookies/BinaryCookiesExerciseVC.swift",
+          "line": 11,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-cleartext-url",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/SideChannelDataLeaks/CloudMisconfiguration/CloudMisconfigurationExerciseVC.swift",
+          "line": 19,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/CouchBase/CouchBaseExerciseVC.swift",
+          "line": 29,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/CouchBase/CouchBaseExerciseVC.swift",
+          "line": 30,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/CouchBase/CouchBaseExerciseVC.swift",
+          "line": 37,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/CouchBase/CouchBaseExerciseVC.swift",
+          "line": 54,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/NSUserDefaults/NSUserDefaultsStorageExerciseVC.swift",
+          "line": 13,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/NSUserDefaults/NSUserDefaultsStorageExerciseVC.swift",
+          "line": 20,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/CocoaLumberjack/DDFileLogger.m",
+          "line": 1185,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/CocoaLumberjack/DDFileLogger.m",
+          "line": 1186,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/YapDatabase/YapDatabase.m",
+          "line": 2731,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/YapDatabase/YapDatabaseConnection.m",
+          "line": 1890,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/YapDatabase/YapDatabaseConnection.m",
+          "line": 2084,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-privacy-manifest-missing",
+          "file": "iGoat-Swift/iGoat-Swift/ThirdParty/YapDatabase/YapDatabaseConnection.m",
+          "line": 2490,
+          "verdict": "tp"
+        },
+        {
+          "rule": "ios-sensitive-data-in-userdefaults",
+          "file": "iGoat-Swift/iGoat-Swift/Source/Exercises/InsecureLocalDataStorage/NSUserDefaults/NSUserDefaultsStorageExerciseVC.swift",
+          "line": 13,
+          "verdict": "tp"
+        },
+        {
+          "rule": "third-party-script-without-sri",
+          "file": "iGoat-Swift/iGoat-Swift/Resources/HTML/splash.html",
+          "line": 16,
+          "verdict": "tp",
+          "note": "Twitter widget script without integrity (low severity, real)"
+        },
+        {
+          "rule": "third-party-script-without-sri",
+          "file": "iGoat-Swift/iGoat-Swift/Resources/HTML/splash.html",
+          "line": 27,
+          "verdict": "tp",
+          "note": "Twitter widget script without integrity (low severity, real)"
+        }
+      ],
+      "known_misses": [
+        {
+          "description": "Insecure storage in Keychain/CoreData/SQLite/Realm exercises and key management weaknesses are not covered by current iOS rules",
+          "file": null,
+          "owasp": [
+            "mobile-top10-2024:M9",
+            "mobile-top10-2024:M10"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ai-chatbot",
+      "url": "https://github.com/vercel/ai-chatbot",
+      "commit": "c2f8235e1f3ea903ad8b7f61447c4f74164b5c58",
+      "kind": "production-template",
+      "stack": "Next.js, AI SDK, Drizzle/Postgres",
+      "findings": [
+        {
+          "rule": "gha-unpinned-action",
+          "file": ".github/workflows/lint.yml",
+          "line": 14,
+          "verdict": "tp"
+        },
+        {
+          "rule": "gha-unpinned-action",
+          "file": ".github/workflows/playwright.yml",
+          "line": 29,
+          "verdict": "tp"
+        },
+        {
+          "rule": "third-party-script-without-sri",
+          "file": "app/(chat)/layout.tsx",
+          "line": 15,
+          "verdict": "tp",
+          "note": "next/script loads pyodide from jsDelivr without integrity (low severity, real)"
+        },
+        {
+          "rule": "unsanitized-html-sink",
+          "file": "components/chat/diffview.tsx",
+          "line": 70,
+          "verdict": "unresolved",
+          "note": "HTML produced by a local diff renderer from document content; exploitability depends on renderer escaping"
+        },
+        {
+          "rule": "unsanitized-html-sink",
+          "file": "components/chat/diffview.tsx",
+          "line": 73,
+          "verdict": "unresolved",
+          "note": "HTML produced by a local diff renderer from document content; exploitability depends on renderer escaping"
+        },
+        {
+          "rule": "unsanitized-html-sink",
+          "file": "lib/editor/functions.tsx",
+          "line": 19,
+          "verdict": "unresolved",
+          "note": "markdown converted to HTML and parsed in a detached element; model output can reach it"
+        }
+      ],
+      "known_misses": []
+    },
+    {
+      "name": "taxonomy",
+      "url": "https://github.com/shadcn-ui/taxonomy",
+      "commit": "298a8857c7128a0d121e7f699dfd729f23b3966d",
+      "kind": "production-template",
+      "stack": "Next.js, Prisma, Stripe",
+      "findings": [],
+      "known_misses": []
+    },
+    {
+      "name": "nextjs-subscription-payments",
+      "url": "https://github.com/vercel/nextjs-subscription-payments",
+      "commit": "bdd0813206e47e6b218d42f15a7976c8a0d3c3eb",
+      "kind": "production-template",
+      "stack": "Next.js, Supabase, Stripe",
+      "findings": [],
+      "known_misses": []
+    },
+    {
+      "name": "clean-architecture-swiftui",
+      "url": "https://github.com/nalexn/clean-architecture-swiftui",
+      "commit": "9eca97b8cfff96a14084b564b1fefd949c93d232",
+      "kind": "production-template",
+      "stack": "iOS, SwiftUI",
+      "findings": [],
+      "known_misses": []
+    }
+  ]
+}

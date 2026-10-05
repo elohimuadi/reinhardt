@@ -77,6 +77,10 @@
       "sdk_id": null
     },
     {
+      "id": "nosql-injection",
+      "sdk_id": null
+    },
+    {
       "id": "open-redirect",
       "sdk_id": null
     },
@@ -106,6 +110,10 @@
     },
     {
       "id": "supabase-table-without-rls",
+      "sdk_id": null
+    },
+    {
+      "id": "template-autoescape-disabled",
       "sdk_id": null
     },
     {

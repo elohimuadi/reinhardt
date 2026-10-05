@@ -3,8 +3,9 @@
   "description": "Deterministic security rules for reinhardt, mapped to OWASP. Maintained separately from the engine; every rule ships positive and negative test vectors that the engine test suite must execute.",
   "disclaimer": "Heuristic static patterns. A match is a lead for verification, not proof of a vulnerability; no match is not evidence of safety.",
   "vector_format": "tests.positive/negative are {path, text, with?}. text may be an array of strings joined with no separator (used so credential-shaped samples never appear contiguously in this file). with lists extra files present in the same repository.",
+  "repo_any_format": "Optional per-rule gate evaluated before anything else: the rule runs only if at least one scanned candidate file path matches a repo_any.paths regex OR at least one candidate file text matches a repo_any.text pattern {regex, flags}. Applies to every kind, including supabase-rls. Test vectors are evaluated as a repository consisting of the vector file plus its with files.",
   "ref_format": "<standard-id>:<item-id> resolving to data/owasp/<standard-id>.json items[].id (split on the FIRST colon only). asvs entries are version-pinned ASVS 5.0.0 L1 requirement ids.",
-  "test_path_regex": "(?:^|/)(?:test|tests|__tests__|__mocks__|spec|specs|fixtures?|examples?|e2e|cypress|mocks?|testdata)(?:/|$)|\\.(?:test|spec)\\.[cm]?[jt]sx?$",
+  "test_path_regex": "(?:^|/)(?:test|tests|__tests__|__mocks__|spec|specs|fixtures?|examples?|e2e|cypress|mocks?|testdata|vendor|vendors|third[_-]?party)(?:/|$)|(?:^|/)assets/(?:private|vendor|lib)/|\\.(?:test|spec)\\.[cm]?[jt]sx?$|\\.min\\.js$|(?:^|/)(?:[Gg]runtfile|[Gg]ulpfile|webpack\\.config|rollup\\.config|vite\\.config|karma\\.conf|jest\\.config|playwright\\.config)\\.[cm]?[jt]s$",
   "file_classes": {
     "js": {
       "extensions": [
@@ -434,6 +435,17 @@
       ],
       "skip_test_paths": true,
       "patterns": [],
+      "repo_any": {
+        "paths": [
+          "(?:^|/)supabase/(?:config\\.toml|migrations/|seed\\.sql)"
+        ],
+        "text": [
+          {
+            "regex": "[\"']@supabase\\/(?:supabase-js|ssr|auth-helpers-[a-z]+)[\"']|\\bauth\\.uid\\(\\)|\\bsupabase_(?:auth_admin|realtime)\\b",
+            "flags": ""
+          }
+        ]
+      },
       "owasp": [
         "top10-2025:A01:2025",
         "api-top10-2023:API1:2023",
@@ -463,6 +475,16 @@
           {
             "path": "supabase/migrations/001.sql",
             "text": "CREATE TABLE IF NOT EXISTS \"Notes\" (id int);\nalter table profiles enable row level security;"
+          },
+          {
+            "path": "db/migrations/0001.sql",
+            "text": "create table notes (id int);",
+            "with": [
+              {
+                "path": "package.json",
+                "text": "{\"dependencies\":{\"@supabase/supabase-js\":\"2.45.0\"}}"
+              }
+            ]
           }
         ],
         "negative": [
@@ -473,6 +495,16 @@
           {
             "path": "db/private.sql",
             "text": "create table private.jobs (id int);"
+          },
+          {
+            "path": "lib/db/migrations/0000_initial.sql",
+            "text": "CREATE TABLE IF NOT EXISTS \"User\" (id uuid primary key);",
+            "with": [
+              {
+                "path": "package.json",
+                "text": "{\"dependencies\":{\"drizzle-orm\":\"0.34.0\",\"postgres\":\"3.4.0\"}}"
+              }
+            ]
           }
         ]
       }
@@ -629,7 +661,7 @@
         },
         {
           "label": "orm-data-request-body",
-          "regex": "\\bdata\\s*:\\s*(?:\\.\\.\\.)?(?:req|request)\\.body\\b",
+          "regex": "\\.(?:create|createMany|update|updateMany|upsert)\\(\\s*\\{[^)]{0,300}?\\bdata\\s*:\\s*(?:\\.\\.\\.)?(?:req|request)\\.body\\s*[,}]",
           "flags": ""
         },
         {
@@ -675,6 +707,10 @@
           {
             "path": "api/users.js",
             "text": "const data = schema.parse(req.body); await User.create(data);"
+          },
+          {
+            "path": "routes/wallet.ts",
+            "text": "res.status(200).json({ status: 'success', data: req.body.balance })"
           }
         ]
       }
@@ -922,6 +958,134 @@
     },
     {
       "kind": "pattern",
+      "id": "nosql-injection",
+      "title": "MongoDB query built from strings or raw request objects",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "injection",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "where-string",
+          "regex": "\\$where\\s*:\\s*(?:`[^`]{0,500}?\\$\\{|(['\"])[^'\"\\n]{0,300}\\1\\s*\\+)",
+          "flags": ""
+        },
+        {
+          "label": "query-from-request",
+          "regex": "\\.(?:find|findOne|findOneAndUpdate|findOneAndDelete|updateOne|updateMany|deleteOne|deleteMany|countDocuments)\\(\\s*(?:req|request)\\.(?:body|query|params)\\s*[,)]",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "api-top10-2023:API8:2023"
+      ],
+      "guidance": [
+        "cheatsheets:input-validation-cheat-sheet",
+        "cheatsheets:node-js-security-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-943"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.4"
+      ],
+      "detail": "A MongoDB `$where` clause is assembled from strings (server-side JavaScript evaluation), or a whole request object is used as a query filter, letting clients inject operators such as `$ne` or `$gt` to bypass checks.",
+      "suggested_fix": "Remove `$where`; build filters from validated, type-checked fields (cast ids and numbers explicitly) and reject keys starting with `$`.",
+      "tests": {
+        "positive": [
+          {
+            "path": "dao.js",
+            "text": "db.orders.find({ $where: `this.orderId === '${id}'` })"
+          },
+          {
+            "path": "dao.ts",
+            "text": "db.reviews.find({ $where: 'this.product == ' + id })"
+          },
+          {
+            "path": "login.js",
+            "text": "const user = await User.findOne(req.body);"
+          }
+        ],
+        "negative": [
+          {
+            "path": "dao.js",
+            "text": "db.orders.find({ orderId: String(id) })"
+          },
+          {
+            "path": "dao.js",
+            "text": "User.findOne({ email: req.body.email })"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
+      "id": "template-autoescape-disabled",
+      "title": "Template engine auto-escaping turned off",
+      "severity": "high",
+      "confidence": "high",
+      "category": "injection",
+      "files": [
+        "js"
+      ],
+      "skip_test_paths": true,
+      "patterns": [
+        {
+          "label": "autoescape-false",
+          "regex": "\\bautoescape\\s*:\\s*false\\b",
+          "flags": ""
+        },
+        {
+          "label": "handlebars-noescape",
+          "regex": "\\bnoEscape\\s*:\\s*true\\b",
+          "flags": ""
+        }
+      ],
+      "owasp": [
+        "top10-2025:A05:2025",
+        "top10-2025:A02:2025"
+      ],
+      "guidance": [
+        "cheatsheets:cross-site-scripting-prevention-cheat-sheet"
+      ],
+      "cwe": [
+        "CWE-79",
+        "CWE-1336"
+      ],
+      "asvs": [
+        "v5.0.0-1.2.1"
+      ],
+      "detail": "The server-side template engine (Swig, Nunjucks, Handlebars) is configured not to HTML-escape interpolated values, so every template that prints user data becomes a stored or reflected XSS sink.",
+      "suggested_fix": "Remove the override so auto-escaping stays on, and mark only reviewed, trusted fragments as safe at the call site.",
+      "tests": {
+        "positive": [
+          {
+            "path": "server.js",
+            "text": "swig.setDefaults({\n  autoescape: false\n});"
+          },
+          {
+            "path": "app.js",
+            "text": "app.engine('hbs', exphbs({ noEscape: true }))"
+          }
+        ],
+        "negative": [
+          {
+            "path": "server.js",
+            "text": "swig.setDefaults({ autoescape: true });"
+          },
+          {
+            "path": "server.js",
+            "text": "// autoescape: true is the default"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "pattern",
       "id": "command-injection",
       "title": "Shell command built from dynamic input",
       "severity": "high",
@@ -974,6 +1138,10 @@
         ],
         "negative": [
           {
+            "path": "Gruntfile.js",
+            "text": "var exec = require('child_process').exec;\nexec(cmd + 'node artifacts/db-reset.js');"
+          },
+          {
             "path": "tools/run.js",
             "text": "import { execFile } from 'node:child_process';\nexecFile('convert', [file, 'out.png']);"
           },
@@ -992,14 +1160,13 @@
       "confidence": "medium",
       "category": "injection",
       "files": [
-        "js",
-        "html"
+        "js"
       ],
       "skip_test_paths": true,
       "patterns": [
         {
           "label": "eval-dynamic",
-          "regex": "(?<![.\\w$])(?:eval|new\\s+Function)\\(\\s*(?!['\"][^'\"`$]*['\"]\\s*\\))",
+          "regex": "(?<![.\\w$])(?:eval|new\\s+Function)\\((?!\\s*\\))(?!(?:\\s*['\"][^'\"`$\\n]*['\"]\\s*,?)+\\s*\\))",
           "flags": ""
         }
       ],
@@ -1038,6 +1205,14 @@
           {
             "path": "a.js",
             "text": "await redis.eval(script, 1, key);"
+          },
+          {
+            "path": "lib/xml.ts",
+            "text": "const dynamicImport = new Function('specifier', 'return import(specifier)')"
+          },
+          {
+            "path": "docs/a1.js",
+            "text": "// never call eval() on input"
           }
         ]
       }
@@ -1057,12 +1232,12 @@
       "patterns": [
         {
           "label": "dangerouslySetInnerHTML",
-          "regex": "\\bdangerouslySetInnerHTML\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:",
+          "regex": "\\bdangerouslySetInnerHTML\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:(?!\\s*(?:[A-Z][A-Z0-9_]*|'[^'\\n]*'|\"[^\"\\n]*\")\\s*,?\\s*\\})",
           "flags": ""
         },
         {
           "label": "innerHTML-assignment",
-          "regex": "\\.(?:innerHTML|outerHTML)\\s*\\+?=(?!=)(?!\\s*(?:''|\"\"|``)\\s*[;\\n])",
+          "regex": "\\.(?:innerHTML|outerHTML)\\s*\\+?=(?!=)(?!\\s*(?:'[^'\\n]*'|\"[^\"\\n]*\"|`[^`$]*`)\\s*(?:[;\\n]|$))",
           "flags": ""
         },
         {
@@ -1131,8 +1306,20 @@
             "text": "el.innerHTML = '';"
           },
           {
+            "path": "src/ui.js",
+            "text": "status.innerHTML = \"Loading ...\";"
+          },
+          {
+            "path": "src/ui.js",
+            "text": "cancel.innerHTML = '<div>&times;</div>'"
+          },
+          {
             "path": "src/chat.js",
             "text": "el.textContent = reply;"
+          },
+          {
+            "path": "app/layout.tsx",
+            "text": "<script\n  dangerouslySetInnerHTML={{\n    __html: THEME_COLOR_SCRIPT,\n  }}\n/>"
           }
         ]
       }
@@ -1705,7 +1892,7 @@
       "patterns": [
         {
           "label": "http-url",
-          "regex": "\"http:\\/\\/(?!localhost\\b|127\\.0\\.0\\.1\\b|0\\.0\\.0\\.0\\b|\\[::1\\])[^\"\\s]+\"",
+          "regex": "\"http:\\/\\/(?!localhost\\b|127\\.0\\.0\\.1\\b|0\\.0\\.0\\.0\\b|\\[::1\\]|www\\.w3\\.org\\/|www\\.apple\\.com\\/DTDs\\/)[^\"\\s]+\"",
           "flags": ""
         }
       ],
@@ -1740,6 +1927,10 @@
           {
             "path": "Dev.swift",
             "text": "let dev = URL(string: \"http://localhost:3000\")!"
+          },
+          {
+            "path": "Page.swift",
+            "text": "let dtd = \"http://www.w3.org/TR/html4/strict.dtd\""
           }
         ]
       }
@@ -1765,6 +1956,11 @@
           "label": "appstorage",
           "regex": "@AppStorage\\(\\s*\"[^\"]*(?:token|jwt|password|passwd|secret|session|api_?key|apikey|credential|auth)",
           "flags": "i"
+        },
+        {
+          "label": "userdefaults-pin",
+          "regex": "UserDefaults[^\\n]{0,200}?\\.set\\([^\\n]{0,200}?forKey:\\s*\"(?:[^\"]*[_.-])?(?:pin|PIN|Pin|passcode|Passcode|PASSCODE)(?:[_.-][^\"]*|[A-Z][^\"]*)?\"",
+          "flags": ""
         }
       ],
       "owasp": [
@@ -1791,12 +1987,28 @@
           {
             "path": "Settings.swift",
             "text": "@AppStorage(\"authToken\") var token = \"\""
+          },
+          {
+            "path": "Lock.swift",
+            "text": "UserDefaults.standard.set(\"53cr3tP\", forKey: \"PIN\")"
+          },
+          {
+            "path": "Lock.swift",
+            "text": "UserDefaults.standard.set(code, forKey: \"user_passcode\")"
           }
         ],
         "negative": [
           {
             "path": "Settings.swift",
             "text": "@AppStorage(\"hasSeenOnboarding\") var seen = false"
+          },
+          {
+            "path": "Ui.swift",
+            "text": "UserDefaults.standard.set(true, forKey: \"isSpinning\")"
+          },
+          {
+            "path": "Ui.swift",
+            "text": "UserDefaults.standard.set(x, forKey: \"shippingAddress\")"
           }
         ]
       }
@@ -1989,8 +2201,8 @@
       "patterns": [
         {
           "label": "untrusted-context",
-          "regex": "\\$\\{\\{\\s*(?:github\\.event\\.(?:issue\\.(?:title|body)|pull_request\\.(?:title|body|head\\.ref|head\\.label)|comment\\.body|review\\.body|review_comment\\.body|head_commit\\.(?:message|author\\.(?:name|email))|discussion\\.(?:title|body)|workflow_run\\.head_branch|pages\\.[^}]*page_name)|github\\.head_ref)\\s*\\}\\}",
-          "flags": ""
+          "regex": "^(?![ \\t]*[\\w-]+[ \\t]*:[ \\t]*['\"]?\\$\\{\\{[^}\\n]*\\}\\}['\"]?[ \\t]*$)[^\\n]{0,500}?\\$\\{\\{\\s*(?:github\\.event\\.(?:issue\\.(?:title|body)|pull_request\\.(?:title|body|head\\.ref|head\\.label)|comment\\.body|review\\.body|review_comment\\.body|head_commit\\.(?:message|author\\.(?:name|email))|discussion\\.(?:title|body)|workflow_run\\.head_branch|pages\\.[^}]*page_name)|github\\.head_ref)\\s*\\}\\}",
+          "flags": "m"
         }
       ],
       "owasp": [
@@ -2012,12 +2224,20 @@
           {
             "path": ".github/workflows/triage.yml",
             "text": "on: issues\njobs:\n  t:\n    steps:\n      - run: echo \"${{ github.event.issue.title }}\""
+          },
+          {
+            "path": ".github/workflows/b.yml",
+            "text": "      - run: |\n          git checkout ${{ github.head_ref }}"
           }
         ],
         "negative": [
           {
             "path": ".github/workflows/triage.yml",
-            "text": "jobs:\n  t:\n    steps:\n      - env:\n          TITLE: ${{ github.event.issue.number }}\n        run: echo \"$TITLE\""
+            "text": "jobs:\n  t:\n    steps:\n      - env:\n          TITLE: ${{ github.event.issue.title }}\n        run: echo \"$TITLE\""
+          },
+          {
+            "path": ".github/workflows/fix.yml",
+            "text": "      - uses: stefanzweifel/git-auto-commit-action@v5\n        with:\n          branch: ${{ github.head_ref }}"
           }
         ]
       }

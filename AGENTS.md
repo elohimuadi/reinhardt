@@ -12,6 +12,7 @@ Read this before changing anything. reinhardt is a security tool: a confident wr
 | `data/rules.json` | Knowledge maintainer | Read only. If a test vector fails, fix the **engine**. If you believe the rule itself is wrong, stop and report the rule id, the vector, and why. |
 | `data/sdks.json` | Knowledge maintainer | Read only unless the task says otherwise. |
 | `skills/*/SKILL.md` | Knowledge maintainer | Read only. Behavior-shaping text is tuned deliberately. |
+| `evals/fixtures/**`, `evals/benchmarks/*.json` | Knowledge maintainer | Read only. Labels are ground truth; report disagreements instead of relabelling. |
 | `src/`, `bin/`, `test/`, `evals/`, plugin manifests, hooks, CI | Engine | Change per the active plan in `docs/plans/`. |
 
 ### Non-negotiables
