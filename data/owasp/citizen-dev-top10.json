@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "id": "citizen-dev-top10",
+  "name": "OWASP Citizen Development Top 10",
+  "edition": "2025 rebrand of the LCNC Top 10 (2022)",
+  "status": "released",
+  "maturity": "lab",
+  "released": null,
+  "url": "https://owasp.org/www-project-citizen-development-top10-security-risks/",
+  "source_notes": "Current CD-SEC list from the owasp.org Citizen Development project page and repo; legacy LCNC-SEC list from the old owasp.org LCNC page.",
+  "caveats": [
+    "Renamed from \"OWASP Top 10 Low-Code/No-Code Security Risks\" (LCNC-SEC-01..10) to \"OWASP Citizen Development Top 10\" (CD-SEC-01..10); the old owasp.org page still shows the LCNC list. No exact rename date was found (2025 branding).",
+    "legacy_id/legacy_name are arrays: CD-SEC-04 merges LCNC-SEC-03 and LCNC-SEC-08 (per the notes); CD-SEC-01 Blind Trust is new and has no legacy ID; other mappings match identical titles.",
+    "Detail pages keep \"2022\" in their URL path despite the rebrand.",
+    "Only the CD-SEC-04 detail text was captured; other summaries paraphrase titles and CD-SEC-01 Blind Trust detail was not read.",
+    "Maturity 'lab' is inferred from front-matter level 3.",
+    "detection.static entries are reinhardt rule ideas, not OWASP text."
+  ],
+  "items": [
+    {
+      "id": "CD-SEC-01",
+      "name": "Blind Trust",
+      "legacy_id": [],
+      "legacy_name": [],
+      "summary": "Components, connectors or generated logic are trusted without review (newly added item; detail text not captured).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "AI-generated code adding connectors/SDKs that were never reviewed (reinhardt undisclosed-recipient check)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-02",
+      "name": "Account Impersonation",
+      "legacy_id": [
+        "LCNC-SEC-01"
+      ],
+      "legacy_name": [
+        "Account Impersonation"
+      ],
+      "summary": "Apps or connections run under another identity, letting users act with someone else's privileges.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-03",
+      "name": "Authorization Misuse",
+      "legacy_id": [
+        "LCNC-SEC-02"
+      ],
+      "legacy_name": [
+        "Authorization Misuse"
+      ],
+      "summary": "Shared connections and permissions are misused to access data or actions beyond what is intended.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-04",
+      "name": "Sensitive Data Leakage and Handling Failures",
+      "legacy_id": [
+        "LCNC-SEC-03",
+        "LCNC-SEC-08"
+      ],
+      "legacy_name": [
+        "Data Leakage and Unexpected Consequences",
+        "Data and Secret Handling Failures"
+      ],
+      "summary": "Platforms cannot tell which fields are sensitive, so PII and secrets leak through syncs, AI assistants, hardcoded connection strings and unsanitized webhook logs.",
+      "prevention": [
+        "Restrict connectors to approved services.",
+        "Monitor data flows that cross organizational boundaries.",
+        "Monitor environment variables and databases for leaked sensitive data."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Hardcoded connection strings or secrets in app variables/config",
+          "Webhook handlers that log entire request bodies unsanitized",
+          "Raw support logs or user data passed to AI assistants",
+          "Connectors/SDKs sending data to services across organizational boundaries"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-05",
+      "name": "Authentication and Secure Communication Failures",
+      "legacy_id": [
+        "LCNC-SEC-04"
+      ],
+      "legacy_name": [
+        "Authentication and Secure Communication Failures"
+      ],
+      "summary": "Weak authentication or insecure communication between apps, connectors and services.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-06",
+      "name": "Vulnerable and Untrusted Components",
+      "legacy_id": [
+        "LCNC-SEC-07"
+      ],
+      "legacy_name": [
+        "Vulnerable and Untrusted Components"
+      ],
+      "summary": "Third-party or community components with vulnerabilities or unknown provenance are used.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Dependencies with known vulnerabilities or unknown provenance"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-07",
+      "name": "Security Misconfiguration",
+      "legacy_id": [
+        "LCNC-SEC-05"
+      ],
+      "legacy_name": [
+        "Security Misconfiguration"
+      ],
+      "summary": "Insecure platform or app settings expose data or functionality.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-08",
+      "name": "Injection Handling Failures",
+      "legacy_id": [
+        "LCNC-SEC-06"
+      ],
+      "legacy_name": [
+        "Injection Handling Failures"
+      ],
+      "summary": "Untrusted input reaches queries, formulas or commands without proper handling.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-09",
+      "name": "Asset Management Failures",
+      "legacy_id": [
+        "LCNC-SEC-09"
+      ],
+      "legacy_name": [
+        "Asset Management Failures"
+      ],
+      "summary": "Apps, connections and data flows are not inventoried or maintained.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "CD-SEC-10",
+      "name": "Security Logging and Monitoring Failures",
+      "legacy_id": [
+        "LCNC-SEC-10"
+      ],
+      "legacy_name": [
+        "Security Logging and Monitoring Failures"
+      ],
+      "summary": "Insufficient logging and monitoring of app activity.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Platform/configuration concern; requires review of the low-code platform settings"
+        ]
+      },
+      "related": []
+    }
+  ]
+}

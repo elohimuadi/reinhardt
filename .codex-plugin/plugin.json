@@ -1,0 +1,33 @@
+{
+  "name": "reinhardt",
+  "version": "0.2.0",
+  "description": "Privacy-drift and OWASP-mapped security checks for AI-generated apps",
+  "author": {
+    "name": "reinhardt contributors"
+  },
+  "repository": "https://github.com/elohimuadi/reinhardt",
+  "license": "MIT",
+  "keywords": [
+    "privacy",
+    "owasp",
+    "security",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./codex/mcp.json",
+  "hooks": {},
+  "interface": {
+    "displayName": "reinhardt",
+    "shortDescription": "Find privacy drift and OWASP security issues in AI-built apps.",
+    "longDescription": "Static SDK discovery, policy comparison, and recipient drift with agent verification workflows.",
+    "developerName": "reinhardt contributors",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Audit this repository for security and privacy issues using reinhardt."
+    ]
+  }
+}

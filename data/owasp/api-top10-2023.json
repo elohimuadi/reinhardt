@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "id": "api-top10-2023",
+  "name": "OWASP API Security Top 10",
+  "edition": "2023",
+  "status": "released",
+  "maturity": "production",
+  "released": "2023",
+  "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
+  "source_notes": "Names and descriptions from the official owasp.org API Top 10 2023 page; prevention condensed from the official OWASP/API-Security repo, editions/2023/en.",
+  "caveats": [
+    "No post-2023 edition or draft was found; 2023 is treated as current.",
+    "Only the release year (2023) is verified; no exact date in the notes.",
+    "Maturity \"production\" comes from the OWASP projects data for the API Security Project (level 3.5); the numeric-to-label mapping is inferred.",
+    "The notes attribute no CWEs to API Top 10 items, so cwe arrays are empty.",
+    "detection entries are reinhardt heuristics, not OWASP text; \"(inferred) \" related links are reinhardt mappings."
+  ],
+  "items": [
+    {
+      "id": "API1:2023",
+      "name": "Broken Object Level Authorization",
+      "summary": "APIs expose endpoints that take object identifiers; without an ownership check in every function that loads data by a client-supplied ID, users can access other users' objects.",
+      "prevention": [
+        "Base authorization on user policies and hierarchy.",
+        "In every function that uses client input to access a record, check the caller may act on that record.",
+        "Prefer random, unpredictable IDs (GUIDs) as defense in depth.",
+        "Write tests that verify the authorization mechanism."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Handlers reading req.params.id / params.id / body.userId and querying (findById, .eq(\"id\", id), doc(db, \"x\", id), prisma findUnique) with no owner predicate",
+          "Supabase tables without RLS or policies using (true)",
+          "Firebase rules with if true or auth != null without resource.data.uid == request.auth.uid",
+          "Server clients built with service_role/secret keys querying by user-supplied ID"
+        ],
+        "review": [
+          "Actual cross-account access",
+          "Effective RLS across combined policies"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) asvs-5.0:V8",
+        "(inferred) cheatsheets:insecure-direct-object-reference-prevention-cheat-sheet"
+      ]
+    },
+    {
+      "id": "API2:2023",
+      "name": "Broken Authentication",
+      "summary": "Authentication mechanisms are implemented incorrectly, letting attackers compromise tokens or assume other users' identities.",
+      "prevention": [
+        "Know every authentication flow; OAuth and API keys are not user authentication.",
+        "Do not reinvent token generation or password storage.",
+        "Treat password recovery like login, with rate limiting and lockout.",
+        "Require re-authentication for sensitive changes and offer MFA.",
+        "Apply anti-brute-force controls stricter than general rate limits and reject weak passwords."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "jwt.decode used instead of jwt.verify; unpinned algorithms or none allowed",
+          "Hard-coded JWT secrets (secret, changeme)",
+          "Login/reset routes without rate limiter",
+          "API keys used as user authentication",
+          "Tokens stored in localStorage (debatable)"
+        ],
+        "review": [
+          "MFA and lockout behavior",
+          "Token lifecycle at runtime"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) asvs-5.0:V6",
+        "(inferred) asvs-5.0:V9"
+      ]
+    },
+    {
+      "id": "API3:2023",
+      "name": "Broken Object Property Level Authorization",
+      "summary": "Combines 2019's Excessive Data Exposure and Mass Assignment: APIs return or accept object properties the caller should not read or change.",
+      "prevention": [
+        "Avoid generic serializers like to_json()/to_string(); return only chosen properties.",
+        "Avoid auto-binding client input into objects.",
+        "Allow updates only to properties the client may change.",
+        "Validate responses against a schema and return minimal data."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "res.json(user) / NextResponse.json(row) returning full DB rows including password hash, role or isAdmin",
+          "Model.create(req.body), update(req.body), Object.assign(entity, req.body), Supabase .update({...body})",
+          "select(\"*\") results sent to clients"
+        ],
+        "review": [
+          "Which fields each role may see or modify"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A08:2025",
+        "(inferred) asvs-5.0:V15",
+        "(inferred) cheatsheets:mass-assignment-cheat-sheet"
+      ]
+    },
+    {
+      "id": "API4:2023",
+      "name": "Unrestricted Resource Consumption",
+      "summary": "Requests consume CPU, memory, bandwidth or paid third-party services (email, SMS, phone, biometrics) without limits, causing denial of service or higher costs.",
+      "prevention": [
+        "Limit memory, CPU, restarts and file descriptors.",
+        "Cap payload, string, array and upload sizes.",
+        "Rate limit per endpoint and throttle sensitive operations such as OTP checks and password recovery.",
+        "Validate page-size/limit parameters server-side.",
+        "Configure spending limits or billing alerts for all provider integrations."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No express-rate-limit / rate-limiter-flexible / Upstash ratelimit in deps or middleware",
+          "express.json() without limit; multer without limits",
+          "Unbounded limit/take query params",
+          "LLM/SMS/email calls (OpenAI, Twilio, Resend) in unauthenticated routes"
+        ],
+        "review": [
+          "Provider spending limits and alerts",
+          "Infrastructure resource quotas"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A10:2025",
+        "(inferred) cheatsheets:denial-of-service-cheat-sheet"
+      ]
+    },
+    {
+      "id": "API5:2023",
+      "name": "Broken Function Level Authorization",
+      "summary": "Unclear separation between administrative and regular functions lets users call functions they should not have access to.",
+      "prevention": [
+        "Deny by default and grant explicit access per role.",
+        "Have admin controllers inherit from a base controller that checks role.",
+        "Check role inside admin functions placed in regular controllers."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Admin routes (/admin, /api/admin/*, deleteUser) with no role check",
+          "Role checks only in client route guards",
+          "isAdmin read from request body or headers"
+        ],
+        "review": [
+          "Role model completeness"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) asvs-5.0:V8"
+      ]
+    },
+    {
+      "id": "API6:2023",
+      "name": "Unrestricted Access to Sensitive Business Flows",
+      "summary": "A business flow (e.g. buying tickets, posting comments) is exposed without considering how automated abuse could harm the business; not necessarily an implementation bug.",
+      "prevention": [
+        "Identify business flows that could be harmed by excessive use.",
+        "Use device fingerprinting and human detection such as captcha or biometrics.",
+        "Detect non-human usage patterns.",
+        "Consider blocking Tor exit nodes and known proxies, and secure machine-facing APIs."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Signup, checkout, comment or invite routes with no captcha (Turnstile/hCaptcha/reCAPTCHA) or throttle (heuristic)"
+        ],
+        "review": [
+          "Which flows are business-sensitive",
+          "Abuse detection effectiveness"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A06:2025",
+        "(inferred) asvs-5.0:V2"
+      ]
+    },
+    {
+      "id": "API7:2023",
+      "name": "Server Side Request Forgery",
+      "summary": "The API fetches a remote resource from a user-supplied URI without validating it, letting attackers make the server send requests to unintended destinations.",
+      "prevention": [
+        "Isolate the resource-fetching mechanism in the network.",
+        "Allowlist remote origins, URL schemes, ports and media types.",
+        "Disable HTTP redirection following.",
+        "Use a well-maintained URL parser and validate input.",
+        "Do not send raw responses back to clients."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "fetch(req.body.url), axios.get(userUrl), got(params.url) with no allowlist",
+          "Image proxy or link-preview endpoints",
+          "Next.js images.remotePatterns with hostname \"**\""
+        ],
+        "review": [
+          "Network segmentation and metadata endpoint exposure"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) proactive-controls-2024:C10",
+        "(inferred) cheatsheets:server-side-request-forgery-prevention-cheat-sheet"
+      ]
+    },
+    {
+      "id": "API8:2023",
+      "name": "Security Misconfiguration",
+      "summary": "APIs and supporting systems are misconfigured, for example missing hardening, permissive cloud permissions, missing TLS, permissive CORS or verbose errors.",
+      "prevention": [
+        "Use a repeatable hardening process and review orchestration files and cloud permissions.",
+        "Use TLS everywhere, including internal traffic.",
+        "Disable unused HTTP verbs and restrict content types.",
+        "Implement a proper CORS policy and security headers for browser clients.",
+        "Enforce response schemas, including errors, to avoid leaking stack traces."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "cors({ origin: \"*\", credentials: true }) or reflected origin",
+          "No helmet",
+          "Error handlers returning err.stack",
+          "NODE_ENV not production or debug flags",
+          "Public S3/GCS buckets in IaC; open Firebase Storage rules"
+        ],
+        "review": [
+          "Deployed configuration and cloud permissions"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) asvs-5.0:V4"
+      ]
+    },
+    {
+      "id": "API9:2023",
+      "name": "Improper Inventory Management",
+      "summary": "Poor inventory of hosts and API versions leaves deprecated versions and debug endpoints exposed.",
+      "prevention": [
+        "Inventory all API hosts with environment, network exposure and version.",
+        "Document integrated services, auth, errors, redirects, rate limiting, CORS and endpoints, generating docs in CI.",
+        "Restrict API documentation to authorized users.",
+        "Protect all exposed API versions and do not use production data in non-production."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Both /api/v1 and /v2 present",
+          "/debug, /test, /api/seed or /api/reset routes",
+          "Swagger UI exposed without auth",
+          ".env.example containing production URLs"
+        ],
+        "review": [
+          "Which hosts and versions are actually deployed"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025"
+      ]
+    },
+    {
+      "id": "API10:2023",
+      "name": "Unsafe Consumption of APIs",
+      "summary": "Developers trust data from third-party APIs more than user input and apply weaker security standards to it.",
+      "prevention": [
+        "Assess the security posture of API providers.",
+        "Use TLS for all integrations.",
+        "Validate and sanitize data received from integrated APIs.",
+        "Allowlist redirect locations and do not blindly follow redirects."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Webhook handlers without signature verification (e.g. Stripe constructEvent missing)",
+          "LLM output used in SQL, HTML or shell",
+          "redirect: \"follow\" to third-party URLs"
+        ],
+        "review": [
+          "Third-party provider trust"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A08:2025",
+        "(inferred) cheatsheets:input-validation-cheat-sheet"
+      ]
+    }
+  ]
+}

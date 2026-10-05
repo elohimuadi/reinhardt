@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { walk, readText, repoRoot, compare } from './files.js';
+import { ruleset } from './rules.js';
+import { readScanFile, securityFindings } from './security.js';
+import { walk, repoRoot, compare } from './files.js';
 import { catalog, matchingSdks } from './catalog.js';
 import { parseManifest, isManifest } from './manifests.js';
 import { findPolicy, disclosure, isPolicyCandidate } from './policy.js';
@@ -14,6 +16,11 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
   const root = await repoRoot(input);
   const files = await walk(root);
   const policy = await findPolicy(root, files, policyPath);
+  const content = new Map();
+  const read = file => {
+    if (!content.has(file)) content.set(file, readScanFile(root, file));
+    return content.get(file);
+  };
   const detected = new Map();
   const signals = { web: false, ios: false, consent: [], att: [], attDescription: [] };
   const add = (sdk, evidence) => {
@@ -26,7 +33,8 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
     const source = isSource(file);
     if (!manifest && !source && !file.endsWith('.plist')) continue;
     if (file === policy?.file || isPolicyCandidate(file)) continue;
-    const text = await readText(root, file);
+    const text = await read(file);
+    if (text === null) continue;
     if (manifest) {
       let parsed;
       try { parsed = parseManifest(file, text); } catch { throw new Error(`Cannot parse manifest: ${file}`); }
@@ -55,7 +63,7 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
   const findings = [];
   function finding(id, severity, title, detail, evidence, fix, draft = null, sdkId = null) {
     evidence = [...new Map(evidence.map(item => [JSON.stringify(item), item])).values()].sort((a,b) => compare(a.file,b.file) || a.line-b.line || compare(a.kind,b.kind));
-    findings.push({ id, sdk_id: sdkId, severity, title, detail, evidence, suggested_fix: fix, suggested_disclosure: draft });
+    findings.push({ id, sdk_id: sdkId, category: 'privacy', owasp: ruleset.privacy_rules[id] ?? [], cwe: [], asvs: [], guidance: [], confidence: 'medium', severity, title, detail, evidence, suggested_fix: fix, suggested_disclosure: draft });
   }
   for (const sdk of sdks) {
     const category = catalog.categories[sdk.category];
@@ -68,6 +76,7 @@ export async function scanRepo(input = '.', { policyPath } = {}) {
   if (signals.web && tracking.length && !signals.consent.length) finding('no-consent-mechanism',tracking.some(s=>severeTracking.has(s.category)) ? 'high' : 'medium','No consent mechanism detected','Tracking SDKs were detected in a web project, but no recognized consent dependency or handling code was found. This is an existence heuristic, not a legal determination.',tracking.flatMap(s=>s.evidence),'Verify applicable requirements and gate initialization and requests behind the appropriate consent choice.');
   const ads = sdks.filter(s=>s.category === 'advertising');
   if (signals.ios && ads.length && !(signals.att.length && signals.attDescription.length)) finding('missing-att','high','ATT implementation appears incomplete','Advertising SDKs were detected in an iOS project. Both ATTrackingManager usage and a nonempty NSUserTrackingUsageDescription are needed to satisfy this heuristic.',ads.flatMap(s=>s.evidence),'Verify whether tracking occurs; where required, add the usage description and request ATT permission before tracking initialization.');
+  findings.push(...await securityFindings(root, files, read));
   findings.sort((a,b) => severityRank[a.severity]-severityRank[b.severity] || compare(a.id,b.id) || compare(a.sdk_id ?? '',b.sdk_id ?? ''));
-  return { schema_version: 1, disclaimer: DISCLAIMER, policy: policy ? { file: policy.file, explicit: policy.explicit } : null, platforms: ['web','ios'].filter(key=>signals[key]), sdks, findings, signals: { consent: signals.consent, att: signals.att, att_description: signals.attDescription } };
+  return { schema_version: 2, disclaimer: DISCLAIMER, policy: policy ? { file: policy.file, explicit: policy.explicit } : null, platforms: ['web','ios'].filter(key=>signals[key]), sdks, findings, signals: { consent: signals.consent, att: signals.att, att_description: signals.attDescription } };
 }

@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "id": "business-logic-abuse-top10-2025",
+  "name": "OWASP Top 10 for Business Logic Abuse",
+  "edition": "2025",
+  "status": "released",
+  "maturity": "incubator",
+  "released": "2025",
+  "url": "https://owasp.org/www-project-top-10-for-business-logic-abuse/",
+  "source_notes": "IDs and names verified from tab_top10.md in the OWASP www-project-top-10-for-business-logic-abuse repo; Incubator badge from the project page.",
+  "caveats": [
+    "Names follow the current repo; a 2025-06-04 press release (secondary, PR Newswire) used different names such as \"Data Oracle Exposure\" and \"Sequential State Bypass\". Names may still change.",
+    "Released is the edition year; the only exact date (2025-06-04) comes from that secondary press release.",
+    "Project led by Ivan Novikov (Wallarm); vendor-led origin.",
+    "Summaries are short paraphrases of the repo descriptions; prevention was not captured.",
+    "detection.static entries and related links are reinhardt inferences."
+  ],
+  "items": [
+    {
+      "id": "BLA1:2025",
+      "name": "Action Limit Overrun",
+      "abbreviation": "ALO",
+      "summary": "Actions that should be limited (e.g. per user or per transaction) can be performed more times than intended.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Business-logic flaw; requires workflow review or runtime testing"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "BLA2:2025",
+      "name": "Concurrent Workflow Order Bypass",
+      "abbreviation": "CWOB",
+      "summary": "Concurrency or out-of-order requests bypass the intended workflow sequence.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Business-logic flaw; requires workflow review or runtime testing"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "BLA3:2025",
+      "name": "Object State Manipulations",
+      "abbreviation": "OSM",
+      "summary": "Unfiltered client input is bound into server objects (mass assignment), changing state the user should not control.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Request bodies spread into ORM create/update: Model.create(req.body), update(..., req.body), {...req.body}, prisma.x.update({data: req.body}), supabase.from(t).insert(req.body)"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "BLA4:2025",
+      "name": "Malicious Logic Loop",
+      "abbreviation": "MLL",
+      "summary": "Logic can be driven into loops or non-terminating processing.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Business-logic flaw; requires workflow review or runtime testing"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "BLA5:2025",
+      "name": "Artifact Lifetime Exploitation",
+      "abbreviation": "ALE",
+      "summary": "Tokens, sessions or temporary files remain valid beyond their intended lifetime.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "JWTs/sessions/signed URLs with no expiry or very long expiresIn/maxAge"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) privacy-top10-2021:P8"
+      ]
+    },
+    {
+      "id": "BLA6:2025",
+      "name": "Missing Transition Validation",
+      "abbreviation": "MTV",
+      "summary": "State transitions are not validated, so objects move into states they should not reach.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Business-logic flaw; requires workflow review or runtime testing"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "BLA7:2025",
+      "name": "Resource Quota Violation",
+      "abbreviation": "RQV",
+      "summary": "Missing rate limits or quotas let users consume resources beyond intended limits.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No rate-limit middleware on auth, AI or other expensive endpoints"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) llm-top10-2026:LLM06:2026"
+      ]
+    },
+    {
+      "id": "BLA8:2025",
+      "name": "Internal State Disclosure",
+      "abbreviation": "ISD",
+      "summary": "Different responses for valid versus invalid input reveal internal state (e.g. user enumeration).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Distinct login/reset errors for unknown user vs wrong password"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "BLA9:2025",
+      "name": "Broken Access Control",
+      "abbreviation": "BAC",
+      "summary": "Business functions are reachable without proper role or permission checks.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Business-logic flaw; requires workflow review or runtime testing"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "BLA10:2025",
+      "name": "Shadow Function Abuse",
+      "abbreviation": "SFA",
+      "summary": "Hidden internal, debug or test endpoints remain reachable in production.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Routes like /debug, /test or /admin without auth middleware"
+        ],
+        "review": []
+      },
+      "related": []
+    }
+  ]
+}

@@ -1,0 +1,654 @@
+{
+  "schema_version": 1,
+  "id": "top10-2025",
+  "name": "OWASP Top 10",
+  "edition": "2025",
+  "status": "released",
+  "maturity": "flagship",
+  "released": null,
+  "url": "https://owasp.org/Top10/2025/",
+  "source_notes": "Verified against the official OWASP/Top10 GitHub repo, folder 2025/docs/en (cloned 2026-10-05), whose README marks the 2025 edition \"RELEASED (Final)\".",
+  "caveats": [
+    "Exact final release date not found in primary sources; the release candidate was announced 2025-11-06 at Global AppSec (secondary source: Fastly blog), so \"released\" is null.",
+    "A03 mapped-CWE list on the official page says \"CWE-447 Use of Obsolete Function\"; MITRE ID for that name is CWE-477 (also named in the page Background). This file uses CWE-477.",
+    "A03: introduction says 5 CWEs but the category page lists 6; all 6 are included.",
+    "A05: introduction says 38 CWEs but the category page lists 37; the 37 listed are included.",
+    "A07: the official page labels CWE-298 and CWE-299 with the CWE-297 name; MITRE names differ (298 = certificate expiration, 299 = certificate revocation).",
+    "A09 naming: index uses \"Security Logging and Alerting Failures\" while the intro and category page title use \"Security Logging & Alerting Failures\" (used here).",
+    "A08: page slug and title use \"Software or Data Integrity Failures\" but the A03 page links to it as \"Software and Data Integrity Failures\".",
+    "Project website is moving to top10.owasp.org (upstream commit 2026-09-24); per-item URLs use the owasp.org/Top10/2025/ form.",
+    "detection.static/review entries are reinhardt heuristics derived from the official descriptions plus framework knowledge, not OWASP text. Related links prefixed \"(inferred) \" are reinhardt mappings, not OWASP mappings."
+  ],
+  "items": [
+    {
+      "id": "A01:2025",
+      "name": "Broken Access Control",
+      "summary": "Access-control policy fails, letting users read, modify or destroy data or run functions outside their intended permissions. Covers IDOR, missing checks on API write methods, privilege escalation, token/cookie tampering, CORS misconfiguration, force browsing and (since 2025) SSRF.",
+      "prevention": [
+        "Enforce access control only in trusted server-side or serverless code, denying by default except for public resources.",
+        "Implement access control once and reuse it; keep CORS usage minimal.",
+        "Enforce record ownership in the data model instead of letting users act on any record ID.",
+        "Disable directory listing and keep .git and backup files out of web roots.",
+        "Log and alert on access-control failures and rate-limit API and controller access.",
+        "Invalidate stateful sessions on logout and keep JWTs short-lived; cover access control in unit and integration tests."
+      ],
+      "cwe": [
+        "CWE-22",
+        "CWE-23",
+        "CWE-36",
+        "CWE-59",
+        "CWE-61",
+        "CWE-65",
+        "CWE-200",
+        "CWE-201",
+        "CWE-219",
+        "CWE-276",
+        "CWE-281",
+        "CWE-282",
+        "CWE-283",
+        "CWE-284",
+        "CWE-285",
+        "CWE-352",
+        "CWE-359",
+        "CWE-377",
+        "CWE-379",
+        "CWE-402",
+        "CWE-424",
+        "CWE-425",
+        "CWE-441",
+        "CWE-497",
+        "CWE-538",
+        "CWE-540",
+        "CWE-548",
+        "CWE-552",
+        "CWE-566",
+        "CWE-601",
+        "CWE-615",
+        "CWE-639",
+        "CWE-668",
+        "CWE-732",
+        "CWE-749",
+        "CWE-862",
+        "CWE-863",
+        "CWE-918",
+        "CWE-922",
+        "CWE-1275"
+      ],
+      "detection": {
+        "static": [
+          "Supabase service_role / sb_secret_ key in client bundles or NEXT_PUBLIC_*SERVICE_ROLE* env vars (bypasses RLS)",
+          "Supabase migrations that create tables without \"enable row level security\", or policies using (true)",
+          "Firebase rules with \"allow read, write: if true\", auth-only checks without ownership, or \".read\": true",
+          "Next.js route handlers, Server Actions (\"use server\") and Express POST/PUT/DELETE routes with no auth/session lookup",
+          "DB queries keyed by req.params.id / params.id with no user_id/owner predicate (IDOR heuristic)",
+          "res.redirect(req.query.*) or redirect(searchParams.get(...)) open redirects",
+          "fetch/axios called with req.body.url or req.query.url (SSRF)",
+          "path.join(base, req.params...) without normalization or prefix check (path traversal)",
+          "CORS origin \"*\" or reflected origin combined with credentials: true",
+          ".git, .env or *.bak files inside public/; secrets in source comments",
+          "Next.js middleware matcher that excludes /api routes",
+          "SwiftUI: tokens/PII in UserDefaults instead of Keychain; admin checks only client-side with direct Firestore writes"
+        ],
+        "review": [
+          "Actual IDOR exploitability across real accounts",
+          "Effective RLS / security-rule behavior when multiple policies combine",
+          "Business-level authorization rules and role models"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C1",
+        "(inferred) proactive-controls-2024:C10",
+        "(inferred) api-top10-2023:API1:2023",
+        "(inferred) api-top10-2023:API5:2023",
+        "(inferred) api-top10-2023:API7:2023",
+        "(inferred) asvs-5.0:V8",
+        "(inferred) cheatsheets:authorization-cheat-sheet",
+        "(inferred) cheatsheets:insecure-direct-object-reference-prevention-cheat-sheet",
+        "(inferred) cheatsheets:server-side-request-forgery-prevention-cheat-sheet",
+        "(inferred) cheatsheets:unvalidated-redirects-and-forwards-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A02:2025",
+      "name": "Security Misconfiguration",
+      "summary": "A system, application or cloud service is set up insecurely: missing hardening, unnecessary features or default accounts, verbose error pages, insecure framework or library settings, or missing security headers. XXE remains in this category.",
+      "prevention": [
+        "Use a repeatable, automated hardening process with identically configured environments that use different credentials.",
+        "Ship a minimal platform with unused features, components and samples removed.",
+        "Review configurations (including cloud storage permissions) as part of patch management.",
+        "Send security headers and centrally suppress excessive error messages.",
+        "Use identity federation, short-lived credentials or platform roles instead of static secrets in code, config or pipelines.",
+        "Automatically verify the effectiveness of configuration across environments."
+      ],
+      "cwe": [
+        "CWE-5",
+        "CWE-11",
+        "CWE-13",
+        "CWE-15",
+        "CWE-16",
+        "CWE-260",
+        "CWE-315",
+        "CWE-489",
+        "CWE-526",
+        "CWE-547",
+        "CWE-611",
+        "CWE-614",
+        "CWE-776",
+        "CWE-942",
+        "CWE-1004",
+        "CWE-1174"
+      ],
+      "detection": {
+        "static": [
+          "next.config.js without headers() setting CSP/HSTS, or Express app without helmet (heuristic)",
+          "app.use(cors()) with no options",
+          "Cookies set with secure: false, httpOnly: false or sameSite: \"none\"",
+          "express-session with a hard-coded secret",
+          "Debug flags forced on, productionBrowserSourceMaps: true, \"start\": \"next dev\"",
+          "err.stack or raw error objects returned to the client",
+          "XML parsers configured with entity expansion (e.g. libxmljs noent: true)",
+          "iOS Info.plist NSAllowsArbitraryLoads = true",
+          "Public Firebase/Supabase storage buckets declared in config; default credentials in docker-compose or seed files"
+        ],
+        "review": [
+          "Headers actually served by the deployed app",
+          "Cloud IAM and bucket ACLs when no IaC is in the repo"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C5",
+        "(inferred) api-top10-2023:API8:2023",
+        "(inferred) asvs-5.0:V13",
+        "(inferred) cheatsheets:http-headers-cheat-sheet",
+        "(inferred) cheatsheets:secrets-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A03:2025",
+      "name": "Software Supply Chain Failures",
+      "summary": "Breakdowns or compromises in building, distributing or updating software, typically through vulnerable, unmaintained or malicious third-party components, tools or pipelines. Expands the 2021 vulnerable-components category to build systems, distribution and the dependency ecosystem.",
+      "prevention": [
+        "Maintain a centrally managed SBOM that includes transitive dependencies, and remove unused ones.",
+        "Continuously monitor CVE/NVD/OSV data with SCA tooling (e.g. OWASP Dependency-Check, Dependency-Track).",
+        "Obtain components from official sources, preferring signed packages, and choose versions deliberately.",
+        "Replace or virtually patch unmaintained libraries and keep CI/CD and IDE tooling updated.",
+        "Track changes to CI/CD settings, repos, registries and IaC; harden repos with MFA, branch protection and no committed secrets.",
+        "Use signed, provenance-tracked, immutable builds and staged or canary rollouts."
+      ],
+      "cwe": [
+        "CWE-477",
+        "CWE-1035",
+        "CWE-1104",
+        "CWE-1329",
+        "CWE-1357",
+        "CWE-1395"
+      ],
+      "detection": {
+        "static": [
+          "Missing lockfile (package-lock.json, pnpm-lock.yaml, yarn.lock, Package.resolved)",
+          "Dependency versions \"*\", \"latest\", or git/http URLs in package.json",
+          "Known-vulnerable or deprecated/unmaintained package versions in the lockfile (requires an OSV data feed)",
+          "Packages with postinstall scripts",
+          "Typosquat or hallucinated package names (slopsquatting risk common in AI-generated code)",
+          "GitHub Actions pinned to tags or branches instead of full commit SHAs",
+          "pull_request_target workflows that check out PR code; secrets echoed in workflows"
+        ],
+        "review": [
+          "Provenance and maintainer compromise of dependencies",
+          "CI/CD permissions and SCM settings not stored in the repo"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C6",
+        "(inferred) cicd-top10:CICD-SEC-3",
+        "(inferred) cicd-top10:CICD-SEC-9",
+        "(inferred) asvs-5.0:V15",
+        "(inferred) cheatsheets:npm-security-cheat-sheet",
+        "(inferred) cheatsheets:secure-coding-with-ai-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A04:2025",
+      "name": "Cryptographic Failures",
+      "summary": "Missing, weak or leaked cryptography exposes sensitive data in transit or at rest. Includes outdated algorithms, weak or committed keys, unenforced encryption, unvalidated certificates, IV/ECB misuse, weak randomness and fast hashes for passwords.",
+      "prevention": [
+        "Classify data and avoid storing sensitive data unnecessarily; encrypt what remains at rest.",
+        "Keep keys in an HSM or cloud KMS, never in source repositories.",
+        "Use TLS 1.2+ only with forward secrecy and HSTS; avoid caching sensitive responses.",
+        "Hash passwords with Argon2, yescrypt, scrypt or PBKDF2 (bcrypt only for legacy).",
+        "Use authenticated encryption with correct, non-reused IVs; avoid MD5, SHA1, ECB/CBC and PKCS#1 v1.5.",
+        "Use a CSPRNG for security values and plan for post-quantum migration of high-risk systems."
+      ],
+      "cwe": [
+        "CWE-261",
+        "CWE-296",
+        "CWE-319",
+        "CWE-320",
+        "CWE-321",
+        "CWE-322",
+        "CWE-323",
+        "CWE-324",
+        "CWE-325",
+        "CWE-326",
+        "CWE-327",
+        "CWE-328",
+        "CWE-329",
+        "CWE-330",
+        "CWE-331",
+        "CWE-332",
+        "CWE-334",
+        "CWE-335",
+        "CWE-336",
+        "CWE-337",
+        "CWE-338",
+        "CWE-340",
+        "CWE-342",
+        "CWE-347",
+        "CWE-523",
+        "CWE-757",
+        "CWE-759",
+        "CWE-760",
+        "CWE-780",
+        "CWE-916",
+        "CWE-1240",
+        "CWE-1241"
+      ],
+      "detection": {
+        "static": [
+          "Math.random() used for tokens, IDs, OTPs or reset codes",
+          "crypto.createHash('md5'|'sha1') on passwords or a password hash without a KDF",
+          "createCipheriv('aes-*-ecb') or static IV literals",
+          "Hard-coded JWT_SECRET, encryption keys, PEM private keys or API keys in source",
+          "http:// API base URLs in client or Swift code",
+          "rejectUnauthorized: false, NODE_TLS_REJECT_UNAUTHORIZED=0, or iOS URLSessionDelegate accepting any server trust",
+          "bcrypt cost below 10 (heuristic)",
+          "jwt.decode() used in place of jwt.verify(); algorithms including 'none'",
+          "iOS CommonCrypto MD5 or kCCOptionECBMode; sensitive files written without .completeFileProtection"
+        ],
+        "review": [
+          "TLS configuration of the live server",
+          "Key management and rotation practices",
+          "Data classification decisions"
+        ]
+      },
+      "related": [
+        "cheatsheets:password-storage-cheat-sheet",
+        "(inferred) proactive-controls-2024:C2",
+        "(inferred) asvs-5.0:V11",
+        "(inferred) asvs-5.0:V12",
+        "(inferred) cheatsheets:cryptographic-storage-cheat-sheet",
+        "(inferred) cheatsheets:transport-layer-security-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A05:2025",
+      "name": "Injection",
+      "summary": "Untrusted input reaches an interpreter (browser, database, shell) and is executed as part of a command or query. Covers SQL, NoSQL, OS command, ORM, LDAP and expression-language injection, and includes cross-site scripting.",
+      "prevention": [
+        "Keep data separate from commands and queries.",
+        "Use safe parameterized APIs or ORMs; stored procedures can still be injectable via dynamic execution.",
+        "Apply positive server-side input validation as a partial defense.",
+        "Escape remaining dynamic values with interpreter-specific escaping; note structure names cannot be escaped.",
+        "Combine source review with automated SAST/DAST/IAST in CI/CD."
+      ],
+      "cwe": [
+        "CWE-20",
+        "CWE-74",
+        "CWE-76",
+        "CWE-77",
+        "CWE-78",
+        "CWE-79",
+        "CWE-80",
+        "CWE-83",
+        "CWE-86",
+        "CWE-88",
+        "CWE-89",
+        "CWE-90",
+        "CWE-91",
+        "CWE-93",
+        "CWE-94",
+        "CWE-95",
+        "CWE-96",
+        "CWE-97",
+        "CWE-98",
+        "CWE-99",
+        "CWE-103",
+        "CWE-104",
+        "CWE-112",
+        "CWE-113",
+        "CWE-114",
+        "CWE-115",
+        "CWE-116",
+        "CWE-129",
+        "CWE-159",
+        "CWE-470",
+        "CWE-493",
+        "CWE-500",
+        "CWE-564",
+        "CWE-610",
+        "CWE-643",
+        "CWE-644",
+        "CWE-917"
+      ],
+      "detection": {
+        "static": [
+          "Template-literal or concatenated SQL in db.query, pool.query, sequelize.query, knex.raw",
+          "Prisma $queryRawUnsafe / $executeRawUnsafe with interpolation",
+          "Supabase .or()/.filter() built from user strings; rpc SQL functions using EXECUTE format(...) with user input",
+          "Mongo queries taking req.body objects directly ($where, operator injection)",
+          "child_process.exec/execSync with interpolation",
+          "eval, new Function, vm.runInNewContext on input",
+          "React dangerouslySetInnerHTML with unsanitized data, innerHTML =, document.write, href={userUrl} without scheme check",
+          "Response headers set from request input",
+          "LLM prompts built from user input feeding tool execution",
+          "iOS WKWebView.loadHTMLString/evaluateJavaScript or sqlite3_exec with interpolated input"
+        ],
+        "review": [
+          "Exploitability through sanitizers and ORMs",
+          "Second-order injection"
+        ]
+      },
+      "related": [
+        "llm-top10-2025:LLM01:2025",
+        "(inferred) proactive-controls-2024:C3",
+        "(inferred) asvs-5.0:V1",
+        "(inferred) cheatsheets:sql-injection-prevention-cheat-sheet",
+        "(inferred) cheatsheets:cross-site-scripting-prevention-cheat-sheet",
+        "(inferred) cheatsheets:os-command-injection-defense-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A06:2025",
+      "name": "Insecure Design",
+      "summary": "Missing or ineffective control design, distinct from implementation bugs: a perfect implementation cannot add a control the design never included. Includes business-logic flaws and undefined unwanted states.",
+      "prevention": [
+        "Run an SDLC with AppSec input on security and privacy controls.",
+        "Maintain a library of secure design patterns and paved-road components.",
+        "Threat-model authentication, access control, business logic and key flows.",
+        "Write security requirements into user stories and add plausibility checks at every tier.",
+        "Test use and misuse cases; segregate tiers and tenants robustly."
+      ],
+      "cwe": [
+        "CWE-73",
+        "CWE-183",
+        "CWE-256",
+        "CWE-266",
+        "CWE-269",
+        "CWE-286",
+        "CWE-311",
+        "CWE-312",
+        "CWE-313",
+        "CWE-316",
+        "CWE-362",
+        "CWE-382",
+        "CWE-419",
+        "CWE-434",
+        "CWE-436",
+        "CWE-444",
+        "CWE-451",
+        "CWE-454",
+        "CWE-472",
+        "CWE-501",
+        "CWE-522",
+        "CWE-525",
+        "CWE-539",
+        "CWE-598",
+        "CWE-602",
+        "CWE-628",
+        "CWE-642",
+        "CWE-646",
+        "CWE-653",
+        "CWE-656",
+        "CWE-657",
+        "CWE-676",
+        "CWE-693",
+        "CWE-799",
+        "CWE-807",
+        "CWE-841",
+        "CWE-1021",
+        "CWE-1022",
+        "CWE-1125"
+      ],
+      "detection": {
+        "static": [
+          "File uploads with no size or type limits (e.g. multer without limits/fileFilter)",
+          "Prices, roles or quantities trusted from the client body (req.body.price, role)",
+          "No rate limiting on auth, OTP or AI endpoints",
+          "Secrets or tokens sent in GET query strings",
+          "target=\"_blank\" without rel=\"noopener\" (low severity)",
+          "Missing CSP frame-ancestors / X-Frame-Options"
+        ],
+        "review": [
+          "Threat modeling and business-logic correctness",
+          "Workflow ordering and step skipping",
+          "Tenant isolation design"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C4",
+        "(inferred) asvs-5.0:V2",
+        "(inferred) api-top10-2023:API6:2023"
+      ]
+    },
+    {
+      "id": "A07:2025",
+      "name": "Authentication Failures",
+      "summary": "The system can be tricked into accepting an invalid user as legitimate, through credential stuffing, brute force, weak or default passwords, weak recovery, poor credential storage, missing MFA or flawed session handling.",
+      "prevention": [
+        "Implement MFA and support password managers.",
+        "Never ship default credentials; check new passwords against worst-password and breached lists.",
+        "Use identical messages for all login outcomes to resist account enumeration.",
+        "Throttle failed logins without enabling DoS, and log and alert on them.",
+        "Use a server-side session manager that rotates a high-entropy ID on login and invalidates sessions on logout and timeouts.",
+        "Validate JWT audience, issuer and scopes; prefer a trusted premade auth system."
+      ],
+      "cwe": [
+        "CWE-258",
+        "CWE-259",
+        "CWE-287",
+        "CWE-288",
+        "CWE-289",
+        "CWE-290",
+        "CWE-291",
+        "CWE-293",
+        "CWE-294",
+        "CWE-295",
+        "CWE-297",
+        "CWE-298",
+        "CWE-299",
+        "CWE-300",
+        "CWE-302",
+        "CWE-303",
+        "CWE-304",
+        "CWE-305",
+        "CWE-306",
+        "CWE-307",
+        "CWE-308",
+        "CWE-309",
+        "CWE-346",
+        "CWE-350",
+        "CWE-384",
+        "CWE-521",
+        "CWE-613",
+        "CWE-620",
+        "CWE-640",
+        "CWE-798",
+        "CWE-940",
+        "CWE-941",
+        "CWE-1390",
+        "CWE-1391",
+        "CWE-1392",
+        "CWE-1393"
+      ],
+      "detection": {
+        "static": [
+          "Hard-coded passwords or credentials, seeded admin users with fixed passwords",
+          "Custom auth comparing plaintext passwords",
+          "No rate limiter on /login, /signup or /reset routes",
+          "Password minimum length below 8 in validation schemas",
+          "Distinct \"user not found\" vs \"wrong password\" messages",
+          "Login handler without session regeneration (req.session.regenerate)",
+          "Long JWT expiresIn (e.g. '30d') without refresh rotation; jwt.verify without audience/issuer",
+          "Reset tokens generated with Math.random",
+          "Anonymous sign-in enabled together with permissive Firebase/Supabase rules",
+          "iOS credentials in UserDefaults/@AppStorage; LAContext biometrics gating only UI with no Keychain-bound secret"
+        ],
+        "review": [
+          "Presence and strength of MFA",
+          "Breached-password checks",
+          "Session invalidation behavior on logout"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C7",
+        "(inferred) api-top10-2023:API2:2023",
+        "(inferred) asvs-5.0:V6",
+        "(inferred) asvs-5.0:V7",
+        "(inferred) cheatsheets:authentication-cheat-sheet",
+        "(inferred) cheatsheets:session-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A08:2025",
+      "name": "Software or Data Integrity Failures",
+      "summary": "Code or infrastructure treats untrusted code or data as trusted: plugins or scripts from untrusted sources or CDNs, unverified CI/CD artifacts, unsigned auto-updates and insecure deserialization. Operates at a lower level than A03.",
+      "prevention": [
+        "Verify source and integrity with digital signatures.",
+        "Consume packages only from trusted repositories, using an internal vetted mirror for higher-risk projects.",
+        "Review code and configuration changes before they reach the pipeline.",
+        "Segregate and access-control the CI/CD pipeline.",
+        "Never accept unsigned or unencrypted serialized data from untrusted clients without integrity checks."
+      ],
+      "cwe": [
+        "CWE-345",
+        "CWE-353",
+        "CWE-426",
+        "CWE-427",
+        "CWE-494",
+        "CWE-502",
+        "CWE-506",
+        "CWE-509",
+        "CWE-565",
+        "CWE-784",
+        "CWE-829",
+        "CWE-830",
+        "CWE-915",
+        "CWE-926"
+      ],
+      "detection": {
+        "static": [
+          "<script src=\"https://cdn...\"> without an integrity= (SRI) attribute",
+          "node-serialize or serialize-javascript on untrusted input; unsafe yaml.load; NSKeyedUnarchiver without secure coding",
+          "Mass assignment: Object.assign(model, req.body), prisma.x.update({ data: req.body }), User.create(req.body)",
+          "Role decisions based on unsigned cookies",
+          "curl | sh in Dockerfiles or CI steps"
+        ],
+        "review": [
+          "Signature verification of update and artifact flows",
+          "Integrity of data crossing trust boundaries at runtime"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-9",
+        "(inferred) api-top10-2023:API3:2023",
+        "(inferred) cheatsheets:mass-assignment-cheat-sheet",
+        "(inferred) cheatsheets:third-party-javascript-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A09:2025",
+      "name": "Security Logging & Alerting Failures",
+      "summary": "Insufficient logging, monitoring and alerting prevents attacks from being detected or answered. Includes unlogged auditable events, unmonitored or local-only logs, missing alert thresholds, log injection and logging of sensitive data.",
+      "prevention": [
+        "Log login, access-control and validation failures with user context, retained long enough for forensics.",
+        "Use a consumable log format and encode log data to prevent injection.",
+        "Protect audit trails with integrity controls such as append-only storage.",
+        "Alert on suspicious behavior and maintain SOC playbooks and an incident response plan.",
+        "Consider honeytokens and behavior analytics."
+      ],
+      "cwe": [
+        "CWE-117",
+        "CWE-221",
+        "CWE-223",
+        "CWE-532",
+        "CWE-778"
+      ],
+      "detection": {
+        "static": [
+          "console.log of password, token, authorization header, req.body or whole request objects",
+          "Unencoded user input (with newlines) written to logs",
+          "Auth failure branches with no logging (heuristic)",
+          "iOS print/NSLog/os_log with %{public} tokens"
+        ],
+        "review": [
+          "Alerting, monitoring and log retention (largely not statically checkable)",
+          "Incident response readiness"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C9",
+        "(inferred) asvs-5.0:V16",
+        "(inferred) cicd-top10:CICD-SEC-10",
+        "(inferred) cheatsheets:logging-cheat-sheet"
+      ]
+    },
+    {
+      "id": "A10:2025",
+      "name": "Mishandling of Exceptional Conditions",
+      "summary": "Programs fail to prevent, detect or respond to unusual situations, causing crashes, logic errors, failing open, sensitive error output and related vulnerabilities. New in 2025.",
+      "prevention": [
+        "Catch errors where they occur and handle them meaningfully (friendly message, log, alert).",
+        "Add a global exception handler and centralize error handling, logging and alerting.",
+        "Roll back partial transactions entirely and fail closed.",
+        "Apply rate limits, quotas and throttling so nothing is limitless.",
+        "Validate input strictly and use code review, static analysis and stress testing."
+      ],
+      "cwe": [
+        "CWE-209",
+        "CWE-215",
+        "CWE-234",
+        "CWE-235",
+        "CWE-248",
+        "CWE-252",
+        "CWE-274",
+        "CWE-280",
+        "CWE-369",
+        "CWE-390",
+        "CWE-391",
+        "CWE-394",
+        "CWE-396",
+        "CWE-397",
+        "CWE-460",
+        "CWE-476",
+        "CWE-478",
+        "CWE-484",
+        "CWE-550",
+        "CWE-636",
+        "CWE-703",
+        "CWE-754",
+        "CWE-755",
+        "CWE-756"
+      ],
+      "detection": {
+        "static": [
+          "Empty catch {} / catch (e) {} or Swift try? swallowing errors on security paths",
+          "Auth middleware calling next() inside catch (fail-open)",
+          "res.json({ error: err.message, stack }) or err.stack sent to clients",
+          "Missing Express 4-arg error handler or Next.js error.tsx; unhandled promise rejections",
+          "Supabase { data, error } destructuring where error is ignored and data used",
+          "Swift force unwraps (!) or try! on network data",
+          "Security-relevant switch statements without a default case"
+        ],
+        "review": [
+          "Behavior under resource exhaustion and unexpected environment states",
+          "Transaction rollback correctness"
+        ]
+      },
+      "related": [
+        "(inferred) proactive-controls-2024:C3",
+        "(inferred) asvs-5.0:V16",
+        "(inferred) cheatsheets:error-handling-cheat-sheet"
+      ]
+    }
+  ]
+}

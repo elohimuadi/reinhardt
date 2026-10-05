@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "id": "llm-top10-2025",
+  "name": "OWASP Top 10 for LLM Applications",
+  "edition": "2025",
+  "status": "released",
+  "maturity": "lab",
+  "released": "2025-03-12",
+  "url": "https://genai.owasp.org/llm-top-10/",
+  "source_notes": "Verified from genai.owasp.org llm-top-10 hub and per-risk pages plus the GenAI-LLM-Top10 repo 2025 preface and README crosswalk.",
+  "caveats": [
+    "Superseded by the 2026 edition (llm-top10-2026, released 2026-08-04); keep for legacy ID aliasing.",
+    "\"released\" is the date shown on the genai.owasp.org hub (2025-03-12); the PDF is widely cited as Nov 2024 (Nov 18, 2024) but that was not verified.",
+    "No official CWE mapping for the 2025 edition was captured in the notes; use the 2026 file for CWEs.",
+    "Prevention is [] for LLM03, LLM04, LLM08 and LLM09 because the notes did not capture their 2025 prevention text.",
+    "detection signals are copied from the 2026 successor items and are reinhardt inferences, not OWASP text.",
+    "2023/24 (v1.1) lineage (e.g. Insecure Output Handling -> Improper Output Handling, Model DoS -> Unbounded Consumption, Overreliance -> Misinformation) is an unofficial synthesis and is not encoded as related links."
+  ],
+  "items": [
+    {
+      "id": "LLM01:2025",
+      "name": "Prompt Injection",
+      "summary": "User or external content alters model behavior or output in unintended ways, directly or indirectly.",
+      "prevention": [
+        "Constrain model behavior and define and validate output formats.",
+        "Filter inputs and outputs.",
+        "Enforce privilege control and least privilege; require human approval for high-risk actions.",
+        "Segregate and label external content.",
+        "Run adversarial testing."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "User input (req.body, searchParams) concatenated or templated into the system message instead of a separate user-role message",
+          "Fetched web/RAG/file content inserted into the prompt without delimiting or provenance labeling",
+          "No stripping of tag-block (U+E0000-E007F), variation-selector (U+FE00-FE0F) or zero-width (U+200B-U+200D, U+2060) characters before prompt assembly or rendering",
+          "MCP config (mcp.json, .cursor/mcp.json, claude_desktop_config.json) running packages via npx -y without a version pin or with @latest",
+          "MCP filesystem server rooted at / or ~, or tokens inlined in the MCP server env block"
+        ],
+        "review": [
+          "Apply the 'Rule of Two': flag flows that combine untrusted input, sensitive data and state change or external communication.",
+          "Audit tool and MCP descriptions for hidden instructions.",
+          "Adaptive injection testing (e.g. AgentDojo, JailbreakBench)."
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026"
+      ]
+    },
+    {
+      "id": "LLM02:2025",
+      "name": "Sensitive Information Disclosure",
+      "summary": "The model or its application exposes personal data, credentials or confidential business information.",
+      "prevention": [
+        "Sanitize data and apply tokenization/redaction.",
+        "Enforce strict access controls.",
+        "Consider differential privacy or federated learning.",
+        "Educate users and be transparent about data use.",
+        "Do not expose system prompt contents."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "new OpenAI({ dangerouslyAllowBrowser: true }) or new Anthropic({ dangerouslyAllowBrowser: true }) in client code",
+          "Public-prefixed AI key env names: NEXT_PUBLIC_OPENAI_API_KEY, NEXT_PUBLIC_ANTHROPIC_API_KEY, VITE_OPENAI_API_KEY, EXPO_PUBLIC_*_API_KEY, REACT_APP_OPENAI_API_KEY",
+          "Literal sk-... / sk-ant-... keys in 'use client' files or other client bundles",
+          "console.log(messages) or logging of full prompts/completions to third-party APM/observability"
+        ],
+        "review": [
+          "Which user/regulated data is sent to which model provider",
+          "Retrieval authorization and observability/trace pipelines"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM02:2026"
+      ]
+    },
+    {
+      "id": "LLM03:2025",
+      "name": "Supply Chain",
+      "summary": "Vulnerable or malicious third-party models, datasets, adapters and packages compromise the application.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "MCP config (mcp.json, .cursor/mcp.json, claude_desktop_config.json) running packages via npx -y without a version pin or with @latest",
+          "MCP filesystem server rooted at / or ~, or tokens inlined in the MCP server env block",
+          "trust_remote_code=True, torch.load / pickle.load of downloaded models, or unpinned Hugging Face model revisions"
+        ],
+        "review": [
+          "Provenance of models, adapters and datasets promoted into production"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM04:2026"
+      ]
+    },
+    {
+      "id": "LLM04:2025",
+      "name": "Data and Model Poisoning",
+      "summary": "Training, fine-tuning or embedding data is manipulated to introduce backdoors, biases or vulnerabilities.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "trust_remote_code=True, torch.load / pickle.load of downloaded models, or unpinned Hugging Face model revisions"
+        ],
+        "review": [
+          "Training/fine-tuning data provenance and integrity"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM05:2026"
+      ]
+    },
+    {
+      "id": "LLM05:2025",
+      "name": "Improper Output Handling",
+      "summary": "Model output is passed to downstream components without adequate validation, sanitization or encoding.",
+      "prevention": [
+        "Treat the model as an untrusted user (zero trust) and follow ASVS validation.",
+        "Apply context-aware output encoding.",
+        "Use parameterized queries for database operations.",
+        "Deploy a Content Security Policy.",
+        "Monitor and rate-limit."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Model output (completion.choices[0].message.content, result.text, toolCall.args) flowing into eval, new Function, vm.runIn*, child_process.exec/execSync or spawn(..., {shell:true})",
+          "Model output written to innerHTML, dangerouslySetInnerHTML, v-html, document.write, or a Markdown renderer with raw HTML enabled (e.g. rehype-raw, marked without a sanitizer)",
+          "Model output used in raw SQL ($queryRawUnsafe, sequelize.query(str), string-built db.query)",
+          "Model output used in fs paths / path.join without normalization, or as a fetch(url) target (SSRF)",
+          "Chat UI auto-rendering model Markdown images or link previews without a URL allowlist (exfiltration via query string)"
+        ],
+        "review": [
+          "Pipelines that deploy or execute AI-generated code without review"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM10:2026"
+      ]
+    },
+    {
+      "id": "LLM06:2025",
+      "name": "Excessive Agency",
+      "summary": "An LLM-based system can perform damaging actions due to excessive functionality, permissions or autonomy.",
+      "prevention": [
+        "Minimize extensions and their functionality; avoid open-ended extensions.",
+        "Minimize extension permissions and execute in the user's context.",
+        "Require user approval for high-impact actions.",
+        "Enforce authorization in downstream systems (complete mediation) and sanitize I/O.",
+        "Log, monitor and rate-limit extension use."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Tool definitions (tool({...}), tools: [...], LangChain DynamicTool, MCP server.tool(...)) whose execute calls exec/spawn/fs.writeFile/fs.rm or arbitrary fetch with model-chosen arguments and no allowlist",
+          "Tool input schemas that accept a free-form command or path (e.g. z.string() for a shell command or file path)",
+          "Destructive tools (delete/send/pay/transfer) with no confirmation or human-approval step",
+          "Admin/service-role DB credentials (e.g. Supabase service_role key) used inside AI tool routes",
+          "Authorization expressed only in prompt text (e.g. 'only admins may...') with no code check before the tool runs"
+        ],
+        "review": [
+          "Tool inventory and scope versus actual need",
+          "Preservation of user scope across chained agents"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM03:2026"
+      ]
+    },
+    {
+      "id": "LLM07:2025",
+      "name": "System Prompt Leakage",
+      "summary": "System prompts can reveal sensitive information; the prompt should not be treated as a secret or used as a security control.",
+      "prevention": [
+        "Keep credentials and API keys out of prompts.",
+        "Do not rely on prompts for behavior control.",
+        "Use independent guardrails.",
+        "Enforce security controls outside the LLM."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Secret-looking values (API keys, DB URLs, passwords, tokens) interpolated into system / role:'system' strings or instructions",
+          "Credentials embedded in tool/function schemas or MCP tool descriptions",
+          "Authorization expressed only in prompt text (e.g. 'only admins may...') with no code check before the tool runs"
+        ],
+        "review": [
+          "Whether any security decision depends on the secrecy of the prompt"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM08:2026"
+      ]
+    },
+    {
+      "id": "LLM08:2025",
+      "name": "Vector and Embedding Weaknesses",
+      "summary": "Weaknesses in how vectors and embeddings are generated, stored or retrieved in RAG systems enable leakage or manipulation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Vector queries with no tenant/user filter (e.g. similaritySearch(q) with no filter)",
+          "Model output persisted to long-term memory or a vector store without validation or per-user namespacing"
+        ],
+        "review": [
+          "Tenant isolation design of the vector store"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM09:2026"
+      ]
+    },
+    {
+      "id": "LLM09:2025",
+      "name": "Misinformation",
+      "summary": "The model produces false or misleading information that appears credible and is relied upon.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "package.json dependencies that do not exist on the registry or are newly published (hallucinated package names / slopsquatting; needs a registry lookup)"
+        ],
+        "review": [
+          "Human verification of model claims used in decisions"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM07:2026"
+      ]
+    },
+    {
+      "id": "LLM10:2025",
+      "name": "Unbounded Consumption",
+      "summary": "Uncontrolled inference enables denial of service, denial of wallet, context overflow or model extraction.",
+      "prevention": [
+        "Validate and limit input size.",
+        "Apply rate limiting, resource allocation limits, timeouts and throttling.",
+        "Sandbox and restrict access; enforce access controls.",
+        "Log and monitor usage; consider watermarking against extraction.",
+        "Design for graceful degradation."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "LLM calls with no max_tokens / maxOutputTokens / max_completion_tokens",
+          "Agent loops with no step cap (AI SDK stopWhen step-count condition, LangChain maxIterations)",
+          "AI API routes with no rate-limit middleware",
+          "Public AI API route with no auth check (open proxy to a paid model)",
+          "new OpenAI({ dangerouslyAllowBrowser: true }) or new Anthropic({ dangerouslyAllowBrowser: true }) in client code",
+          "Public-prefixed AI key env names: NEXT_PUBLIC_OPENAI_API_KEY, NEXT_PUBLIC_ANTHROPIC_API_KEY, VITE_OPENAI_API_KEY, EXPO_PUBLIC_*_API_KEY, REACT_APP_OPENAI_API_KEY",
+          "Literal sk-... / sk-ant-... keys in 'use client' files or other client bundles"
+        ],
+        "review": [
+          "Spending caps and cost alerts configured at the provider",
+          "Load/cost testing of agent loops"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM06:2026"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "id": "agentic-top10-2026",
+  "name": "OWASP Top 10 for Agentic Applications",
+  "edition": "2026",
+  "status": "released",
+  "maturity": "unknown",
+  "released": "2025-12-09",
+  "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+  "source_notes": "IDs and titles verified via OWASP's asi-2026.json mapping in the GenAI-LLM-Top10 repo and the genai.owasp.org resource page; descriptions and mitigations from secondary summaries.",
+  "caveats": [
+    "Descriptions and mitigations are paraphrased from secondary summaries (Teleport, Giskard) of the PDF; the official PDF was not read, so they are unverified against OWASP text.",
+    "OWASP prose uses title variants (ASI02 \"Tool Misuse\", ASI05 \"Unexpected Code Execution\", ASI06 \"Memory Poisoning\"); secondary rewordings like \"Cascading Agent Failures\" are not official.",
+    "related LLM links are the OWASP Appendix A LLM-to-ASI crosswalk read in reverse; T-number links are inferred.",
+    "No project maturity level for this list was captured in the notes.",
+    "detection.static entries are reinhardt rule ideas, not OWASP text; ASI07 and ASI10 are mainly architectural/runtime."
+  ],
+  "items": [
+    {
+      "id": "ASI01",
+      "name": "Agent Goal Hijack",
+      "summary": "Malicious content in untrusted inputs (documents, external data) manipulates an agent's objectives.",
+      "prevention": [
+        "Sanitize and segregate untrusted inputs.",
+        "Apply least privilege to agent capabilities.",
+        "Require human approval for high-impact actions.",
+        "Audit changes to agent goals."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "User input (req.body, searchParams) concatenated or templated into the system message instead of a separate user-role message",
+          "Fetched web/RAG/file content inserted into the prompt without delimiting or provenance labeling"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "(inferred) agentic-threats-2025:T6"
+      ]
+    },
+    {
+      "id": "ASI02",
+      "name": "Tool Misuse & Exploitation",
+      "alt_names": [
+        "Tool Misuse"
+      ],
+      "summary": "Legitimate tools are misused through poor scoping, over-privilege, ambiguous instructions, or tool confusion/typosquatting.",
+      "prevention": [
+        "Apply least privilege per tool.",
+        "Confirm destructive actions.",
+        "Sandbox tool execution.",
+        "Validate tool arguments.",
+        "Detect tool-name collisions."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Tool definitions (tool({...}), tools: [...], LangChain DynamicTool, MCP server.tool(...)) whose execute calls exec/spawn/fs.writeFile/fs.rm or arbitrary fetch with model-chosen arguments and no allowlist",
+          "Tool input schemas that accept a free-form command or path (e.g. z.string() for a shell command or file path)",
+          "Destructive tools (delete/send/pay/transfer) with no confirmation or human-approval step"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "llm-top10-2026:LLM06:2026",
+        "llm-top10-2026:LLM10:2026",
+        "(inferred) agentic-threats-2025:T2"
+      ]
+    },
+    {
+      "id": "ASI03",
+      "name": "Identity & Privilege Abuse",
+      "summary": "Agents abuse cached credentials, delegation chains or confused-deputy situations, leaving an attribution gap.",
+      "prevention": [
+        "Issue unique, short-lived credentials per agent.",
+        "Isolate sessions.",
+        "Re-authorize sensitive operations.",
+        "Manage credential lifecycles."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Admin/service-role DB credentials (e.g. Supabase service_role key) used inside AI tool routes",
+          "Authorization expressed only in prompt text (e.g. 'only admins may...') with no code check before the tool runs"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "(inferred) agentic-threats-2025:T3",
+        "(inferred) agentic-threats-2025:T9"
+      ]
+    },
+    {
+      "id": "ASI04",
+      "name": "Agentic Supply Chain Vulnerabilities",
+      "summary": "Malicious or compromised third-party models, plugins, tool descriptors or MCP servers are loaded at runtime.",
+      "prevention": [
+        "Use signed and attested manifests.",
+        "Keep inventories of agent components.",
+        "Pin dependencies.",
+        "Sandbox and allowlist trusted providers.",
+        "Provide kill switches."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "MCP config (mcp.json, .cursor/mcp.json, claude_desktop_config.json) running packages via npx -y without a version pin or with @latest",
+          "MCP filesystem server rooted at / or ~, or tokens inlined in the MCP server env block"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM04:2026"
+      ]
+    },
+    {
+      "id": "ASI05",
+      "name": "Unexpected Code Execution (RCE)",
+      "alt_names": [
+        "Unexpected Code Execution"
+      ],
+      "summary": "Agent-generated or externally influenced code gets executed.",
+      "prevention": [
+        "Separate code generation from execution.",
+        "Run code in hardened non-root containers.",
+        "Apply static/AST analysis before execution.",
+        "Require human review.",
+        "Disable shell generation where possible."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Model output (completion.choices[0].message.content, result.text, toolCall.args) flowing into eval, new Function, vm.runIn*, child_process.exec/execSync or spawn(..., {shell:true})",
+          "Tool definitions (tool({...}), tools: [...], LangChain DynamicTool, MCP server.tool(...)) whose execute calls exec/spawn/fs.writeFile/fs.rm or arbitrary fetch with model-chosen arguments and no allowlist",
+          "Tool input schemas that accept a free-form command or path (e.g. z.string() for a shell command or file path)"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "llm-top10-2026:LLM10:2026",
+        "(inferred) agentic-threats-2025:T11"
+      ]
+    },
+    {
+      "id": "ASI06",
+      "name": "Memory & Context Poisoning",
+      "alt_names": [
+        "Memory Poisoning"
+      ],
+      "summary": "Corrupted agent memory or RAG context biases future reasoning and actions.",
+      "prevention": [
+        "Validate memory writes.",
+        "Segment memory by user and task.",
+        "Track provenance.",
+        "Avoid re-ingesting agent outputs.",
+        "Support rollback."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Model output persisted to long-term memory or a vector store without validation or per-user namespacing",
+          "Fetched web/RAG/file content inserted into the prompt without delimiting or provenance labeling"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM08:2026",
+        "(inferred) agentic-threats-2025:T1"
+      ]
+    },
+    {
+      "id": "ASI07",
+      "name": "Insecure Inter-Agent Communication",
+      "summary": "Weak authentication or encryption between agents allows spoofing, tampering or interception.",
+      "prevention": [
+        "Use mTLS between agents.",
+        "Sign messages with nonces and timestamps.",
+        "Validate message schemas.",
+        "Protect agent discovery."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Architectural/runtime concern; requires design review or runtime monitoring"
+        ]
+      },
+      "related": [
+        "llm-top10-2026:LLM03:2026",
+        "llm-top10-2026:LLM08:2026",
+        "(inferred) agentic-threats-2025:T12"
+      ]
+    },
+    {
+      "id": "ASI08",
+      "name": "Cascading Failures",
+      "summary": "A single fault propagates and amplifies across networks of agents.",
+      "prevention": [
+        "Apply zero-trust between components.",
+        "Isolate faults with circuit breakers.",
+        "Separate planning from execution.",
+        "Apply rate limits and kill switches."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "LLM calls with no max_tokens / maxOutputTokens / max_completion_tokens",
+          "Agent loops with no step cap (AI SDK stopWhen step-count condition, LangChain maxIterations)",
+          "AI API routes with no rate-limit middleware"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "llm-top10-2026:LLM06:2026",
+        "(inferred) agentic-threats-2025:T5",
+        "(inferred) agentic-threats-2025:T4"
+      ]
+    },
+    {
+      "id": "ASI09",
+      "name": "Human-Agent Trust Exploitation",
+      "summary": "Users are manipulated into approving harmful actions proposed by an agent.",
+      "prevention": [
+        "Require explicit approvals.",
+        "Keep immutable logs.",
+        "Show confidence and risk cues in the UI.",
+        "Train users."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Destructive tools (delete/send/pay/transfer) with no confirmation or human-approval step"
+        ],
+        "review": []
+      },
+      "related": [
+        "llm-top10-2026:LLM01:2026",
+        "llm-top10-2026:LLM03:2026",
+        "llm-top10-2026:LLM10:2026",
+        "(inferred) agentic-threats-2025:T15"
+      ]
+    },
+    {
+      "id": "ASI10",
+      "name": "Rogue Agents",
+      "summary": "Agents deviate from their intended purpose through compromise or misalignment.",
+      "prevention": [
+        "Define trust boundaries and isolate agents.",
+        "Monitor agent behavior.",
+        "Provide kill switches.",
+        "Keep signed audit logs."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Architectural/runtime concern; requires design review or runtime monitoring"
+        ]
+      },
+      "related": [
+        "(inferred) agentic-threats-2025:T13"
+      ]
+    }
+  ]
+}

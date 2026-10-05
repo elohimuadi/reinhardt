@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "id": "ml-top10-2023",
+  "name": "OWASP Machine Learning Security Top 10",
+  "edition": "2023",
+  "status": "draft",
+  "maturity": "lab",
+  "released": null,
+  "url": "https://owasp.org/www-project-machine-learning-security-top-10/",
+  "source_notes": "IDs, names and draft status verified on the owasp.org ML Security Top 10 project page.",
+  "caveats": [
+    "The project states the current version is a draft that is modified frequently.",
+    "No release date found; no post-2023 edition found.",
+    "Summaries paraphrase the item names only; prevention text was not captured in the notes.",
+    "Maturity 'lab' comes from the OWASP project catalog (level 3; label inferred).",
+    "Only ML06:2023 is plausibly statically detectable in app repos (inference)."
+  ],
+  "items": [
+    {
+      "id": "ML01:2023",
+      "name": "Input Manipulation Attack",
+      "summary": "Inputs are deliberately crafted to make the model produce wrong results (e.g. adversarial examples).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML02:2023",
+      "name": "Data Poisoning Attack",
+      "summary": "Training data is manipulated so the model learns attacker-chosen behavior.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML03:2023",
+      "name": "Model Inversion Attack",
+      "summary": "Model outputs are used to reconstruct sensitive information about training data.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML04:2023",
+      "name": "Membership Inference Attack",
+      "summary": "An attacker infers whether specific records were part of the training data.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML05:2023",
+      "name": "Model Theft",
+      "summary": "The model or its parameters are copied or extracted without authorization.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML06:2023",
+      "name": "AI Supply Chain Attacks",
+      "summary": "Compromised third-party models, libraries or data in the ML pipeline affect the system.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "trust_remote_code=True, torch.load / pickle.load of downloaded models, or unpinned Hugging Face model revisions"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) llm-top10-2026:LLM04:2026",
+        "(inferred) llm-top10-2026:LLM05:2026"
+      ]
+    },
+    {
+      "id": "ML07:2023",
+      "name": "Transfer Learning Attack",
+      "summary": "A pre-trained model is manipulated so that the weakness carries into models fine-tuned from it.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML08:2023",
+      "name": "Model Skewing",
+      "summary": "Feedback or training data distribution is skewed to bias the model's behavior.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML09:2023",
+      "name": "Output Integrity Attack",
+      "summary": "Model outputs are tampered with between the model and their consumer.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "ML10:2023",
+      "name": "Model Poisoning",
+      "summary": "Model parameters themselves are manipulated to alter behavior.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Model/training-pipeline concern; generally not visible in an app repo"
+        ]
+      },
+      "related": []
+    }
+  ]
+}

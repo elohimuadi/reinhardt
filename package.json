@@ -1,6 +1,6 @@
 {
   "name": "reinhardt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Static privacy-drift detection for AI-generated apps",
   "type": "module",
   "engines": {
@@ -18,13 +18,17 @@
     "bin",
     "src",
     "data",
-    "plugin",
     "codex",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "skills",
+    "hooks",
+    ".claude-plugin",
+    ".codex-plugin",
+    ".mcp.json",
+    "RELEASE-NOTES.md"
   ],
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "zod": "^4.6.5"
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }

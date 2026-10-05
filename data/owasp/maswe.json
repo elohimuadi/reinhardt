@@ -1,0 +1,1219 @@
+{
+  "schema_version": 1,
+  "id": "maswe",
+  "name": "OWASP MASWE (Mobile Application Security Weakness Enumeration)",
+  "edition": null,
+  "status": "released",
+  "maturity": "flagship",
+  "released": null,
+  "url": "https://mas.owasp.org/MASWE/",
+  "source_notes": "Titles and masvs-v2 mappings verified from a clone of OWASP/maswe (weaknesses/, last commit 2026-09-30); MASTG test links from OWASP/mastg tests-beta/ios front matter.",
+  "caveats": [
+    "Only MASWE entries present in the notes are included (65 entries); MASWE-0051..0060, 0062, 0064 and 0065 (RESILIENCE) were not captured and are omitted.",
+    "MASWE-0037 title is truncated in the notes (\"…via Notifications\"); name is null and name_partial holds the fragment.",
+    "related masvs-2.1 links come from MASWE masvs-v2 front matter where the notes recorded them; entries without a recorded mapping have none (only their masvs_group, taken from the repo folder, is known).",
+    "CWE lists are only populated where the notes recorded them (MASWE-0005); other entries have CWE mappings in front matter that were not captured.",
+    "Mobile Top 10 2024 links are inferred; OWASP publishes no MASWE-to-Top-10 mapping.",
+    "MASTG-TEST-0276 front matter points to MASWE-0036 although MASWE-0030 is the clipboard weakness; mastg_tests follows the front matter.",
+    "status 'released' and edition null: MASWE has no versioned release in the notes; this is a snapshot of the main branch. Maturity 'flagship' is inherited from the OWASP MAS project.",
+    "Summaries are title paraphrases; prevention is [] (not captured).",
+    "detection.static entries are reinhardt rule ideas mapped from MASTG tests and RN/Expo docs."
+  ],
+  "items": [
+    {
+      "id": "MASWE-0001",
+      "name": "Sensitive Data Stored Unencrypted in Private Storage",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [
+        "MASTG-TEST-0300"
+      ],
+      "summary": "Weakness: Sensitive Data Stored Unencrypted in Private Storage.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UserDefaults.standard.set(...) or @AppStorage(\"...token|password|secret|apiKey...\") holding secrets instead of Keychain",
+          "FileManager / POSIX I/O / Core Data / SQLite writes of sensitive data without encryption",
+          "React Native AsyncStorage.setItem(...) with token/secret-like keys (AsyncStorage is unencrypted)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-1",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "masvs-2.1:MASVS-CRYPTO-2",
+        "(inferred) mobile-top10-2024:M9",
+        "(inferred) mobile-top10-2024:M1"
+      ]
+    },
+    {
+      "id": "MASWE-0002",
+      "name": "Sensitive Data Stored Unencrypted Outside of Private Storage",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [
+        "MASTG-TEST-0303"
+      ],
+      "summary": "Weakness: Sensitive Data Stored Unencrypted Outside of Private Storage.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Sensitive data written to shared storage or shared App Group containers without encryption"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-1",
+        "masvs-2.1:MASVS-STORAGE-2"
+      ]
+    },
+    {
+      "id": "MASWE-0003",
+      "name": "Cryptographic Keys Stored Outside of Platform Keystore",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [
+        "MASTG-TEST-0213",
+        "MASTG-TEST-0214"
+      ],
+      "summary": "Weakness: Cryptographic Keys Stored Outside of Platform Keystore.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Raw key literals passed to SecKeyCreateWithData, CCCrypt key parameter, or CryptoKit init(rawRepresentation:) (e.g. P256.Signing.PrivateKey)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-1",
+        "masvs-2.1:MASVS-CRYPTO-2",
+        "(inferred) mobile-top10-2024:M10",
+        "(inferred) mobile-top10-2024:M1"
+      ]
+    },
+    {
+      "id": "MASWE-0004",
+      "name": "Sensitive Data Hardcoded in the App Package",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [],
+      "summary": "Weakness: Sensitive Data Hardcoded in the App Package.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "API keys or secret literals in Swift string constants or Info.plist",
+          "EXPO_PUBLIC_* variable names containing SECRET, PRIVATE, SERVICE_ROLE or a non-publishable KEY"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-1",
+        "(inferred) mobile-top10-2024:M1"
+      ]
+    },
+    {
+      "id": "MASWE-0005",
+      "name": "Insertion of Sensitive Data into Logs",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [
+        "MASTG-TEST-0297"
+      ],
+      "summary": "The app should keep sensitive data out of application logs.",
+      "prevention": [],
+      "cwe": [
+        "CWE-209",
+        "CWE-359",
+        "CWE-497",
+        "CWE-532"
+      ],
+      "detection": {
+        "static": [
+          "print / NSLog / NSAssert / NSCAssert / printf / os_log / Logger calls with token-, password- or PII-like values"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) mobile-top10-2024:M9",
+        "(inferred) mobile-top10-2024:M6"
+      ]
+    },
+    {
+      "id": "MASWE-0006",
+      "name": "Sensitive Data Not Excluded From Backup",
+      "masvs_group": "MASVS-STORAGE",
+      "mastg_tests": [
+        "MASTG-TEST-0215"
+      ],
+      "summary": "Weakness: Sensitive Data Not Excluded From Backup.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Files holding sensitive data not marked for backup exclusion"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) mobile-top10-2024:M9"
+      ]
+    },
+    {
+      "id": "MASWE-0007",
+      "name": "Improper Encryption",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Encryption.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0008",
+      "name": "Improper Hashing",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [
+        "MASTG-TEST-0211"
+      ],
+      "summary": "Weakness: Improper Hashing.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "CommonCrypto CC_MD2 / CC_MD4 / CC_MD5 / CC_SHA1, or CryptoKit Insecure.MD5 / Insecure.SHA1"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-CRYPTO-1",
+        "(inferred) mobile-top10-2024:M10"
+      ]
+    },
+    {
+      "id": "MASWE-0009",
+      "name": "Improper Use of Message Authentication Code (MAC)",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Use of Message Authentication Code (MAC).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0010",
+      "name": "Improper Generation of Cryptographic Signatures",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Generation of Cryptographic Signatures.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0011",
+      "name": "Improper Verification of Cryptographic Signature",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Verification of Cryptographic Signature.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0012",
+      "name": "Improper Random Number Generation",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [
+        "MASTG-TEST-0311"
+      ],
+      "summary": "Weakness: Improper Random Number Generation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "rand() / random() / *rand48 used for keys, IVs, nonces, tokens, session IDs, passwords or PINs (arc4random family is acceptable)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-CRYPTO-1",
+        "(inferred) mobile-top10-2024:M10"
+      ]
+    },
+    {
+      "id": "MASWE-0013",
+      "name": "Improper Cryptographic Key Generation",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Cryptographic Key Generation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0014",
+      "name": "Improper Cryptographic Key Derivation",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Cryptographic Key Derivation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0015",
+      "name": "Cryptographic Key Rotation Not Implemented",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Cryptographic Key Rotation Not Implemented.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0016",
+      "name": "Cryptographic Key Access Not Restricted",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Cryptographic Key Access Not Restricted.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0017",
+      "name": "Device Secure Lock Not Enforced",
+      "masvs_group": "MASVS-CRYPTO",
+      "mastg_tests": [],
+      "summary": "Weakness: Device Secure Lock Not Enforced.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0018",
+      "name": "Lack of Authentication or Authorization on App Components",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Lack of Authentication or Authorization on App Components.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0019",
+      "name": "Lack of Auto-fill Support for Credential Providers",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Lack of Auto-fill Support for Credential Providers.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0020",
+      "name": "Local Authentication Can Be Bypassed",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Local Authentication Can Be Bypassed.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0021",
+      "name": "Fallback to Non-biometric Credentials Allowed for Sensitive Transactions",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Fallback to Non-biometric Credentials Allowed for Sensitive Transactions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0022",
+      "name": "Crypto Keys Not Invalidated on New Biometric Enrollment",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Crypto Keys Not Invalidated on New Biometric Enrollment.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0023",
+      "name": "Step-Up Authentication Not Implemented for Sensitive Actions",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Step-Up Authentication Not Implemented for Sensitive Actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0024",
+      "name": "Sensitive Data Accessible After Session Termination",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Sensitive Data Accessible After Session Termination.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0025",
+      "name": "Lack of Non-Repudiation for Critical Actions",
+      "masvs_group": "MASVS-AUTH",
+      "mastg_tests": [],
+      "summary": "Weakness: Lack of Non-Repudiation for Critical Actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0026",
+      "name": "Network Traffic Not Encrypted",
+      "masvs_group": "MASVS-NETWORK",
+      "mastg_tests": [
+        "MASTG-TEST-0321",
+        "MASTG-TEST-0322",
+        "MASTG-TEST-0342"
+      ],
+      "summary": "Weakness: Network Traffic Not Encrypted.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Info.plist NSAppTransportSecurity keys allowing cleartext: NSAllowsArbitraryLoads, NSAllowsArbitraryLoadsInWebContent, NSAllowsArbitraryLoadsForMedia, NSExceptionAllowsInsecureHTTPLoads",
+          "Weak ATS exceptions: NSExceptionMinimumTLSVersion below TLSv1.2, NSExceptionRequiresForwardSecrecy = false, broad NSIncludesSubdomains = true",
+          "Hardcoded http:// URLs used for communication (excluding localhost and XML namespace URIs)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-NETWORK-1",
+        "(inferred) mobile-top10-2024:M5",
+        "(inferred) mobile-top10-2024:M8"
+      ]
+    },
+    {
+      "id": "MASWE-0027",
+      "name": "Insecure Certificate Validation",
+      "masvs_group": "MASVS-NETWORK",
+      "mastg_tests": [
+        "MASTG-TEST-0396",
+        "MASTG-TEST-0397"
+      ],
+      "summary": "Weakness: Insecure Certificate Validation.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "urlSession(_:didReceive:completionHandler:) / urlSession(_:task:didReceive:completionHandler:) calling completionHandler(.useCredential, URLCredential(trust: serverTrust)) without SecTrustEvaluateWithError",
+          "WKNavigationDelegate authentication-challenge handlers that accept any server trust"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-NETWORK-1",
+        "(inferred) mobile-top10-2024:M5"
+      ]
+    },
+    {
+      "id": "MASWE-0028",
+      "name": "Insecure Identity Pinning",
+      "masvs_group": "MASVS-NETWORK",
+      "mastg_tests": [
+        "MASTG-TEST-0385"
+      ],
+      "summary": "Weakness: Insecure Identity Pinning.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No NSPinnedDomains entry in ATS configuration for developer-controlled endpoints"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-NETWORK-2",
+        "(inferred) mobile-top10-2024:M5"
+      ]
+    },
+    {
+      "id": "MASWE-0029",
+      "name": "Insecure Deep Links",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [
+        "MASTG-TEST-0370",
+        "MASTG-TEST-0371",
+        "MASTG-TEST-0395"
+      ],
+      "summary": "Weakness: Insecure Deep Links.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "onOpenURL / application(_:open:options:) / scene(_:openURLContexts:) / universal link handlers acting on URL parameters without validation",
+          "Custom URL scheme handlers performing sensitive operations without checking UIOpenURLContext.options.sourceApplication"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-1",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "masvs-2.1:MASVS-CODE-4",
+        "(inferred) mobile-top10-2024:M4",
+        "(inferred) mobile-top10-2024:M3"
+      ]
+    },
+    {
+      "id": "MASWE-0030",
+      "name": "Improper Use of the Clipboard",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Improper Use of the Clipboard.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UIPasteboard.general writes (addItems, setItems, setData, setValue) of sensitive data"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-1",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) mobile-top10-2024:M6",
+        "(inferred) mobile-top10-2024:M9"
+      ]
+    },
+    {
+      "id": "MASWE-0031",
+      "name": "Allowing Untrusted App Extensions",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Allowing Untrusted App Extensions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0032",
+      "name": "Insecure Intents (Android)",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Insecure Intents (Android).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0033",
+      "name": "Sensitive Native Functionality Exposed in WebViews",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Sensitive Native Functionality Exposed in WebViews.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "WKUserContentController.add(_:name:) / WKScriptMessageHandler exposing sensitive native functionality to page JavaScript without validation"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-2",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "(inferred) mobile-top10-2024:M4"
+      ]
+    },
+    {
+      "id": "MASWE-0034",
+      "name": "WebViews Allow Access to Local Resources with Untrusted Content",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [
+        "MASTG-TEST-0376"
+      ],
+      "summary": "Weakness: WebViews Allow Access to Local Resources with Untrusted Content.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "WKWebView native bridges (window.webkit.messageHandlers.<name>.postMessage, evaluateJavaScript replies) reachable from untrusted content"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-2",
+        "masvs-2.1:MASVS-STORAGE-2",
+        "masvs-2.1:MASVS-CODE-4",
+        "(inferred) mobile-top10-2024:M4"
+      ]
+    },
+    {
+      "id": "MASWE-0035",
+      "name": "WebViews Loading Untrusted Content",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [
+        "MASTG-TEST-0332"
+      ],
+      "summary": "Weakness: WebViews Loading Untrusted Content.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "WebView load(URLRequest) of an attacker-controllable URL (e.g. from a deep link parameter)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-2",
+        "masvs-2.1:MASVS-CODE-4",
+        "(inferred) mobile-top10-2024:M4"
+      ]
+    },
+    {
+      "id": "MASWE-0036",
+      "name": "Unnecessary Exposure of Sensitive Data via the User Interface",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [
+        "MASTG-TEST-0276"
+      ],
+      "summary": "Weakness: Unnecessary Exposure of Sensitive Data via the User Interface.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PLATFORM-3",
+        "masvs-2.1:MASVS-STORAGE-2"
+      ]
+    },
+    {
+      "id": "MASWE-0037",
+      "name": null,
+      "name_partial": "…via Notifications",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Sensitive data is unnecessarily exposed via notifications (full title truncated in notes).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0038",
+      "name": "Insufficient Protection of Sensitive Data from Screenshots or Screen Recordings",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Insufficient Protection of Sensitive Data from Screenshots or Screen Recordings.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0039",
+      "name": "App Vulnerable to Overlay Attacks",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: App Vulnerable to Overlay Attacks.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0040",
+      "name": "Sensitive Data Leaked via Accessibility Services",
+      "masvs_group": "MASVS-PLATFORM",
+      "mastg_tests": [],
+      "summary": "Weakness: Sensitive Data Leaked via Accessibility Services.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0041",
+      "name": "Running on a Recent Platform Version Not Ensured",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Running on a Recent Platform Version Not Ensured.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0042",
+      "name": "Latest Platform Version Not Targeted",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Latest Platform Version Not Targeted.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0043",
+      "name": "Enforced Updating Not Implemented",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Enforced Updating Not Implemented.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0044",
+      "name": "Dependencies with Known Vulnerabilities",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [
+        "MASTG-TEST-0273"
+      ],
+      "summary": "Weakness: Dependencies with Known Vulnerabilities.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Podfile / Podfile.lock / Package.swift / Package.resolved (or JS lockfiles) containing dependencies with known vulnerabilities"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-CODE-3",
+        "(inferred) mobile-top10-2024:M2"
+      ]
+    },
+    {
+      "id": "MASWE-0045",
+      "name": "Compiler-Provided Security Features Not Used",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Compiler-Provided Security Features Not Used.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0046",
+      "name": "Use of Deprecated APIs or Functionality",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Use of Deprecated APIs or Functionality.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0047",
+      "name": "Using Non-Standard APIs for Security-Critical Functionality",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Using Non-Standard APIs for Security-Critical Functionality.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0048",
+      "name": "Malicious Code Included in the App",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Malicious Code Included in the App.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0049",
+      "name": "Unsafe Dynamic Code Loading",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Unsafe Dynamic Code Loading.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0050",
+      "name": "Unsafe Handling of Untrusted Data",
+      "masvs_group": "MASVS-CODE",
+      "mastg_tests": [],
+      "summary": "Weakness: Unsafe Handling of Untrusted Data.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-CODE-4"
+      ]
+    },
+    {
+      "id": "MASWE-0061",
+      "name": "Debug Artifacts Not Removed",
+      "masvs_group": "MASVS-RESILIENCE",
+      "mastg_tests": [
+        "MASTG-TEST-0358"
+      ],
+      "summary": "Weakness: Debug Artifacts Not Removed.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Logging statements exposing implementation details"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-RESILIENCE-3"
+      ]
+    },
+    {
+      "id": "MASWE-0063",
+      "name": "Debug Mechanisms Not Disabled",
+      "masvs_group": "MASVS-RESILIENCE",
+      "mastg_tests": [],
+      "summary": "Weakness: Debug Mechanisms Not Disabled.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-RESILIENCE-4",
+        "masvs-2.1:MASVS-PLATFORM-2"
+      ]
+    },
+    {
+      "id": "MASWE-0066",
+      "name": "Inadequate Permission Management",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [
+        "MASTG-TEST-0360"
+      ],
+      "summary": "Weakness: Inadequate Permission Management.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Info.plist purpose strings / requested permissions not justified by reachable code",
+          "Entitlements exposing unjustified capabilities (App Groups, iCloud, Associated Domains)"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-1",
+        "(inferred) mobile-top10-2024:M6",
+        "(inferred) mobile-top10-2024:M8"
+      ]
+    },
+    {
+      "id": "MASWE-0067",
+      "name": "Lack of Anonymization or Pseudonymisation Measures",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Lack of Anonymization or Pseudonymisation Measures.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-2"
+      ]
+    },
+    {
+      "id": "MASWE-0068",
+      "name": "Incorrect Use of Identifiers for User Tracking",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Incorrect Use of Identifiers for User Tracking.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-2"
+      ]
+    },
+    {
+      "id": "MASWE-0069",
+      "name": "Usage of Non-Privacy-Preserving Functionality",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Usage of Non-Privacy-Preserving Functionality.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0070",
+      "name": "Inadequate Awareness for Privacy Relevant Actions",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate Awareness for Privacy Relevant Actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0071",
+      "name": "Inadequate Defaults for Privacy Relevant Actions",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate Defaults for Privacy Relevant Actions.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0072",
+      "name": "Inadequate Privacy Policy",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate Privacy Policy.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-3"
+      ]
+    },
+    {
+      "id": "MASWE-0073",
+      "name": "Inadequate Data Collection Declarations",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate Data Collection Declarations.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Missing PrivacyInfo.xcprivacy in an iOS app or bundled SDK",
+          "Swift references to required-reason APIs (UserDefaults/@AppStorage, file timestamps, system boot time, disk space, active keyboards) without a matching NSPrivacyAccessedAPITypes entry"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-3",
+        "masvs-2.1:MASVS-PRIVACY-1",
+        "(inferred) mobile-top10-2024:M6"
+      ]
+    },
+    {
+      "id": "MASWE-0074",
+      "name": "Inadequate Tracking Domains Declarations",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [
+        "MASTG-TEST-0281"
+      ],
+      "summary": "Weakness: Inadequate Tracking Domains Declarations.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Hardcoded known tracking domains not declared in NSPrivacyTrackingDomains"
+        ],
+        "review": []
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-3",
+        "(inferred) mobile-top10-2024:M6"
+      ]
+    },
+    {
+      "id": "MASWE-0075",
+      "name": "Non-Reproducible Builds",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Non-Reproducible Builds.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0076",
+      "name": "Lack of Proper Data Management Controls",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Lack of Proper Data Management Controls.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-4"
+      ]
+    },
+    {
+      "id": "MASWE-0077",
+      "name": "Inadequate Data Visibility Controls",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate Data Visibility Controls.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASWE-0078",
+      "name": "Inadequate or Ambiguous User Consent Mechanisms",
+      "masvs_group": "MASVS-PRIVACY",
+      "mastg_tests": [],
+      "summary": "Weakness: Inadequate or Ambiguous User Consent Mechanisms.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No static signal captured in the notes; requires manual or dynamic review"
+        ]
+      },
+      "related": [
+        "masvs-2.1:MASVS-PRIVACY-4"
+      ]
+    }
+  ]
+}

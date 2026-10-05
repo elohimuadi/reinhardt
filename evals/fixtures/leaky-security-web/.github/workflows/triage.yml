@@ -1,0 +1,14 @@
+name: triage
+on:
+  pull_request_target:
+  issues:
+permissions: write-all
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: echo "New issue: ${{ github.event.issue.title }}"
+      - uses: some-org/label-action@main

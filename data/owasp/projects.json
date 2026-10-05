@@ -1,0 +1,638 @@
+{
+  "schema_version": 1,
+  "id": "projects",
+  "name": "OWASP Project Catalog",
+  "edition": "2026-10 snapshot",
+  "status": "released",
+  "maturity": "unknown",
+  "released": null,
+  "url": "https://owasp.org/projects/",
+  "source_notes": "Verified against _data/projects.json in github.com/OWASP/owasp.github.io (the data behind owasp.org/projects/), plus ZAP project blog posts.",
+  "caveats": [
+    "Only level 4 = Flagship is confirmed in code (flagships.html selects level 4); the 3.5 = Production, 3 = Lab, 2 = Incubator and -1 = inactive labels are inferred from the 2022 maturity-levels blog and the data values.",
+    "Lab (level 3) entries are a selected subset relevant to reinhardt, not the full lab list; incubator projects are mostly omitted.",
+    "Item ids are reinhardt-local slugs, not OWASP repo names.",
+    "type is null where the notes did not record it; flagship code and tool projects were grouped together in the notes and are recorded as \"code\".",
+    "Summaries are short paraphrases of catalog descriptions or self-explanatory names; summary is null where the notes gave no description, and url is null where the notes did not give one."
+  ],
+  "items": [
+    {
+      "id": "amass",
+      "name": "Amass",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Network mapping and attack-surface discovery.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "defectdojo",
+      "name": "DefectDojo",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Vulnerability management and aggregation for DevOps.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "dependency-check",
+      "name": "Dependency-Check",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Software composition analysis that identifies dependencies and known CVEs.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "dependency-track",
+      "name": "Dependency-Track",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Component analysis platform that consumes SBOMs.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "juice-shop",
+      "name": "Juice Shop",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Modern deliberately insecure web application for training.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "crs",
+      "name": "CRS (ModSecurity Core Rule Set)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Generic attack-detection rules for ModSecurity-compatible WAFs.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "owtf",
+      "name": "OWTF (Offensive Web Testing Framework)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Offensive web testing framework.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "security-shepherd",
+      "name": "Security Shepherd",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "code",
+      "summary": "Web and mobile security training platform.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "cheat-sheet-series",
+      "name": "Cheat Sheet Series",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "documentation",
+      "summary": "Collection of topic-focused secure development cheat sheets.",
+      "url": "https://cheatsheetseries.owasp.org/",
+      "status_notes": null,
+      "related_standards": [
+        "cheatsheets"
+      ]
+    },
+    {
+      "id": "mas",
+      "name": "Mobile Application Security (MAS)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "documentation",
+      "summary": "Mobile security standard (MASVS), weakness enumeration (MASWE) and testing guide (MASTG).",
+      "url": "https://mas.owasp.org/",
+      "status_notes": null,
+      "related_standards": [
+        "masvs-2.1",
+        "maswe"
+      ]
+    },
+    {
+      "id": "samm",
+      "name": "SAMM (Software Assurance Maturity Model)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "documentation",
+      "summary": "Maturity model for software assurance programs.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "top-ten",
+      "name": "Top Ten",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "documentation",
+      "summary": "Awareness list of the most critical web application security risks.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": [
+        "top10-2025"
+      ]
+    },
+    {
+      "id": "wstg",
+      "name": "Web Security Testing Guide (WSTG)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "documentation",
+      "summary": "Guide to testing web application security.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "asvs",
+      "name": "ASVS (Application Security Verification Standard)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "standard",
+      "summary": "Verification requirements for web application security.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": [
+        "asvs-5.0"
+      ]
+    },
+    {
+      "id": "cyclonedx",
+      "name": "CycloneDX (ECMA-424)",
+      "level": 4,
+      "maturity": "flagship",
+      "type": "standard",
+      "summary": "Full-stack Bill of Materials standard.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "secure-headers",
+      "name": "Secure Headers Project",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Guidance and tooling for HTTP security headers.",
+      "url": null,
+      "status_notes": "Type field is blank in the projects data.",
+      "related_standards": []
+    },
+    {
+      "id": "blt",
+      "name": "Bug Logging Tool (BLT)",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Issue reporting platform.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "coraza",
+      "name": "Coraza WAF",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Go web application firewall compatible with ModSecurity and CRS.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "csrfguard",
+      "name": "CSRFGuard",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Library implementing the synchronizer-token CSRF defense.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "pytm",
+      "name": "pytm",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Pythonic threat modeling framework.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "samuraiwtf",
+      "name": "SamuraiWTF",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Web testing training virtual machine.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "threat-dragon",
+      "name": "Threat Dragon",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Threat modeling tool.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "wrongsecrets",
+      "name": "WrongSecrets",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Examples of how not to handle secrets; useful as test fixtures.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "api-security",
+      "name": "API Security Project",
+      "level": 3.5,
+      "maturity": "production",
+      "type": "documentation",
+      "summary": "Home of the OWASP API Security Top 10.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": [
+        "api-top10-2023"
+      ]
+    },
+    {
+      "id": "cornucopia",
+      "name": "Cornucopia",
+      "level": 3.5,
+      "maturity": "production",
+      "type": "documentation",
+      "summary": "Threat-modeling card game.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "vwad",
+      "name": "Vulnerable Web Applications Directory",
+      "level": 3.5,
+      "maturity": "production",
+      "type": null,
+      "summary": "Directory of intentionally vulnerable applications.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "modsecurity",
+      "name": "ModSecurity",
+      "level": 3.5,
+      "maturity": "production",
+      "type": "code",
+      "summary": "Web application firewall engine.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "nest",
+      "name": "OWASP Nest",
+      "level": 3.5,
+      "maturity": "production",
+      "type": "code",
+      "summary": "Community portal for OWASP projects.",
+      "url": "https://nest.owasp.org/",
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "benchmark",
+      "name": "Benchmark",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Test suites for scoring SAST/DAST accuracy; useful for evaluating reinhardt.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "proactive-controls",
+      "name": "Proactive Controls",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": [
+        "proactive-controls-2024"
+      ]
+    },
+    {
+      "id": "code-review-guide",
+      "name": "Code Review Guide",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Guidance for security-focused code review.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "developer-guide",
+      "name": "Developer Guide",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Secure development guidance for developers.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "top-10-cicd",
+      "name": "Top 10 CI/CD Security Risks",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Awareness list of CI/CD pipeline security risks.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": [
+        "cicd-top10"
+      ]
+    },
+    {
+      "id": "mobile-top-10",
+      "name": "Mobile Top 10",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Awareness list of mobile application risks.",
+      "url": "https://owasp.org/www-project-mobile-top-10/",
+      "status_notes": null,
+      "related_standards": [
+        "mobile-top10-2024"
+      ]
+    },
+    {
+      "id": "top-10-llm",
+      "name": "Top 10 for LLM Applications",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "LLM application risk list.",
+      "url": null,
+      "status_notes": "The owasp.org page calls itself a legacy entry point; the current 2026 release is published by the OWASP GenAI Security Project at genai.owasp.org.",
+      "related_standards": [
+        "llm-top10-2026",
+        "llm-top10-2025"
+      ]
+    },
+    {
+      "id": "ml-security-top-10",
+      "name": "Machine Learning Security Top 10",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Draft list of machine-learning security risks.",
+      "url": "https://owasp.org/www-project-machine-learning-security-top-10/",
+      "status_notes": null,
+      "related_standards": [
+        "ml-top10-2023"
+      ]
+    },
+    {
+      "id": "top-10-privacy-risks",
+      "name": "Top 10 Privacy Risks",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "List of privacy risks in web applications.",
+      "url": "https://owasp.org/www-project-top-10-privacy-risks/",
+      "status_notes": "Repo archived (read-only) on 2025-03-15.",
+      "related_standards": [
+        "privacy-top10-2021"
+      ]
+    },
+    {
+      "id": "automated-threats",
+      "name": "Automated Threats to Web Applications",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Taxonomy of automated threats to web applications.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "java-html-sanitizer",
+      "name": "Java HTML Sanitizer",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "HTML sanitizer library for Java.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "antisamy",
+      "name": "AntiSamy",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "esapi",
+      "name": "ESAPI",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "find-security-bugs",
+      "name": "Find Security Bugs",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "nettacker",
+      "name": "Nettacker",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "securecodebox",
+      "name": "secureCodeBox",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "penetration-testing-kit",
+      "name": "Penetration Testing Kit",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "webgoat",
+      "name": "WebGoat",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "mutillidae-ii",
+      "name": "Mutillidae II",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "scvs",
+      "name": "Software Component Verification Standard",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Verification standard for software supply chain components.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "dsomm",
+      "name": "DevSecOps Maturity Model",
+      "level": 3,
+      "maturity": "lab",
+      "type": null,
+      "summary": "Maturity model for DevSecOps practices.",
+      "url": null,
+      "status_notes": null,
+      "related_standards": []
+    },
+    {
+      "id": "ai-exchange",
+      "name": "OWASP AI Exchange",
+      "level": 2,
+      "maturity": "incubator",
+      "type": null,
+      "summary": "Open guidance on securing AI systems (threats and named controls); feeds ISO/IEC 27090/27091 and prEN 18282.",
+      "url": "https://owaspai.org/",
+      "status_notes": "Conflict: a 2025-05-06 OWASP blog post says it was awarded Flagship status, but the projects data (www-project-ai-security-and-privacy-guide) lists level 2.",
+      "related_standards": []
+    },
+    {
+      "id": "zap",
+      "name": "ZAP (formerly OWASP ZAP)",
+      "level": -1,
+      "maturity": "inactive",
+      "type": "code",
+      "summary": null,
+      "url": "https://github.com/zaproxy/zaproxy",
+      "status_notes": "Left OWASP in Aug 2023 for the Linux Foundation Software Security Project; known as \"ZAP by Checkmarx\" since Sept 2024 (still open source, Apache-2.0). owasp.org/www-project-zap/ returns 404. Do not describe as an OWASP project.",
+      "related_standards": []
+    },
+    {
+      "id": "security-knowledge-framework",
+      "name": "Security Knowledge Framework",
+      "level": -1,
+      "maturity": "inactive",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": "Listed at level -1 with a \"no pages\" build; last updated 2025-12-16; no longer an active graded project.",
+      "related_standards": []
+    },
+    {
+      "id": "threatspec",
+      "name": "Threatspec",
+      "level": -1,
+      "maturity": "inactive",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": "Listed at level -1.",
+      "related_standards": []
+    },
+    {
+      "id": "serverless-goat",
+      "name": "Serverless Goat",
+      "level": -1,
+      "maturity": "inactive",
+      "type": null,
+      "summary": null,
+      "url": null,
+      "status_notes": "Listed at level -1.",
+      "related_standards": []
+    }
+  ]
+}

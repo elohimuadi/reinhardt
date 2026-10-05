@@ -1,0 +1,640 @@
+{
+  "schema_version": 1,
+  "id": "masvs-2.1",
+  "name": "OWASP Mobile Application Security Verification Standard (MASVS)",
+  "edition": "2.1.0",
+  "status": "released",
+  "maturity": "flagship",
+  "released": "2024-01-18",
+  "url": "https://mas.owasp.org/MASVS/",
+  "source_notes": "Control IDs and statements verified from OWASP_MASVS.yaml in a clone of OWASP/masvs (last commit 2026-09-21); version/date from the MASVS releases page (summarized fetch).",
+  "caveats": [
+    "MASVS controls have no short titles; name holds the official one-sentence control statement verbatim and summary paraphrases it.",
+    "v2.1.0 (2024-01-18) added MASVS-PRIVACY; v2.0.0 (2023-04-01) removed L1/L2/R levels. v2.1.0 as latest rests on a summarized releases page; no v2.2/v3 was found in repo files.",
+    "maswe arrays invert MASWE masvs-v2 front-matter mappings captured in the notes; controls whose MASWE mappings were not captured have empty arrays (e.g. AUTH, CODE-1/2, RESILIENCE-1/2).",
+    "mastg_tests are derived via MASTG test -> MASWE -> MASVS; MASTG tests whose MASWE link was not recorded (e.g. 0209, 0210, 0317, 0388) are omitted.",
+    "Mobile Top 10 2024 links are inferred; OWASP publishes no MASVS-to-Top-10 mapping.",
+    "detection.static is the union of the linked MASWE signals (reinhardt rule ideas).",
+    "Maturity 'flagship' is that of the OWASP MAS project (level 4)."
+  ],
+  "items": [
+    {
+      "id": "MASVS-STORAGE-1",
+      "name": "The app securely stores sensitive data.",
+      "group": "MASVS-STORAGE",
+      "group_name": "Storage",
+      "mastg_tests": [
+        "MASTG-TEST-0213",
+        "MASTG-TEST-0214",
+        "MASTG-TEST-0300",
+        "MASTG-TEST-0303"
+      ],
+      "maswe": [
+        "MASWE-0001",
+        "MASWE-0002",
+        "MASWE-0003",
+        "MASWE-0004"
+      ],
+      "summary": "Sensitive data the app stores is protected at rest.",
+      "prevention": [
+        "Store secrets and tokens in the platform keystore (Keychain on iOS, Keystore on Android) rather than UserDefaults or AsyncStorage.",
+        "In React Native/Expo use expo-secure-store or react-native-keychain for tokens and secrets.",
+        "Do not hardcode API keys or put private values in EXPO_PUBLIC_ variables."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UserDefaults.standard.set(...) or @AppStorage(\"...token|password|secret|apiKey...\") holding secrets instead of Keychain",
+          "FileManager / POSIX I/O / Core Data / SQLite writes of sensitive data without encryption",
+          "React Native AsyncStorage.setItem(...) with token/secret-like keys (AsyncStorage is unencrypted)",
+          "Sensitive data written to shared storage or shared App Group containers without encryption",
+          "Raw key literals passed to SecKeyCreateWithData, CCCrypt key parameter, or CryptoKit init(rawRepresentation:) (e.g. P256.Signing.PrivateKey)",
+          "API keys or secret literals in Swift string constants or Info.plist",
+          "EXPO_PUBLIC_* variable names containing SECRET, PRIVATE, SERVICE_ROLE or a non-publishable KEY"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M1",
+        "(inferred) mobile-top10-2024:M9",
+        "(inferred) mobile-top10-2024:M10"
+      ]
+    },
+    {
+      "id": "MASVS-STORAGE-2",
+      "name": "The app prevents leakage of sensitive data.",
+      "group": "MASVS-STORAGE",
+      "group_name": "Storage",
+      "mastg_tests": [
+        "MASTG-TEST-0215",
+        "MASTG-TEST-0276",
+        "MASTG-TEST-0297",
+        "MASTG-TEST-0300",
+        "MASTG-TEST-0303",
+        "MASTG-TEST-0370",
+        "MASTG-TEST-0371",
+        "MASTG-TEST-0376",
+        "MASTG-TEST-0395"
+      ],
+      "maswe": [
+        "MASWE-0001",
+        "MASWE-0002",
+        "MASWE-0005",
+        "MASWE-0006",
+        "MASWE-0029",
+        "MASWE-0030",
+        "MASWE-0033",
+        "MASWE-0034",
+        "MASWE-0036"
+      ],
+      "summary": "The app keeps sensitive data from leaking (e.g. via logs, backups or other channels).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UserDefaults.standard.set(...) or @AppStorage(\"...token|password|secret|apiKey...\") holding secrets instead of Keychain",
+          "FileManager / POSIX I/O / Core Data / SQLite writes of sensitive data without encryption",
+          "React Native AsyncStorage.setItem(...) with token/secret-like keys (AsyncStorage is unencrypted)",
+          "Sensitive data written to shared storage or shared App Group containers without encryption",
+          "print / NSLog / NSAssert / NSCAssert / printf / os_log / Logger calls with token-, password- or PII-like values",
+          "Files holding sensitive data not marked for backup exclusion",
+          "onOpenURL / application(_:open:options:) / scene(_:openURLContexts:) / universal link handlers acting on URL parameters without validation",
+          "Custom URL scheme handlers performing sensitive operations without checking UIOpenURLContext.options.sourceApplication",
+          "UIPasteboard.general writes (addItems, setItems, setData, setValue) of sensitive data",
+          "WKUserContentController.add(_:name:) / WKScriptMessageHandler exposing sensitive native functionality to page JavaScript without validation",
+          "WKWebView native bridges (window.webkit.messageHandlers.<name>.postMessage, evaluateJavaScript replies) reachable from untrusted content"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M1",
+        "(inferred) mobile-top10-2024:M3",
+        "(inferred) mobile-top10-2024:M4",
+        "(inferred) mobile-top10-2024:M6",
+        "(inferred) mobile-top10-2024:M9"
+      ]
+    },
+    {
+      "id": "MASVS-CRYPTO-1",
+      "name": "The app employs current strong cryptography and uses it according to industry best practices.",
+      "group": "MASVS-CRYPTO",
+      "group_name": "Cryptography",
+      "mastg_tests": [
+        "MASTG-TEST-0211",
+        "MASTG-TEST-0311"
+      ],
+      "maswe": [
+        "MASWE-0008",
+        "MASWE-0012"
+      ],
+      "summary": "The app uses current, strong cryptography in line with industry best practice.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "CommonCrypto CC_MD2 / CC_MD4 / CC_MD5 / CC_SHA1, or CryptoKit Insecure.MD5 / Insecure.SHA1",
+          "rand() / random() / *rand48 used for keys, IVs, nonces, tokens, session IDs, passwords or PINs (arc4random family is acceptable)"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M10"
+      ]
+    },
+    {
+      "id": "MASVS-CRYPTO-2",
+      "name": "The app performs key management according to industry best practices.",
+      "group": "MASVS-CRYPTO",
+      "group_name": "Cryptography",
+      "mastg_tests": [
+        "MASTG-TEST-0213",
+        "MASTG-TEST-0214",
+        "MASTG-TEST-0300"
+      ],
+      "maswe": [
+        "MASWE-0001",
+        "MASWE-0003"
+      ],
+      "summary": "Cryptographic keys are managed following industry best practice.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "UserDefaults.standard.set(...) or @AppStorage(\"...token|password|secret|apiKey...\") holding secrets instead of Keychain",
+          "FileManager / POSIX I/O / Core Data / SQLite writes of sensitive data without encryption",
+          "React Native AsyncStorage.setItem(...) with token/secret-like keys (AsyncStorage is unencrypted)",
+          "Raw key literals passed to SecKeyCreateWithData, CCCrypt key parameter, or CryptoKit init(rawRepresentation:) (e.g. P256.Signing.PrivateKey)"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M1",
+        "(inferred) mobile-top10-2024:M9",
+        "(inferred) mobile-top10-2024:M10"
+      ]
+    },
+    {
+      "id": "MASVS-AUTH-1",
+      "name": "The app uses secure authentication and authorization protocols and follows the relevant best practices.",
+      "group": "MASVS-AUTH",
+      "group_name": "Authentication and Authorization",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "Authentication and authorization use secure protocols and follow established best practice.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-AUTH-2",
+      "name": "The app performs local authentication securely according to the platform best practices.",
+      "group": "MASVS-AUTH",
+      "group_name": "Authentication and Authorization",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "Local (on-device) authentication is implemented securely per platform guidance.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-AUTH-3",
+      "name": "The app secures sensitive operations with additional authentication.",
+      "group": "MASVS-AUTH",
+      "group_name": "Authentication and Authorization",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "Sensitive operations are protected with additional authentication.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-NETWORK-1",
+      "name": "The app secures all network traffic according to the current best practices.",
+      "group": "MASVS-NETWORK",
+      "group_name": "Network Communication",
+      "mastg_tests": [
+        "MASTG-TEST-0321",
+        "MASTG-TEST-0322",
+        "MASTG-TEST-0342",
+        "MASTG-TEST-0396",
+        "MASTG-TEST-0397"
+      ],
+      "maswe": [
+        "MASWE-0026",
+        "MASWE-0027"
+      ],
+      "summary": "All network traffic is secured according to current best practice.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Info.plist NSAppTransportSecurity keys allowing cleartext: NSAllowsArbitraryLoads, NSAllowsArbitraryLoadsInWebContent, NSAllowsArbitraryLoadsForMedia, NSExceptionAllowsInsecureHTTPLoads",
+          "Weak ATS exceptions: NSExceptionMinimumTLSVersion below TLSv1.2, NSExceptionRequiresForwardSecrecy = false, broad NSIncludesSubdomains = true",
+          "Hardcoded http:// URLs used for communication (excluding localhost and XML namespace URIs)",
+          "urlSession(_:didReceive:completionHandler:) / urlSession(_:task:didReceive:completionHandler:) calling completionHandler(.useCredential, URLCredential(trust: serverTrust)) without SecTrustEvaluateWithError",
+          "WKNavigationDelegate authentication-challenge handlers that accept any server trust"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M5",
+        "(inferred) mobile-top10-2024:M8"
+      ]
+    },
+    {
+      "id": "MASVS-NETWORK-2",
+      "name": "The app performs identity pinning for all remote endpoints under the developer's control.",
+      "group": "MASVS-NETWORK",
+      "group_name": "Network Communication",
+      "mastg_tests": [
+        "MASTG-TEST-0385"
+      ],
+      "maswe": [
+        "MASWE-0028"
+      ],
+      "summary": "The app pins the identity of every remote endpoint the developer controls.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "No NSPinnedDomains entry in ATS configuration for developer-controlled endpoints"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M5"
+      ]
+    },
+    {
+      "id": "MASVS-PLATFORM-1",
+      "name": "The app uses IPC mechanisms securely.",
+      "group": "MASVS-PLATFORM",
+      "group_name": "Platform Interaction",
+      "mastg_tests": [
+        "MASTG-TEST-0370",
+        "MASTG-TEST-0371",
+        "MASTG-TEST-0395"
+      ],
+      "maswe": [
+        "MASWE-0029",
+        "MASWE-0030"
+      ],
+      "summary": "Inter-process communication mechanisms are used securely.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "onOpenURL / application(_:open:options:) / scene(_:openURLContexts:) / universal link handlers acting on URL parameters without validation",
+          "Custom URL scheme handlers performing sensitive operations without checking UIOpenURLContext.options.sourceApplication",
+          "UIPasteboard.general writes (addItems, setItems, setData, setValue) of sensitive data"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M3",
+        "(inferred) mobile-top10-2024:M4",
+        "(inferred) mobile-top10-2024:M6",
+        "(inferred) mobile-top10-2024:M9"
+      ]
+    },
+    {
+      "id": "MASVS-PLATFORM-2",
+      "name": "The app uses WebViews securely.",
+      "group": "MASVS-PLATFORM",
+      "group_name": "Platform Interaction",
+      "mastg_tests": [
+        "MASTG-TEST-0332",
+        "MASTG-TEST-0376"
+      ],
+      "maswe": [
+        "MASWE-0033",
+        "MASWE-0034",
+        "MASWE-0035",
+        "MASWE-0063"
+      ],
+      "summary": "WebViews are used securely.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "WKUserContentController.add(_:name:) / WKScriptMessageHandler exposing sensitive native functionality to page JavaScript without validation",
+          "WKWebView native bridges (window.webkit.messageHandlers.<name>.postMessage, evaluateJavaScript replies) reachable from untrusted content",
+          "WebView load(URLRequest) of an attacker-controllable URL (e.g. from a deep link parameter)"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M4"
+      ]
+    },
+    {
+      "id": "MASVS-PLATFORM-3",
+      "name": "The app uses the user interface securely.",
+      "group": "MASVS-PLATFORM",
+      "group_name": "Platform Interaction",
+      "mastg_tests": [
+        "MASTG-TEST-0276"
+      ],
+      "maswe": [
+        "MASWE-0036"
+      ],
+      "summary": "The user interface is used securely (no unnecessary exposure of sensitive data).",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-CODE-1",
+      "name": "The app requires an up-to-date platform version.",
+      "group": "MASVS-CODE",
+      "group_name": "Code Quality",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "The app requires an up-to-date platform version.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-CODE-2",
+      "name": "The app has a mechanism for enforcing app updates.",
+      "group": "MASVS-CODE",
+      "group_name": "Code Quality",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "The app can enforce app updates.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-CODE-3",
+      "name": "The app only uses software components without known vulnerabilities.",
+      "group": "MASVS-CODE",
+      "group_name": "Code Quality",
+      "mastg_tests": [
+        "MASTG-TEST-0273"
+      ],
+      "maswe": [
+        "MASWE-0044"
+      ],
+      "summary": "The app only uses software components without known vulnerabilities.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Podfile / Podfile.lock / Package.swift / Package.resolved (or JS lockfiles) containing dependencies with known vulnerabilities"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M2"
+      ]
+    },
+    {
+      "id": "MASVS-CODE-4",
+      "name": "The app validates and sanitizes all untrusted inputs.",
+      "group": "MASVS-CODE",
+      "group_name": "Code Quality",
+      "mastg_tests": [
+        "MASTG-TEST-0332",
+        "MASTG-TEST-0370",
+        "MASTG-TEST-0371",
+        "MASTG-TEST-0376",
+        "MASTG-TEST-0395"
+      ],
+      "maswe": [
+        "MASWE-0029",
+        "MASWE-0034",
+        "MASWE-0035",
+        "MASWE-0050"
+      ],
+      "summary": "All untrusted input is validated and sanitized.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "onOpenURL / application(_:open:options:) / scene(_:openURLContexts:) / universal link handlers acting on URL parameters without validation",
+          "Custom URL scheme handlers performing sensitive operations without checking UIOpenURLContext.options.sourceApplication",
+          "WKWebView native bridges (window.webkit.messageHandlers.<name>.postMessage, evaluateJavaScript replies) reachable from untrusted content",
+          "WebView load(URLRequest) of an attacker-controllable URL (e.g. from a deep link parameter)"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M3",
+        "(inferred) mobile-top10-2024:M4"
+      ]
+    },
+    {
+      "id": "MASVS-RESILIENCE-1",
+      "name": "The app validates the integrity of the platform.",
+      "group": "MASVS-RESILIENCE",
+      "group_name": "Resilience Against Reverse Engineering and Tampering",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "The app checks the integrity of the platform it runs on.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-RESILIENCE-2",
+      "name": "The app implements anti-tampering mechanisms.",
+      "group": "MASVS-RESILIENCE",
+      "group_name": "Resilience Against Reverse Engineering and Tampering",
+      "mastg_tests": [],
+      "maswe": [],
+      "summary": "The app has anti-tampering mechanisms.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "No MASWE/MASTG static signal captured in the notes for this control"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-RESILIENCE-3",
+      "name": "The app implements anti-static analysis mechanisms.",
+      "group": "MASVS-RESILIENCE",
+      "group_name": "Resilience Against Reverse Engineering and Tampering",
+      "mastg_tests": [
+        "MASTG-TEST-0358"
+      ],
+      "maswe": [
+        "MASWE-0061"
+      ],
+      "summary": "The app has mechanisms against static analysis.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Logging statements exposing implementation details"
+        ],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-RESILIENCE-4",
+      "name": "The app implements anti-dynamic analysis techniques.",
+      "group": "MASVS-RESILIENCE",
+      "group_name": "Resilience Against Reverse Engineering and Tampering",
+      "mastg_tests": [],
+      "maswe": [
+        "MASWE-0063"
+      ],
+      "summary": "The app uses techniques against dynamic analysis.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-PRIVACY-1",
+      "name": "The app minimizes access to sensitive data and resources.",
+      "group": "MASVS-PRIVACY",
+      "group_name": "Privacy",
+      "mastg_tests": [
+        "MASTG-TEST-0360"
+      ],
+      "maswe": [
+        "MASWE-0066",
+        "MASWE-0073"
+      ],
+      "summary": "Access to sensitive data and resources is minimized.",
+      "prevention": [
+        "Request the minimum permissions and entitlements (e.g. system photo pickers, when-in-use location).",
+        "Treat App Groups, iCloud and Associated Domains entitlements as sensitive."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Info.plist purpose strings / requested permissions not justified by reachable code",
+          "Entitlements exposing unjustified capabilities (App Groups, iCloud, Associated Domains)",
+          "Missing PrivacyInfo.xcprivacy in an iOS app or bundled SDK",
+          "Swift references to required-reason APIs (UserDefaults/@AppStorage, file timestamps, system boot time, disk space, active keyboards) without a matching NSPrivacyAccessedAPITypes entry"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M6",
+        "(inferred) mobile-top10-2024:M8"
+      ]
+    },
+    {
+      "id": "MASVS-PRIVACY-2",
+      "name": "The app prevents identification of the user.",
+      "group": "MASVS-PRIVACY",
+      "group_name": "Privacy",
+      "mastg_tests": [],
+      "maswe": [
+        "MASWE-0067",
+        "MASWE-0068"
+      ],
+      "summary": "The app avoids enabling identification of the user.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "MASVS-PRIVACY-3",
+      "name": "The app is transparent about data collection and usage.",
+      "group": "MASVS-PRIVACY",
+      "group_name": "Privacy",
+      "mastg_tests": [
+        "MASTG-TEST-0281"
+      ],
+      "maswe": [
+        "MASWE-0072",
+        "MASWE-0073",
+        "MASWE-0074"
+      ],
+      "summary": "The app is transparent about what data it collects and how it is used.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Missing PrivacyInfo.xcprivacy in an iOS app or bundled SDK",
+          "Swift references to required-reason APIs (UserDefaults/@AppStorage, file timestamps, system boot time, disk space, active keyboards) without a matching NSPrivacyAccessedAPITypes entry",
+          "Hardcoded known tracking domains not declared in NSPrivacyTrackingDomains"
+        ],
+        "review": []
+      },
+      "related": [
+        "(inferred) mobile-top10-2024:M6"
+      ]
+    },
+    {
+      "id": "MASVS-PRIVACY-4",
+      "name": "The app offers user control over their data.",
+      "group": "MASVS-PRIVACY",
+      "group_name": "Privacy",
+      "mastg_tests": [],
+      "maswe": [
+        "MASWE-0076",
+        "MASWE-0078"
+      ],
+      "summary": "Users get control over their data.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    }
+  ]
+}

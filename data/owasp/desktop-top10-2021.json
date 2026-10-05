@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "desktop-top10-2021",
+  "name": "OWASP Desktop App Security Top 10",
+  "edition": "2021",
+  "status": "released",
+  "maturity": "incubator",
+  "released": "2021",
+  "url": "https://github.com/OWASP/www-project-desktop-app-security-top-10",
+  "source_notes": "IDs and names verified from index.md in the OWASP www-project-desktop-app-security-top-10 repo (front-matter level 2).",
+  "caveats": [
+    "url is the OWASP GitHub repo; the rendered owasp.org page URL was not verified in the notes.",
+    "Only IDs and names were captured; summaries paraphrase the names, and prevention/detection are empty.",
+    "Maturity 'incubator' is inferred from front-matter level 2. The list dates from 2021 and may be stale."
+  ],
+  "items": [
+    {
+      "id": "DA1",
+      "name": "Injections",
+      "summary": "Untrusted input reaches interpreters or commands in a desktop application.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA2",
+      "name": "Broken Authentication & Session Management",
+      "summary": "Weak authentication or session handling lets attackers assume other identities.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA3",
+      "name": "Sensitive Data Exposure",
+      "summary": "Sensitive data is exposed at rest or in transit.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA4",
+      "name": "Improper Cryptography Usage",
+      "summary": "Cryptography is missing, weak or misused.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA5",
+      "name": "Improper Authorization",
+      "summary": "Authorization checks are missing or flawed.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA6",
+      "name": "Security Misconfiguration",
+      "summary": "Insecure configuration or defaults weaken the application.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA7",
+      "name": "Insecure Communication",
+      "summary": "Network communication is not adequately protected.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA8",
+      "name": "Poor Code Quality",
+      "summary": "Code-level defects create exploitable weaknesses.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA9",
+      "name": "Using Components with Known Vulnerabilities",
+      "summary": "Third-party components with known vulnerabilities are used.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    },
+    {
+      "id": "DA10",
+      "name": "Insufficient Logging & Monitoring",
+      "summary": "Security events are not adequately logged or monitored.",
+      "prevention": [],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": []
+      },
+      "related": []
+    }
+  ]
+}

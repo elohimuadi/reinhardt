@@ -1,0 +1,16 @@
+{
+  "name": "reinhardt",
+  "version": "0.2.0",
+  "description": "Privacy-drift and OWASP-mapped security checks for AI-generated apps",
+  "author": {
+    "name": "reinhardt contributors"
+  },
+  "repository": "https://github.com/elohimuadi/reinhardt",
+  "license": "MIT",
+  "keywords": [
+    "privacy",
+    "owasp",
+    "security",
+    "mcp"
+  ]
+}

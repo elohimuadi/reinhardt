@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "id": "nhi-top10-2025",
+  "name": "OWASP Non-Human Identities Top 10",
+  "edition": "2025",
+  "status": "released",
+  "maturity": "incubator",
+  "released": "2025",
+  "url": "https://owasp.org/www-project-non-human-identities-top-10/2025/",
+  "source_notes": "Verified against the OWASP NHI Top 10 project page and its 2025 index (definitions quoted there); repo front-matter shows level 2, type documentation.",
+  "caveats": [
+    "Per-item 2025 detail pages were not read, so official prevention bullets are missing; prevention entries here are reinhardt inferences, partly from the OWASP Secrets Management Cheat Sheet.",
+    "The official index \"Read More\" link for NHI3 points to the NHI2 page; the correct slug is /2025/3-vulnerable-third-party-nhi/.",
+    "Only the year 2025 is verified; no exact release date.",
+    "The notes attribute no CWEs to NHI items.",
+    "Provider key prefixes in detection signals come from vendor docs and gitleaks rules, not OWASP; OpenAI/Anthropic/github_pat_ formats were not confirmed on vendor docs."
+  ],
+  "items": [
+    {
+      "id": "NHI1:2025",
+      "name": "Improper Offboarding",
+      "summary": "Service accounts, access keys and other non-human identities are not deactivated or removed when no longer needed.",
+      "prevention": [
+        "(inferred) Keep an inventory of NHIs with owners.",
+        "(inferred) Revoke and delete credentials when a service or integration is retired.",
+        "(inferred) Periodically review for unused identities."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Credentials in config for services no longer referenced in code (weak signal)"
+        ],
+        "review": [
+          "NHI inventory and offboarding process"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-2"
+      ]
+    },
+    {
+      "id": "NHI2:2025",
+      "name": "Secret Leakage",
+      "summary": "API keys, tokens, encryption keys and certificates leak to unsanctioned stores across the SDLC, e.g. hard-coded in source, in plaintext config or shared in chat.",
+      "prevention": [
+        "(inferred) Keep secrets in a secrets manager, never in code, images or build-time env.",
+        "(inferred) Run secret detection in the IDE, pre-commit and CI.",
+        "(inferred) On leak: revoke, then rotate, then delete, then log.",
+        "(inferred) Prefer dynamic or short-lived secrets."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Known-prefix secrets in source (sk_live_, rk_live_, AKIA, ghp_/github_pat_, xoxb-/xoxp-, sk-ant-, OpenAI sk-, sb_secret_, PEM private keys)",
+          "Supabase JWT with \"role\":\"service_role\" in client code or NEXT_PUBLIC_/VITE_/EXPO_PUBLIC_ env",
+          ".env committed or missing from .gitignore",
+          "Secrets in Dockerfile ENV/ARG, workflow env, Info.plist/.xcconfig/Swift literals",
+          "console.log(process.env)"
+        ],
+        "review": [
+          "Secrets in chat tools, tickets and git history beyond the scanned tree"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-6",
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) top10-2025:A04:2025",
+        "(inferred) cheatsheets:secrets-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "NHI3:2025",
+      "name": "Vulnerable Third-Party NHI",
+      "summary": "Third-party integrations such as IDE extensions and SaaS apps hold NHIs; a compromised or malicious update can steal credentials or misuse their permissions.",
+      "prevention": [
+        "(inferred) Vet and govern third-party integrations and extensions.",
+        "(inferred) Grant third parties least privilege and review granted permissions.",
+        "(inferred) Rotate credentials exposed to a compromised integration."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Installed IDE extensions and SaaS OAuth grants"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-8"
+      ]
+    },
+    {
+      "id": "NHI4:2025",
+      "name": "Insecure Authentication",
+      "summary": "NHIs authenticate with methods that are deprecated, vulnerable to known attacks or otherwise weak.",
+      "prevention": [
+        "(inferred) Prefer modern, short-lived token-based authentication such as OIDC federation.",
+        "(inferred) Retire deprecated auth methods and long-lived static keys."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "(inferred) Static API keys used where OIDC/workload identity is available"
+        ],
+        "review": [
+          "Auth methods configured on providers"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "NHI5:2025",
+      "name": "Overprivileged NHI",
+      "summary": "NHIs are granted significantly more privileges than their function requires.",
+      "prevention": [
+        "(inferred) Scope each NHI to the minimum permissions needed.",
+        "(inferred) Use publishable/anon keys where a secret key is not required.",
+        "(inferred) Review and trim granted permissions regularly."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Supabase service_role used where anon/publishable key suffices",
+          "GitHub workflow permissions: write-all",
+          "IAM \"Action\": \"*\" / \"Resource\": \"*\" in IaC"
+        ],
+        "review": [
+          "Effective permissions in cloud/provider consoles"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-5",
+        "(inferred) k8s-top10-2025:K02"
+      ]
+    },
+    {
+      "id": "NHI6:2025",
+      "name": "Insecure Cloud Deployment Configurations",
+      "summary": "CI/CD authenticates to cloud providers with static credentials that can leak, or with OIDC whose identity tokens or claim conditions are not validated strictly.",
+      "prevention": [
+        "(inferred) Use OIDC federation instead of static cloud keys in CI.",
+        "(inferred) Constrain OIDC trust policies with strict sub and audience conditions."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Static AWS_ACCESS_KEY_ID in CI instead of aws-actions/configure-aws-credentials role-to-assume",
+          "OIDC trust policies with wildcard sub (e.g. repo:*)"
+        ],
+        "review": [
+          "Cloud-side trust policy configuration"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-6"
+      ]
+    },
+    {
+      "id": "NHI7:2025",
+      "name": "Long-Lived Secrets",
+      "summary": "Secrets have expiration dates far in the future or never expire.",
+      "prevention": [
+        "(inferred) Set short expirations and automate rotation.",
+        "(inferred) Prefer temporary credentials (e.g. STS ASIA keys, fine-grained or expiring tokens)."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Classic ghp_ PATs and AKIA long-lived keys",
+          "JWTs with no or far-future exp"
+        ],
+        "review": [
+          "Expiry settings on provider-issued tokens"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-6"
+      ]
+    },
+    {
+      "id": "NHI8:2025",
+      "name": "Environment Isolation",
+      "summary": "The same NHIs are reused across development, test, staging and production, especially between testing and production.",
+      "prevention": [
+        "(inferred) Issue separate credentials per environment.",
+        "(inferred) Do not use production credentials or data in non-production."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "Same key value in .env.development and .env.production"
+        ],
+        "review": [
+          "Environment credential separation in providers"
+        ]
+      },
+      "related": [
+        "(inferred) api-top10-2023:API9:2023"
+      ]
+    },
+    {
+      "id": "NHI9:2025",
+      "name": "NHI Reuse",
+      "summary": "A single NHI is shared across different applications, services or components.",
+      "prevention": [
+        "(inferred) Issue a distinct identity per application or service.",
+        "(inferred) Scope each identity to its own component."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [
+          "One key value reused across multiple services or config files"
+        ],
+        "review": [
+          "Cross-repo reuse"
+        ]
+      },
+      "related": []
+    },
+    {
+      "id": "NHI10:2025",
+      "name": "Human Use of NHI",
+      "summary": "People use NHIs for manual tasks, gaining elevated privileges and losing auditability.",
+      "prevention": [
+        "(inferred) Give humans their own identities and audited access.",
+        "(inferred) Restrict NHI credentials to automated workloads."
+      ],
+      "cwe": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Audit logs showing interactive use of service credentials"
+        ]
+      },
+      "related": [
+        "(inferred) cicd-top10:CICD-SEC-2"
+      ]
+    }
+  ]
+}

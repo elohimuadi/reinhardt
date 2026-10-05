@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "reinhardt": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js",
+        "mcp"
+      ]
+    }
+  }
+}

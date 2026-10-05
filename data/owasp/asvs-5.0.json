@@ -1,0 +1,797 @@
+{
+  "schema_version": 1,
+  "id": "asvs-5.0",
+  "name": "OWASP Application Security Verification Standard (ASVS)",
+  "edition": "5.0.0",
+  "status": "released",
+  "maturity": "flagship",
+  "released": "2025-05",
+  "url": "https://github.com/OWASP/ASVS",
+  "source_notes": "Verified against the official OWASP/ASVS GitHub repo, folder 5.0/en (header, frontispiece, README and chapter tables; cloned 2026-10-05).",
+  "caveats": [
+    "Primary sources only say \"May 2025\" (released live at Global AppSec EU Barcelona 2025); the commonly cited day 2025-05-30 is unverified.",
+    "url points to the official OWASP GitHub repo; the owasp.org project page URL was not captured in the research notes.",
+    "Level counts (L1 70, L2 183, L3 92, total 345) are the researcher's count of requirement rows in the source tables, consistent with OWASP's ~20%/~50%/~30% split; not an official published figure.",
+    "l1_requirements summaries are short paraphrases. The notes label them \"selected\" L1 requirements, but they total 70, matching the L1 count, so the set is likely complete; unconfirmed.",
+    "No L1 requirements were found in V16 (Security Logging and Error Handling) or V17 (WebRTC); V13 secret-management requirements (13.3.x) are L2+ and only 13.4.1 is L1 in V13.",
+    "10.4.3 (authorization code lifetime) applies at L1/L2 per the notes; 10.4.x L1 items are authorization-server-side.",
+    "ASVS 5.0 chapter numbering differs heavily from 4.0.3 (e.g. password length was V2.1.1 in 4.x and is 6.2.1 in 5.0); never reuse 4.x IDs. Use version-pinned IDs like v5.0.0-6.2.1.",
+    "Next planned release is patch 5.0.1. The 4.0-to-5.0 mapping notes (0x05-For-Users-Of-4.0.md) were not read.",
+    "Chapter summaries and prevention bullets are paraphrased from the L1 requirements in the notes; V16 and V17 have no requirement text in the notes, so their prevention lists are empty. detection entries are reinhardt heuristics; \"(inferred) \" related links are reinhardt mappings."
+  ],
+  "levels": {
+    "L1": {
+      "description": "Minimum requirements and critical starting point with a low barrier to entry; about 20% of requirements. Password rules weigh more here because MFA becomes relevant at higher levels. Not necessarily black-box testable. Suitable focus for e.g. an early-stage startup.",
+      "approx_share": "~20%",
+      "requirement_count": 70
+    },
+    "L2": {
+      "description": "The level most applications should strive for; adds about 50% of requirements, so L1+L2 is about 70%.",
+      "approx_share": "~50%",
+      "requirement_count": 183
+    },
+    "L3": {
+      "description": "For applications needing the highest security (e.g. a bank); the final ~30% of requirements.",
+      "approx_share": "~30%",
+      "requirement_count": 92
+    }
+  },
+  "requirement_count_total": 345,
+  "id_format": {
+    "pattern": "<chapter>.<section>.<requirement>",
+    "example": "1.2.5",
+    "version_pinned_pattern": "v<version>-<chapter>.<section>.<requirement>",
+    "version_pinned_example": "v5.0.0-1.2.5",
+    "note": "Lowercase \"v\" prefix recommended for tools; unversioned IDs are assumed to refer to the latest version. Chapter items in this file use V1..V17."
+  },
+  "items": [
+    {
+      "id": "V1",
+      "name": "Encoding and Sanitization",
+      "summary": "Requirements for context-correct output encoding, injection-safe query and command construction, HTML sanitization, safe handling of dynamic code and safe XML parsing.",
+      "prevention": [
+        "Encode output for its context (HTML, attributes, CSS, headers, JS/JSON, URLs).",
+        "Use parameterized queries or ORMs for SQL, HQL, NoSQL and Cypher.",
+        "Protect against OS command injection.",
+        "Sanitize WYSIWYG/HTML input with a known library and avoid eval-style dynamic code execution.",
+        "Disable XXE in XML parsers."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "1.2.1",
+          "summary": "Context-relevant output encoding for HTML, attributes, CSS and headers."
+        },
+        {
+          "id": "1.2.2",
+          "summary": "URL building encodes untrusted data and allows only safe protocols (no javascript: or data:)."
+        },
+        {
+          "id": "1.2.3",
+          "summary": "Encode untrusted data when building JavaScript or JSON."
+        },
+        {
+          "id": "1.2.4",
+          "summary": "Use parameterized queries or ORMs for SQL, HQL, NoSQL and Cypher."
+        },
+        {
+          "id": "1.2.5",
+          "summary": "Protect against OS command injection."
+        },
+        {
+          "id": "1.3.1",
+          "summary": "Sanitize WYSIWYG HTML input with a known library."
+        },
+        {
+          "id": "1.3.2",
+          "summary": "Avoid eval() and other dynamic code execution."
+        },
+        {
+          "id": "1.5.1",
+          "summary": "Configure XML parsers with XXE disabled."
+        }
+      ],
+      "detection": {
+        "static": [
+          "SQL built with template literals or concatenation",
+          "eval / new Function / dynamic code execution",
+          "dangerouslySetInnerHTML without DOMPurify",
+          "child_process.exec with interpolation",
+          "href built from user URLs without blocking javascript:/data: schemes"
+        ],
+        "review": [
+          "Correct encoding context selection in templates",
+          "Effectiveness of sanitizer configuration"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A05:2025",
+        "(inferred) proactive-controls-2024:C3"
+      ]
+    },
+    {
+      "id": "V2",
+      "name": "Validation and Business Logic",
+      "summary": "Requirements for documented, positive input validation enforced on a trusted service layer and for business flows that run in the expected order.",
+      "prevention": [
+        "Document input validation rules.",
+        "Validate positively against business expectations.",
+        "Enforce validation on a trusted service layer; client-side validation is not a security control.",
+        "Process business flows in order without allowing steps to be skipped."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "2.1.1",
+          "summary": "Input validation rules are documented."
+        },
+        {
+          "id": "2.2.1",
+          "summary": "Input is positively validated against business expectations."
+        },
+        {
+          "id": "2.2.2",
+          "summary": "Validation is enforced at a trusted service layer; client-side validation is not a security control."
+        },
+        {
+          "id": "2.3.1",
+          "summary": "Business flows are processed in order without skipping steps."
+        }
+      ],
+      "detection": {
+        "static": [
+          "API handlers using req.body fields without a schema validator (zod/yup/joi/valibot) (heuristic)",
+          "Validation present only in client components"
+        ],
+        "review": [
+          "Business-logic flow ordering",
+          "Whether documented rules exist and match implementation"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A06:2025",
+        "(inferred) api-top10-2023:API6:2023"
+      ]
+    },
+    {
+      "id": "V3",
+      "name": "Web Frontend Security",
+      "summary": "Requirements for browser-side protections: rendering content in the right context, safe DOM APIs, cookie attributes, HSTS, CORS and CSRF defenses.",
+      "prevention": [
+        "Prevent responses (uploads, API output) from rendering in an unintended context.",
+        "Use textContent/createTextNode for text rather than HTML sinks.",
+        "Set Secure and a __Host- or __Secure- prefix on cookies.",
+        "Send HSTS with max-age of at least one year on all responses.",
+        "Fix or allowlist the CORS Access-Control-Allow-Origin value.",
+        "Validate anti-CSRF tokens or rely on unbypassable preflight; use non-GET methods for sensitive actions."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "3.2.1",
+          "summary": "Prevent content from rendering in the wrong context (e.g. directly requested uploads or API responses)."
+        },
+        {
+          "id": "3.2.2",
+          "summary": "Use textContent/createTextNode when inserting text."
+        },
+        {
+          "id": "3.3.1",
+          "summary": "Cookies have the Secure attribute and a __Host- or __Secure- prefix."
+        },
+        {
+          "id": "3.4.1",
+          "summary": "HSTS is sent on all responses with max-age of at least one year."
+        },
+        {
+          "id": "3.4.2",
+          "summary": "CORS Access-Control-Allow-Origin is fixed or validated against an allowlist."
+        },
+        {
+          "id": "3.5.1",
+          "summary": "Anti-CSRF validation is performed when not relying on CORS preflight."
+        },
+        {
+          "id": "3.5.2",
+          "summary": "CORS preflight cannot be bypassed."
+        },
+        {
+          "id": "3.5.3",
+          "summary": "Sensitive actions use POST/PUT/PATCH/DELETE, not GET."
+        }
+      ],
+      "detection": {
+        "static": [
+          "innerHTML/insertAdjacentHTML sinks",
+          "Cookies without secure or name prefix",
+          "Missing HSTS in next.config/vercel.json headers",
+          "cors() wildcard or reflected origin",
+          "GET handlers performing writes"
+        ],
+        "review": [
+          "Deployed header values",
+          "Preflight bypass conditions"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) proactive-controls-2024:C8"
+      ]
+    },
+    {
+      "id": "V4",
+      "name": "API and Web Service",
+      "summary": "Requirements for API and web-service responses and transports, such as correct content types and secure WebSockets.",
+      "prevention": [
+        "Return a correct Content-Type with charset on every response that has a body.",
+        "Use WSS for all WebSocket connections."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "4.1.1",
+          "summary": "Every response with a body has a correct Content-Type including charset."
+        },
+        {
+          "id": "4.4.1",
+          "summary": "All WebSocket connections use WSS."
+        }
+      ],
+      "detection": {
+        "static": [
+          "ws:// WebSocket URLs",
+          "Responses sent without explicit content type (heuristic)"
+        ],
+        "review": [
+          "Content-type correctness across all endpoints at runtime"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) api-top10-2023:API8:2023"
+      ]
+    },
+    {
+      "id": "V5",
+      "name": "File Handling",
+      "summary": "Requirements for limiting, validating, storing and serving uploaded files safely.",
+      "prevention": [
+        "Enforce file size limits.",
+        "Validate extension and magic bytes, including files inside archives.",
+        "Never execute uploads stored in public folders server-side.",
+        "Use internally generated file paths, strictly validating any user-supplied filename."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "5.2.1",
+          "summary": "File size limits are enforced."
+        },
+        {
+          "id": "5.2.2",
+          "summary": "File extension and magic-byte content are validated, including inside archives."
+        },
+        {
+          "id": "5.3.1",
+          "summary": "Uploads in public folders are never executed server-side."
+        },
+        {
+          "id": "5.3.2",
+          "summary": "Internally generated file paths are used; user filenames get strict validation against path traversal, LFI/RFI and SSRF."
+        }
+      ],
+      "detection": {
+        "static": [
+          "multer without limits.fileSize/fileFilter",
+          "file.originalname used in filesystem paths",
+          "Uploads written under public/",
+          "Supabase Storage bucket created public: true for user uploads"
+        ],
+        "review": [
+          "Content validation depth for archives and images"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A06:2025",
+        "(inferred) cheatsheets:file-upload-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V6",
+      "name": "Authentication",
+      "summary": "Requirements for password policy, anti-automation, default accounts, credential lifecycle and recovery.",
+      "prevention": [
+        "Require passwords of at least 8 characters (15 recommended) without composition rules or truncation.",
+        "Check new passwords against at least the top 3000 common passwords.",
+        "Implement brute-force and credential-stuffing controls.",
+        "Remove default accounts such as root, admin or sa.",
+        "Generate initial passwords and activation codes with a CSPRNG and keep them short-lived; no hints or secret questions.",
+        "Let users change their password (requiring the current one) and allow paste and password managers."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "6.1.1",
+          "summary": "Anti-automation controls are documented."
+        },
+        {
+          "id": "6.2.1",
+          "summary": "Passwords are at least 8 characters (15 strongly recommended)."
+        },
+        {
+          "id": "6.2.2",
+          "summary": "Users can change their password."
+        },
+        {
+          "id": "6.2.3",
+          "summary": "Password change requires the current password."
+        },
+        {
+          "id": "6.2.4",
+          "summary": "Passwords are checked against at least the top 3000 passwords."
+        },
+        {
+          "id": "6.2.5",
+          "summary": "No password composition rules are imposed."
+        },
+        {
+          "id": "6.2.6",
+          "summary": "Password fields use type=password."
+        },
+        {
+          "id": "6.2.7",
+          "summary": "Paste and password managers are allowed."
+        },
+        {
+          "id": "6.2.8",
+          "summary": "Passwords are not truncated or case-changed."
+        },
+        {
+          "id": "6.3.1",
+          "summary": "Brute-force and credential-stuffing controls are implemented."
+        },
+        {
+          "id": "6.3.2",
+          "summary": "No default accounts (e.g. root, admin, sa) exist."
+        },
+        {
+          "id": "6.4.1",
+          "summary": "Initial passwords and activation codes come from a CSPRNG and are short-lived."
+        },
+        {
+          "id": "6.4.2",
+          "summary": "No password hints or secret questions."
+        }
+      ],
+      "detection": {
+        "static": [
+          "Password min length below 8 in validation schemas",
+          "Composition-rule regexes on passwords",
+          "No rate limiter on login/reset routes",
+          "Seeded admin/root accounts",
+          "Math.random for activation or reset codes",
+          "Password inputs not using type=password",
+          "onPaste blocking on password fields"
+        ],
+        "review": [
+          "Effectiveness of anti-automation",
+          "Breached/common password list coverage"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) proactive-controls-2024:C7",
+        "(inferred) api-top10-2023:API2:2023"
+      ]
+    },
+    {
+      "id": "V7",
+      "name": "Session Management",
+      "summary": "Requirements for backend-verified, dynamically generated, high-entropy session tokens and their rotation and invalidation.",
+      "prevention": [
+        "Verify session tokens on a trusted backend.",
+        "Use dynamically generated session tokens rather than static API secrets.",
+        "Generate reference tokens with a CSPRNG and at least 128 bits of entropy.",
+        "Issue a new session token on authentication.",
+        "Make logout and expiry actually invalidate sessions, including a revocation approach for self-contained tokens; end sessions for disabled or deleted accounts."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "7.2.1",
+          "summary": "Session tokens are verified on a trusted backend."
+        },
+        {
+          "id": "7.2.2",
+          "summary": "Session tokens are dynamically generated, not static API secrets."
+        },
+        {
+          "id": "7.2.3",
+          "summary": "Reference tokens come from a CSPRNG with at least 128 bits of entropy."
+        },
+        {
+          "id": "7.2.4",
+          "summary": "A new session token is issued on authentication."
+        },
+        {
+          "id": "7.4.1",
+          "summary": "Logout or expiry invalidates the session; self-contained tokens need a revocation solution."
+        },
+        {
+          "id": "7.4.2",
+          "summary": "Sessions are terminated when an account is disabled or deleted."
+        }
+      ],
+      "detection": {
+        "static": [
+          "Static API keys used as session credentials in client code",
+          "Session IDs from Math.random",
+          "Login handlers without session regeneration",
+          "Logout that only clears client state"
+        ],
+        "review": [
+          "Server-side invalidation on logout and account deletion",
+          "Revocation for JWT sessions"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) cheatsheets:session-management-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V8",
+      "name": "Authorization",
+      "summary": "Requirements for documented authorization rules and function- and data-level access enforced on a trusted service layer.",
+      "prevention": [
+        "Document authorization rules.",
+        "Restrict function-level access to explicit permissions.",
+        "Restrict data-specific access to prevent IDOR/BOLA.",
+        "Enforce authorization at a trusted service layer, never only in client-side code."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "8.1.1",
+          "summary": "Authorization rules are documented."
+        },
+        {
+          "id": "8.2.1",
+          "summary": "Function-level access is restricted to explicit permissions."
+        },
+        {
+          "id": "8.2.2",
+          "summary": "Data-specific access is restricted (IDOR/BOLA)."
+        },
+        {
+          "id": "8.3.1",
+          "summary": "Authorization is enforced at a trusted service layer, not client-side JavaScript."
+        }
+      ],
+      "detection": {
+        "static": [
+          "Route handlers/Server Actions with DB access and no auth check",
+          "Queries by user-supplied ID without owner predicate",
+          "Role checks only in React/SwiftUI components",
+          "Supabase tables without RLS; Firebase rules without ownership"
+        ],
+        "review": [
+          "Completeness of documented rules",
+          "Real cross-account access testing"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) api-top10-2023:API1:2023",
+        "(inferred) api-top10-2023:API5:2023",
+        "(inferred) proactive-controls-2024:C1"
+      ]
+    },
+    {
+      "id": "V9",
+      "name": "Self-contained Tokens",
+      "summary": "Requirements for validating self-contained tokens such as JWTs: signature/MAC checks, algorithm allowlists, trusted key sources and validity windows.",
+      "prevention": [
+        "Validate the signature or MAC before trusting token contents.",
+        "Use an algorithm allowlist and never accept \"none\".",
+        "Take key material only from trusted, pre-configured sources, validating jku, x5u and jwk headers.",
+        "Enforce nbf and exp claims."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "9.1.1",
+          "summary": "Signature or MAC is validated before trusting token contents."
+        },
+        {
+          "id": "9.1.2",
+          "summary": "An algorithm allowlist is used and None is never allowed."
+        },
+        {
+          "id": "9.1.3",
+          "summary": "Key material comes from trusted, pre-configured sources (jku, x5u, jwk validated)."
+        },
+        {
+          "id": "9.2.1",
+          "summary": "nbf and exp claims are enforced."
+        }
+      ],
+      "detection": {
+        "static": [
+          "jwt.decode used for auth decisions instead of jwt.verify",
+          "jwt.verify without algorithms option or allowing 'none'",
+          "ignoreExpiration: true",
+          "Keys fetched from token-header URLs"
+        ],
+        "review": [
+          "Key rotation and trust configuration"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025",
+        "(inferred) cheatsheets:json-web-token-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V10",
+      "name": "OAuth and OIDC",
+      "summary": "Requirements for OAuth 2 and OpenID Connect clients and servers; the L1 items concern the authorization server (redirect URIs, codes, grants, refresh tokens).",
+      "prevention": [
+        "Allowlist redirect URIs with exact matching.",
+        "Make authorization codes single-use with a lifetime of at most 10 minutes.",
+        "Do not use the implicit or password grants.",
+        "Mitigate refresh-token replay, for example with rotation."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "10.4.1",
+          "summary": "Redirect URIs are validated against an exact-match allowlist."
+        },
+        {
+          "id": "10.4.2",
+          "summary": "Authorization codes are single-use."
+        },
+        {
+          "id": "10.4.3",
+          "summary": "Authorization code lifetime is at most 10 minutes (L1/L2)."
+        },
+        {
+          "id": "10.4.4",
+          "summary": "Implicit and password grants are not used."
+        },
+        {
+          "id": "10.4.5",
+          "summary": "Refresh token replay is mitigated (rotation allowed at L1/L2)."
+        }
+      ],
+      "detection": {
+        "static": [
+          "OAuth client configs using response_type=token (implicit) or password grant",
+          "Wildcard redirect URI patterns in auth provider config files"
+        ],
+        "review": [
+          "Authorization-server behavior (code reuse, lifetimes, refresh rotation)"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A07:2025"
+      ]
+    },
+    {
+      "id": "V11",
+      "name": "Cryptography",
+      "summary": "Requirements for approved cipher modes, padding and hash functions.",
+      "prevention": [
+        "Do not use ECB mode or PKCS#1 v1.5 padding.",
+        "Use approved ciphers such as AES-GCM.",
+        "Use approved hash functions only; never MD5 for any cryptographic purpose."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "11.3.1",
+          "summary": "No ECB mode and no PKCS#1 v1.5 padding."
+        },
+        {
+          "id": "11.3.2",
+          "summary": "Only approved ciphers and modes such as AES-GCM."
+        },
+        {
+          "id": "11.4.1",
+          "summary": "Only approved hash functions; no MD5 for any cryptographic purpose."
+        }
+      ],
+      "detection": {
+        "static": [
+          "createCipheriv('aes-*-ecb') or deprecated createCipher",
+          "createHash('md5') in security contexts",
+          "iOS kCCOptionECBMode, Insecure.MD5"
+        ],
+        "review": [
+          "Key management and algorithm inventory"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A04:2025",
+        "(inferred) proactive-controls-2024:C2",
+        "(inferred) cheatsheets:cryptographic-storage-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V12",
+      "name": "Secure Communication",
+      "summary": "Requirements for TLS versions and for using TLS with trusted certificates on all external HTTP services.",
+      "prevention": [
+        "Allow only TLS 1.2 and 1.3.",
+        "Use TLS for all external HTTP services with no fallback to cleartext.",
+        "Use publicly trusted certificates for external services."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "12.1.1",
+          "summary": "Only TLS 1.2 and 1.3 are enabled."
+        },
+        {
+          "id": "12.2.1",
+          "summary": "TLS is used for all external HTTP services with no fallback."
+        },
+        {
+          "id": "12.2.2",
+          "summary": "External services use publicly trusted certificates."
+        }
+      ],
+      "detection": {
+        "static": [
+          "http:// base URLs",
+          "NSAllowsArbitraryLoads = true",
+          "rejectUnauthorized: false / NODE_TLS_REJECT_UNAUTHORIZED=0"
+        ],
+        "review": [
+          "Live TLS versions and certificate chain"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A04:2025",
+        "(inferred) cheatsheets:transport-layer-security-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V13",
+      "name": "Configuration",
+      "summary": "Requirements for secure configuration and secret management; at L1 only the requirement that source-control metadata is not deployed or reachable applies.",
+      "prevention": [
+        "Ensure .git and .svn metadata is not deployed or accessible.",
+        "Manage secrets outside code per the V13 secret-management section (13.3.x, L2 and above)."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "13.4.1",
+          "summary": "No .git or .svn metadata is deployed or accessible."
+        }
+      ],
+      "detection": {
+        "static": [
+          ".git or .svn directories inside public/ or build output",
+          "Hard-coded secrets (maps to 13.3.x, L2+)"
+        ],
+        "review": [
+          "Deployed web root contents"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A02:2025",
+        "(inferred) nhi-top10-2025:NHI2:2025"
+      ]
+    },
+    {
+      "id": "V14",
+      "name": "Data Protection",
+      "summary": "Requirements for keeping sensitive data out of URLs and clearing authenticated data from client storage.",
+      "prevention": [
+        "Never put sensitive data such as API keys or session tokens in URLs or query strings.",
+        "Clear authenticated data from client storage on logout (e.g. Clear-Site-Data)."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "14.2.1",
+          "summary": "Sensitive data (API keys, session tokens) never appears in URLs or query strings."
+        },
+        {
+          "id": "14.3.1",
+          "summary": "Authenticated data is cleared from client storage on logout (Clear-Site-Data)."
+        }
+      ],
+      "detection": {
+        "static": [
+          "?api_key= / ?token= in fetch URLs",
+          "Logout handlers that do not clear localStorage/cookies"
+        ],
+        "review": [
+          "Data classification and retention"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A01:2025",
+        "(inferred) cheatsheets:rest-security-cheat-sheet"
+      ]
+    },
+    {
+      "id": "V15",
+      "name": "Secure Coding and Architecture",
+      "summary": "Requirements for managing vulnerable components within defined time frames and for minimizing data returned by the application.",
+      "prevention": [
+        "Document remediation time frames for vulnerable components.",
+        "Keep components updated within those time frames.",
+        "Return only the required subset of fields instead of full objects."
+      ],
+      "cwe": [],
+      "l1_requirements": [
+        {
+          "id": "15.1.1",
+          "summary": "Remediation time frames for vulnerable components are documented."
+        },
+        {
+          "id": "15.2.1",
+          "summary": "Components are kept within those remediation time frames."
+        },
+        {
+          "id": "15.3.1",
+          "summary": "Only the required subset of fields is returned (no full-object responses)."
+        }
+      ],
+      "detection": {
+        "static": [
+          "Known-vulnerable dependency versions in lockfiles",
+          "res.json(row) / select(\"*\") returning full records to clients"
+        ],
+        "review": [
+          "Existence and adherence to remediation SLAs"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A03:2025",
+        "(inferred) api-top10-2023:API3:2023"
+      ]
+    },
+    {
+      "id": "V16",
+      "name": "Security Logging and Error Handling",
+      "summary": "Chapter covering security logging and error handling; it has no L1 requirements in 5.0.0.",
+      "prevention": [],
+      "cwe": [],
+      "l1_requirements": [],
+      "detection": {
+        "static": [
+          "Sensitive values in console.log/print output",
+          "err.stack returned to clients"
+        ],
+        "review": [
+          "Requirement text not captured in notes; review against the ASVS source for L2/L3"
+        ]
+      },
+      "related": [
+        "(inferred) top10-2025:A09:2025",
+        "(inferred) top10-2025:A10:2025"
+      ]
+    },
+    {
+      "id": "V17",
+      "name": "WebRTC",
+      "summary": "Chapter covering WebRTC security; no L1 requirements were captured in the notes.",
+      "prevention": [],
+      "cwe": [],
+      "l1_requirements": [],
+      "detection": {
+        "static": [],
+        "review": [
+          "Requirement text not captured in notes; review against the ASVS source"
+        ]
+      },
+      "related": []
+    }
+  ]
+}
