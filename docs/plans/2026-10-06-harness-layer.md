@@ -1,6 +1,6 @@
 # Harness Layer Implementation Plan
 
-> **For agentic workers:** Execute task-by-task in order. Each task is red → green → commit. Steps use checkbox (`- [ ]`) syntax; tick them as you go. Read `AGENTS.md` first — it is part of this plan.
+> **For agentic workers:** Execute task-by-task in order. Each task is red → green → commit. Steps use checkbox (`- [x]`) syntax; tick them as you go. Read `AGENTS.md` first — it is part of this plan.
 
 **Goal:** Make reinhardt a plugin harness in the superpowers sense: a bootstrap skill injected at session start, hooks that run the deterministic engine on the agent's own edits and gate finishing on unaddressed high findings, a verifier subagent, and a `/reinhardt:launch-check` entry point. It must work in Claude Code and Codex from one `hooks/hooks.json`.
 
@@ -45,9 +45,12 @@
 
 **Files:** move `bin/reinhardt.js` → `cli/reinhardt.js`. Update `package.json` (`bin`, `files`), `.claude-plugin/mcp.json` args, `codex/*`, README, and every test that spawns the CLI.
 
-- [ ] **Step 1: Failing test** in `test/plugin.test.js`: `plugin has no top-level bin/ directory` and `.claude-plugin/mcp.json args reference ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js`.
-- [ ] **Step 2:** FAIL → `git mv bin cli` and fix references → `npm test` PASS, `npm run eval` 1.000/1.000.
-- [ ] **Step 3:** `git commit -m "refactor: move CLI out of plugin bin directory"`
+- [x] **Step 1: Failing test** in `test/plugin.test.js`: `plugin has no top-level bin/ directory` and `.claude-plugin/mcp.json args reference ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js`.
+- [x] **Step 2:** FAIL → `git mv bin cli` and fix references → `npm test` PASS, `npm run eval` 1.000/1.000.
+- [x] **Step 3:** `git commit -m "refactor: move CLI out of plugin bin directory"`
+
+
+Task 1: packaging tests failed before the move and passed afterward. Full suite: 209 pass, only the known skills-count failure remains for Task 6. Eval: Precision 1.000, Recall 1.000, TP=51.
 
 ### Task 2: Hook runner core: input parsing, state, messages
 

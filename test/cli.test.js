@@ -2,7 +2,7 @@ import { ruleset } from '../src/engine/rules.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-const cli=(...args)=>spawnSync(process.execPath,['bin/reinhardt.js',...args],{encoding:'utf8'});
+const cli=(...args)=>spawnSync(process.execPath,['cli/reinhardt.js',...args],{encoding:'utf8'});
 test('CLI human output, JSON and CI thresholds',()=>{
   const human=cli('scan','evals/fixtures/leaky-web');
   assert.equal(human.status,0);

@@ -10,7 +10,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout:15000},async t=>{
   const client=new Client({name:'reinhardt-test',version:'1.0.0'});
-  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../bin/reinhardt.js',import.meta.url)),'mcp'],stderr:'pipe'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../cli/reinhardt.js',import.meta.url)),'mcp'],stderr:'pipe'});
   t.after(()=>client.close());
   await client.connect(transport);
   const {tools}=await client.listTools();
@@ -35,7 +35,7 @@ test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout
   assert.equal(JSON.parse(healthy.content[0].text).sdks[0].id,'posthog');
 });
 test('raw MCP protocol errors, notifications and recovery', {timeout:10000}, async t => {
-  const child = spawn(process.execPath,['bin/reinhardt.js','mcp'],{stdio:['pipe','pipe','pipe']});
+  const child = spawn(process.execPath,['cli/reinhardt.js','mcp'],{stdio:['pipe','pipe','pipe']});
   t.after(()=>child.kill());
   const lines = createInterface({input:child.stdout});
   const output = lines[Symbol.asyncIterator]();

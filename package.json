@@ -8,7 +8,7 @@
   },
   "license": "MIT",
   "bin": {
-    "reinhardt": "bin/reinhardt.js"
+    "reinhardt": "cli/reinhardt.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
@@ -16,7 +16,7 @@
     "benchmark": "node evals/benchmark.js"
   },
   "files": [
-    "bin",
+    "cli",
     "src",
     "data",
     "codex",

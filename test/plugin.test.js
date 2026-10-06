@@ -10,7 +10,7 @@ test('dual plugin manifests and package agree on version and transports', () => 
     assert.equal(json(file).version,pkg.version);
     assert.equal(json(file).name,'reinhardt');
   }
-  assert.deepEqual(json('.claude-plugin/mcp.json').mcpServers.reinhardt.args,['${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js','mcp']);
+  assert.deepEqual(json('.claude-plugin/mcp.json').mcpServers.reinhardt.args,['${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js','mcp']);
   assert.equal(json('codex/mcp.json').mcpServers.reinhardt.command,'reinhardt');
   assert.deepEqual(json('.codex-plugin/plugin.json').hooks,{});
   assert.equal(json('.claude-plugin/marketplace.json').plugins[0].source,'./');
@@ -43,4 +43,10 @@ test('Claude MCP config is plugin-scoped and absent from project root', () => {
   assert.equal(existsSync('.mcp.json'),false);
   assert.equal(json('.claude-plugin/plugin.json').mcpServers,'./.claude-plugin/mcp.json');
   assert.equal(json('package.json').files.includes('.mcp.json'),false);
+});
+
+test('plugin has no top-level bin directory', () => {
+  assert.equal(existsSync('bin'), false);
+  assert.equal(json('package.json').bin.reinhardt, 'cli/reinhardt.js');
+  assert.ok(json('package.json').files.includes('cli'));
 });

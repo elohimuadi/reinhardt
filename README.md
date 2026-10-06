@@ -11,9 +11,9 @@ The deterministic engine makes no LLM calls or network requests. An agent uses i
 From a checkout of this repository:
 
 ```sh
-node bin/reinhardt.js scan evals/fixtures/leaky-security-web
-node bin/reinhardt.js scan /path/to/your/app --json
-node bin/reinhardt.js scan /path/to/your/app --policy docs/privacy.md --fail-on high
+node cli/reinhardt.js scan evals/fixtures/leaky-security-web
+node cli/reinhardt.js scan /path/to/your/app --json
+node cli/reinhardt.js scan /path/to/your/app --policy docs/privacy.md --fail-on high
 ```
 
 No dependency installation is needed to run the CLI or MCP server from a checkout. Run `npm ci` when developing or testing.
@@ -21,9 +21,9 @@ No dependency installation is needed to run the CLI or MCP server from a checkou
 After reviewing and accepting the current recipients:
 
 ```sh
-node bin/reinhardt.js baseline /path/to/your/app
+node cli/reinhardt.js baseline /path/to/your/app
 # Make dependency changes, then compare:
-node bin/reinhardt.js drift /path/to/your/app
+node cli/reinhardt.js drift /path/to/your/app
 ```
 
 A baseline records sorted recipient IDs and names in `.reinhardt/baseline.json`, without timestamps or machine-specific paths. Saving overwrites the previous baseline. It is a record of accepted recipients, not an endorsement. Commit that file in the scanned application if you want to share it with CI or teammates. Without a baseline, `drift` clearly reports that no comparison is available and includes the current scan.
@@ -84,7 +84,7 @@ In Claude Code:
 /plugin install reinhardt@reinhardt
 ```
 
-Install from a repository revision containing version 0.3.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
+Install from a repository revision containing version 0.3.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
 
 The executable SessionStart hook adds workflow guidance on startup, clear, and compact. It does not perform a scan or enforce the guidance. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, command, and hook output have automated tests.
 
@@ -95,7 +95,7 @@ Merge [codex/config.toml.snippet](codex/config.toml.snippet) into `~/.codex/conf
 ```toml
 [mcp_servers.reinhardt]
 command = "node"
-args = ["/absolute/path/to/reinhardt/bin/reinhardt.js", "mcp"]
+args = ["/absolute/path/to/reinhardt/cli/reinhardt.js", "mcp"]
 ```
 
 A trusted project's `.codex/config.toml` is also supported. This follows the [official Codex MCP documentation](https://developers.openai.com/codex/mcp). Use an absolute Node executable path if your host does not inherit the right PATH. Ask Codex to call `scan_repo` with your application's absolute path, verify each finding, and report evidence without editing files.
