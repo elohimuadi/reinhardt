@@ -1,6 +1,6 @@
 # Repo Gating and Real-World Benchmark Implementation Plan
 
-> **For agentic workers:** Execute task-by-task in order. Each task is red → green → commit. Steps use checkbox (`- [ ]`) syntax; tick them as you go. Read `AGENTS.md` first — it is part of this plan.
+> **For agentic workers:** Execute task-by-task in order. Each task is red → green → commit. Steps use checkbox (`- [x]`) syntax; tick them as you go. Read `AGENTS.md` first — it is part of this plan.
 
 **Goal:** Make the engine honor the new `repo_any` rule gate and measure reinhardt against pinned real-world repositories instead of only self-authored fixtures.
 
@@ -36,10 +36,13 @@
 **Interfaces:**
 - `matchRule(rule, files)` returns `[]` when `rule.repo_any` exists and neither any `repo_any.paths` regex matches any `files[i].path` nor any `repo_any.text` pattern matches any `files[i].text`. Evaluate before class filtering, for every `kind`.
 
-- [ ] **Step 1:** `npm test` → confirm the new vectors fail: `supabase-table-without-rls negative #2` (Drizzle repo) and `nosql-injection` / `template-autoescape-disabled` vectors only if they fail; record exactly which fail.
-- [ ] **Step 2:** Implement the gate (one guard at the top of `matchRule`).
-- [ ] **Step 3:** Replace any hardcoded rule counts in tests (e.g. 38) with `ruleset.rules.length`. Run `npm test` → 0 failures; `npm run eval` → Precision 1.000, Recall 1.000.
-- [ ] **Step 4:** `git commit -m "feat: gate rules on repository signals"`
+- [x] **Step 1:** `npm test` → confirm the new vectors fail: `supabase-table-without-rls negative #2` (Drizzle repo) and `nosql-injection` / `template-autoescape-disabled` vectors only if they fail; record exactly which fail.
+- [x] **Step 2:** Implement the gate (one guard at the top of `matchRule`).
+- [x] **Step 3:** Replace any hardcoded rule counts in tests (e.g. 38) with `ruleset.rules.length`. Run `npm test` → 0 failures; `npm run eval` → Precision 1.000, Recall 1.000.
+- [x] **Step 4:** `git commit -m "feat: gate rules on repository signals"`
+
+
+Task 1 validation: baseline had exactly the four expected failures. Added gate coverage failed before implementation. After implementation only the README test remains pending Task 3; eval passes (TP=51).
 
 ### Task 2: Real-world benchmark runner
 

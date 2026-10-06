@@ -1,3 +1,4 @@
+import { ruleset } from '../src/engine/rules.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -21,11 +22,11 @@ test('OWASP CLI lookup and readable prevention guidance', () => {
   assert.match(cli('owasp').stdout,/top10-2025.*2025.*released/);
   assert.match(cli('owasp','A01:2025').stdout,/top10-2025:A01:2025 — Broken Access Control/);
 });
-test('rules CLI lists 38 rules, explains without vectors, and rejects unknown ids', () => {
+test('rules CLI lists all rules, explains without vectors, and rejects unknown ids', () => {
   const result = cli('rules','--json');
   assert.equal(result.status,0);
   const {rules} = JSON.parse(result.stdout);
-  assert.equal(rules.length,38);
+  assert.equal(rules.length,ruleset.rules.length);
   assert.deepEqual(rules.map(rule=>rule.id),rules.map(rule=>rule.id).sort());
   const detail = JSON.parse(cli('rules','hardcoded-secret','--json').stdout).rules[0];
   assert.equal(detail.id,'hardcoded-secret');

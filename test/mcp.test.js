@@ -1,3 +1,4 @@
+import { ruleset } from '../src/engine/rules.js';
 import { spawn, spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { readFileSync } from 'node:fs';
@@ -26,7 +27,7 @@ test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout
   const knowledge=await client.callTool({name:'owasp_lookup',arguments:{query:'LLM10:2026'}});
   assert.equal(knowledge.structuredContent.results[0].item.name,'Improper Output Handling');
   const rules=await client.callTool({name:'list_rules',arguments:{}});
-  assert.equal(rules.structuredContent.rules.length,38);
+  assert.equal(rules.structuredContent.rules.length,ruleset.rules.length);
   const security=await client.callTool({name:'scan_repo',arguments:{path:fileURLToPath(new URL('../evals/fixtures/leaky-security-web',import.meta.url))}});
   assert.equal(JSON.stringify(security).includes('AKIA'+'IOSFODNN7EXAMPLE'),false);
   for (const tool of tools) assert.ok(tool.description.endsWith(DISCLAIMER));

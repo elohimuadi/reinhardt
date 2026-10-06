@@ -45,7 +45,7 @@ test('evidence lines are 1-based and correct', () => {
 });
 test('repository checks handle cross-file RLS and cap privacy manifest evidence', () => {
   const rls = ruleset.rules.find(rule => rule.kind === 'supabase-rls');
-  assert.deepEqual(matchRule(rls,[{path:'db/a.sql',text:'create table "public"."Notes" (id int); create table private.hidden (id int);'},{path:'db/b.sql',text:'alter table only if exists public.notes enable row level security;'}]), []);
+  assert.deepEqual(matchRule(rls,[{path:'package.json',text:'"@supabase/supabase-js"'},{path:'db/a.sql',text:'create table "public"."Notes" (id int); create table private.hidden (id int);'},{path:'db/b.sql',text:'alter table only if exists public.notes enable row level security;'}]), []);
   const rule = ruleset.rules.find(rule => rule.kind === 'ios-privacy-manifest');
   const files = [{path:'App/Z.swift',text:'UserDefaults\n'.repeat(30)}, {path:'App/A.swift',text:'UserDefaults'}];
   const evidence = matchRule(rule, files);
@@ -61,4 +61,16 @@ test('performance: all JS rules scan a 1MB single line in under 2 seconds', () =
   for (const rule of ruleset.rules.filter(rule => rule.files.includes('js'))) matchRule(rule,[{path:'src/app.js',text}]);
   const elapsed = performance.now()-start;
   assert.ok(elapsed < 2000, `Took ${elapsed.toFixed(1)}ms`);
+});
+
+test('repo_any gates every rule kind before class filtering and accepts either signal', () => {
+  const gate = { paths: ['^supabase/'], text: [{ regex: '@supabase/supabase-js', flags: 'i' }] };
+  const rule = { ...ruleset.rules.find(rule => rule.id === 'llm-sdk-in-browser'), repo_any: gate };
+  const source = { path: 'src/app.js', text: 'dangerouslyAllowBrowser: true' };
+  assert.deepEqual(matchRule(rule, [source]), []);
+  assert.equal(matchRule(rule, [source, { path: 'supabase/config.toml', text: '' }]).length, 1);
+  assert.equal(matchRule(rule, [source, { path: 'package.json', text: '@SUPABASE/supabase-js' }]).length, 1);
+  const rls = ruleset.rules.find(rule => rule.kind === 'supabase-rls');
+  const sql = { path: 'db/a.sql', text: 'create table public.notes (id int);' };
+  assert.equal(matchRule(rls, [sql, { path: 'package.json', text: '"@supabase/supabase-js"' }]).length, 1);
 });
