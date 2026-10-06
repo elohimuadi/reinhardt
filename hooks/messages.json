@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "description": "Text the reinhardt hooks inject into the agent's context. Owned by the knowledge maintainer; hook scripts fill the {placeholders} and must not add matched source text, secrets or absolute paths.",
+  "post_edit_findings": {
+    "header": "reinhardt: {count} new finding(s) in files you just changed. Verify each at file:line before continuing; fix the behavior or tell the user why it is a false positive.",
+    "line": "- [{severity}] {rule_id} at {file}:{line} ({owasp}) — {title}",
+    "footer": "Details: list_rules {\"id\": \"<rule_id>\"} or owasp_lookup. Follow reinhardt:security-fix to fix."
+  },
+  "post_edit_recipients": {
+    "header": "reinhardt: this dependency change adds {count} potential data recipient(s) that the privacy policy does not name.",
+    "line": "- {sdk_name} ({sdk_id}, {category}) — policy: {disclosure}",
+    "footer": "Follow reinhardt:privacy-drift-watch: verify what each SDK receives and ask the user before shipping this collection. Do not save a baseline on your own."
+  },
+  "stop_gate": {
+    "reason": "reinhardt: {count} high-severity finding(s) remain in files edited this session:\n{lines}\nBefore finishing, fix them (reinhardt:security-fix) or tell the user plainly, per finding, why it is a false positive. Do not rename, move or suppress code to silence a rule.",
+    "line": "- {rule_id} at {file}:{line} — {title}"
+  }
+}
