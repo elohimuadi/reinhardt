@@ -60,15 +60,18 @@ Task 1: packaging tests failed before the move and passed afterward. Full suite:
 - `editedPaths(input: object): string[]`. For `Edit|Write|MultiEdit`, use `tool_input.file_path`. For `apply_patch`, use `tool_input.command` (also accept `tool_input.input` and `tool_input.patch` when those are the string), and return the paths from `*** Add File:`, `*** Update File:`, `*** Delete File:` and `*** Move to:`. Return paths relative to `input.cwd`, POSIX, sorted and unique. Paths outside `cwd` are dropped.
 - `loadState(sessionId) / saveState(sessionId, state)`, following the Global Constraints. The write is atomic (temp file + rename).
 - `render(templateKey, part, values): string`. It fills `{name}` placeholders from `hooks/messages.json`; an unknown placeholder throws.
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - a Claude Edit input yields `['src/a.js']`
   - a Codex patch with Update+Add+Move yields three paths
   - an absolute path outside `cwd` is dropped
   - a session id `../x` maps to `unknown`
   - state round-trips sorted and unique
   - `render` fills every placeholder in each template
-- [ ] **Step 2:** FAIL → implement → PASS.
-- [ ] **Step 3:** `git commit -m "feat: hook input parsing, session state and messages"`
+- [x] **Step 2:** FAIL → implement → PASS.
+- [x] **Step 3:** `git commit -m "feat: hook input parsing, session state and messages"`
+
+
+Task 2: new harness tests failed with missing modules, then all 5 passed after implementation.
 
 ### Task 3: SessionStart bootstrap
 
