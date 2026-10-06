@@ -18,7 +18,7 @@ export function createServer(defaultPath = process.cwd()) {
       switch (method) {
         case 'initialize':
           if (!object(params) || typeof params.protocolVersion !== 'string') return rpcError(id,-32602,'Invalid params');
-          result = {protocolVersion:params.protocolVersion,capabilities:{tools:{}},serverInfo:{name:'reinhardt',version:'0.2.0'},instructions:DISCLAIMER};
+          result = {protocolVersion:params.protocolVersion,capabilities:{tools:{}},serverInfo:{name:'reinhardt',version:'0.3.0'},instructions:DISCLAIMER};
           break;
         case 'ping': result = {}; break;
         case 'tools/list': result = {tools:tools.map(({call,...definition})=>definition)}; break;

@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.3.0
+
+Adds repository signal gating for Supabase RLS checks, including dependency signals when SQL lives outside `supabase/`. Adds `nosql-injection` and `template-autoescape-disabled` rules. Rules opting into non-production path exclusions now also skip vendored, minified, and build-tool files.
+
+Adds a pinned real-world benchmark and a manual/weekly workflow. Measured precision is 0.953 (61 true positives / 64 resolved findings), with 3 unresolved findings reported separately. One maintainer assigned the labels; recall is described by known misses rather than a numeric score. Run `npm run benchmark` to reproduce the measurement.
+
 ## 0.2.0
 
 Adds 38 deterministic OWASP-mapped security rules alongside privacy-drift detection, backed by 22 bundled knowledge standards. Scan reports use schema version 2 and include confidence and OWASP/CWE/ASVS/guidance references; recipient baselines remain schema version 1.

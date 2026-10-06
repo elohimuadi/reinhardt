@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const json = file => JSON.parse(readFileSync(file,'utf8'));
 test('dual plugin manifests and package agree on version and transports', () => {
   const pkg=json('package.json');
-  assert.equal(pkg.version,'0.2.0');
+  assert.equal(pkg.version,'0.3.0');
   for(const file of ['.claude-plugin/plugin.json','.codex-plugin/plugin.json']) {
     assert.equal(json(file).version,pkg.version);
     assert.equal(json(file).name,'reinhardt');

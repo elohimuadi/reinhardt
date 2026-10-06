@@ -84,7 +84,7 @@ In Claude Code:
 /plugin install reinhardt@reinhardt
 ```
 
-Install from a repository revision containing version 0.2.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
+Install from a repository revision containing version 0.3.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/bin/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
 
 The executable SessionStart hook adds workflow guidance on startup, clear, and compact. It does not perform a scan or enforce the guidance. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, command, and hook output have automated tests.
 
@@ -136,7 +136,7 @@ These are instructions for an agent, not guarantees about its behavior. The Code
 
 Scan reports now use `schema_version: 2`. All findings carry `category` (`privacy` or `security`), `confidence`, and arrays for `owasp`, `cwe`, `asvs`, and `guidance`. Privacy findings gain OWASP mappings without changing baseline schema version 1. Security findings are grouped once per matching rule, with `sdk_id` and `suggested_disclosure` set to null. Evidence contains only `{ file, line, kind }`, sorted and capped at 50 per security finding (20 for the missing iOS privacy manifest check). Matched source text and credential values are never included.
 
-The data-driven interpreter applies file classes, required context, suppression patterns, and per-rule test-path exclusions. Two repository checks look for SQL tables without an RLS enable statement and required-reason APIs without a walked `PrivacyInfo.xcprivacy`. These existence checks do not establish that a policy is correct or a manifest belongs to the app target. `rules [id]` returns the rule definition without test vectors; the list below shows its first OWASP mapping. Full mappings are available through the CLI/MCP tools.
+The data-driven interpreter applies file classes, required context, suppression patterns, repository signals (`repo_any`), and per-rule test-path exclusions. Supabase RLS checks run only when candidate paths or text indicate Supabase, including package dependencies when SQL lives outside `supabase/`. Two repository checks look for SQL tables without an RLS enable statement and required-reason APIs without a walked `PrivacyInfo.xcprivacy`. These existence checks do not establish that a policy is correct or a manifest belongs to the app target. `rules [id]` returns the rule definition without test vectors; the list below shows its first OWASP mapping. Full mappings are available through the CLI/MCP tools.
 
 | Rule ID | Severity | Primary OWASP reference |
 | --- | --- | --- |
@@ -152,6 +152,8 @@ The data-driven interpreter applies file classes, required context, suppression 
 | `open-redirect` | medium | `top10-2025:A01:2025` |
 | `ssrf-request-url` | high | `top10-2025:A01:2025` |
 | `sql-string-building` | high | `top10-2025:A05:2025` |
+| `nosql-injection` | high | `top10-2025:A05:2025` |
+| `template-autoescape-disabled` | high | `top10-2025:A05:2025` |
 | `command-injection` | high | `top10-2025:A05:2025` |
 | `dynamic-code-execution` | medium | `top10-2025:A05:2025` |
 | `unsanitized-html-sink` | medium | `top10-2025:A05:2025` |
@@ -186,7 +188,7 @@ Code remains [MIT licensed](LICENSE). Content in `data/owasp/` is adapted from O
 ## Limits
 
 - Security regexes use bounded matching where context spans are needed to reduce ReDoS risk. The suite times every JS rule against a 1 MB single-line input; that test is not a proof against every adversarial input.
-- Rules with `skip_test_paths` skip test/example/fixture paths according to the data file. This is per rule; not all rules skip tests. Scanning a fixture root still tests its relative application paths.
+- Rules with `skip_test_paths` skip test/example/fixture, vendored, minified, and build-tool paths according to the data file. This is per rule; not all rules skip tests. Scanning a fixture root still tests its relative application paths.
 - Static and heuristic: no runtime traffic, effective SDK configuration, reachable-code analysis, server-side forwarding, consent correctness, or legal conclusions. There are no LLM calls in the engine.
 - Cannot see scripts loaded dynamically by tag managers, dynamically constructed endpoints, custom proxies, or transitive SDK dependencies. No lockfiles are read, and requirements includes are not recursively followed.
 - Manifest parsers recognize common literal forms; they do not execute Ruby, Swift, Python, or JavaScript. Conditional, commented, and unused code may cause false positives. Raw source endpoint matching can also see examples or tests.
@@ -205,7 +207,15 @@ npm run eval
 
 `node:test` covers matching, disclosure, excluded files, drift, ATT, CLI exit codes, and a child-process MCP stdio round trip (including error recovery). Labelled `expected.json` files in all six directories under `evals/fixtures/` define rule IDs with SDK IDs so a missed recipient cannot be hidden by another finding with the same rule. The eval runner prints precision/recall and fails on any unexpected or missing finding. `clean-web` and `clean-ios` must produce zero findings. Fixture apps are static examples; do not install or execute them.
 
-The v0.2.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 49 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
+The v0.3.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 51 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
+
+## Benchmark
+
+Run `npm run benchmark` to scan seven public repositories pinned to exact commits in `evals/benchmarks/real-world.json`. The measured precision is **0.953**, calculated as **61 / (61 + 3)**: 61 true positives and 3 false positives. Three unresolved findings are excluded from that denominator. Labels were assigned by one maintainer; this sample is not a general detection-quality estimate.
+
+Recall is described by `known_misses`, not a numeric recall score. The runner prints each repository's known-miss count; these entries describe coverage gaps and are not an exhaustive vulnerability inventory.
+
+The runner requires git and network access for initial clones, caches them under `os.tmpdir()/reinhardt-benchmark/<name>-<commit>`, and reuses checkouts at the pinned commit. It only scans source; it does not install or execute the benchmark apps. It runs separately from `npm test`, manually or in the weekly GitHub Actions benchmark workflow. New unlabelled findings or missing labelled true positives exit 1; clone, checkout, or scan errors exit 2 and identify the repository. Disappearing false positives are reported as improvements. Output lists rule IDs and file/line locations without source text.
 
 ## Contributing
 

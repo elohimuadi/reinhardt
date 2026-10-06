@@ -68,10 +68,13 @@ Task 2 validation: comparison tests failed before the module existed, then passe
 **Files:**
 - Modify: `README.md`, `RELEASE-NOTES.md`, `package.json` + both plugin manifests + MCP `serverInfo` version → `0.3.0`
 
-- [ ] **Step 1:** `npm test` → the docs test fails because README lacks `nosql-injection` and `template-autoescape-disabled`.
-- [ ] **Step 2:** Add both rules to the README rules table; add a "Benchmark" section stating the measured precision with its denominator, that labels were made by one maintainer, that recall is described by `known_misses` rather than a number, and how to run `npm run benchmark`. Add a `0.3.0` release-notes entry (repo gating for Supabase RLS, two new rules, non-production path skipping for vendored/minified/build-tool files, benchmark). Bump versions.
-- [ ] **Step 3:** `npm test`, `npm run eval` → green.
-- [ ] **Step 4:** `git commit -m "docs: document benchmark and 0.3.0 rules"`
+- [x] **Step 1:** `npm test` → the docs test fails because README lacks `nosql-injection` and `template-autoescape-disabled`.
+- [x] **Step 2:** Add both rules to the README rules table; add a "Benchmark" section stating the measured precision with its denominator, that labels were made by one maintainer, that recall is described by `known_misses` rather than a number, and how to run `npm run benchmark`. Add a `0.3.0` release-notes entry (repo gating for Supabase RLS, two new rules, non-production path skipping for vendored/minified/build-tool files, benchmark). Bump versions.
+- [x] **Step 3:** `npm test`, `npm run eval` → green.
+- [x] **Step 4:** `git commit -m "docs: document benchmark and 0.3.0 rules"`
+
+
+Task 3 validation: documentation and version expectations failed first; all 209 tests now pass. Eval: Precision: 1.000; Recall: 1.000; TP=51 FP=0 FN=0.
 
 ### Task 4: Final verification
 
