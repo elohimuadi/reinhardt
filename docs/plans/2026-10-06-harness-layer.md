@@ -97,7 +97,7 @@ Task 3: bootstrap test failed on empty output, then all 6 harness tests passed. 
 
 If nothing is new, print nothing.
 
-- [ ] **Step 1: Failing tests** (temp repos, `CLAUDE_PLUGIN_DATA` pointed at a temp dir, hook run as a child process):
+- [x] **Step 1: Failing tests** (temp repos, `CLAUDE_PLUGIN_DATA` pointed at a temp dir, hook run as a child process):
   - Edit of `src/chat.js` adding `dangerouslyAllowBrowser: true` → context lists `llm-sdk-in-browser` with `src/chat.js:1`
   - the same edit again → no output
   - a finding in an unedited file → not mentioned
@@ -106,8 +106,11 @@ If nothing is new, print nothing.
   - malformed `package.json` → no output, exit 0
   - output never contains the AWS example key when it's added to `config/aws.json`
   - `leaky-security-web` run finishes in under 3 s
-- [ ] **Step 2:** FAIL → implement → PASS.
-- [ ] **Step 3:** `git commit -m "feat: report new findings and recipients after edits"`
+- [x] **Step 2:** FAIL → implement → PASS.
+- [x] **Step 3:** `git commit -m "feat: report new findings and recipients after edits"`
+
+
+Task 4: four post-edit reporting tests failed before implementation; all 13 harness tests now pass, including deduplication, credential non-disclosure, malformed manifests/state, and the under-3-second fixture check. Output includes the shared analysis disclaimer.
 
 ### Task 5: Stop gate
 

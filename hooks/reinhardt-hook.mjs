@@ -1,7 +1,12 @@
 try {
   let text = '';
   for await (const chunk of process.stdin) text += chunk;
-  JSON.parse(text || '{}');
+  const input = JSON.parse(text || '{}');
+  if (process.argv[2] === 'post-edit') {
+    const { postEdit } = await import('../src/harness/post-edit.js');
+    const output = await postEdit(input);
+    if (output) console.log(JSON.stringify(output));
+  }
   if (process.argv[2] === 'session-start') {
     const { readFile } = await import('node:fs/promises');
     const skill = await readFile(new URL('../skills/using-reinhardt/SKILL.md', import.meta.url), 'utf8');
