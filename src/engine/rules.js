@@ -15,6 +15,7 @@ export function fileClasses(file) {
 const regex = (pattern, scan = false) => new RegExp(pattern.regex, [...new Set((pattern.flags ?? '') + (scan ? 'g' : ''))].join(''));
 const matches = (pattern, text) => regex(pattern).test(text);
 export function matchRule(rule, files) {
+  if (rule.repo_any && !files.some(file => (rule.repo_any.paths ?? []).some(pattern => new RegExp(pattern).test(file.path)) || (rule.repo_any.text ?? []).some(pattern => matches(pattern, file.text)))) return [];
   const eligible = files.filter(file => fileClasses(file.path).some(name => rule.files.includes(name)) && !(rule.skip_test_paths && isTestPath(file.path)));
   let evidence = [];
   if (rule.kind === 'supabase-rls') evidence = tablesWithoutRls(eligible);

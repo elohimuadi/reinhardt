@@ -1,3 +1,4 @@
+import { ruleset } from '../src/engine/rules.js';
 import { spawn, spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { readFileSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout:15000},async t=>{
   const client=new Client({name:'reinhardt-test',version:'1.0.0'});
-  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../bin/reinhardt.js',import.meta.url)),'mcp'],stderr:'pipe'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../cli/reinhardt.js',import.meta.url)),'mcp'],stderr:'pipe'});
   t.after(()=>client.close());
   await client.connect(transport);
   const {tools}=await client.listTools();
@@ -26,7 +27,7 @@ test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout
   const knowledge=await client.callTool({name:'owasp_lookup',arguments:{query:'LLM10:2026'}});
   assert.equal(knowledge.structuredContent.results[0].item.name,'Improper Output Handling');
   const rules=await client.callTool({name:'list_rules',arguments:{}});
-  assert.equal(rules.structuredContent.rules.length,38);
+  assert.equal(rules.structuredContent.rules.length,ruleset.rules.length);
   const security=await client.callTool({name:'scan_repo',arguments:{path:fileURLToPath(new URL('../evals/fixtures/leaky-security-web',import.meta.url))}});
   assert.equal(JSON.stringify(security).includes('AKIA'+'IOSFODNN7EXAMPLE'),false);
   for (const tool of tools) assert.ok(tool.description.endsWith(DISCLAIMER));
@@ -34,7 +35,7 @@ test('MCP stdio lists tools, scans, returns errors and remains usable', {timeout
   assert.equal(JSON.parse(healthy.content[0].text).sdks[0].id,'posthog');
 });
 test('raw MCP protocol errors, notifications and recovery', {timeout:10000}, async t => {
-  const child = spawn(process.execPath,['bin/reinhardt.js','mcp'],{stdio:['pipe','pipe','pipe']});
+  const child = spawn(process.execPath,['cli/reinhardt.js','mcp'],{stdio:['pipe','pipe','pipe']});
   t.after(()=>child.kill());
   const lines = createInterface({input:child.stdout});
   const output = lines[Symbol.asyncIterator]();
@@ -45,7 +46,7 @@ test('raw MCP protocol errors, notifications and recovery', {timeout:10000}, asy
   send({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'raw',version:'1'}}});
   const initialization = (await next()).result;
   assert.equal(initialization.protocolVersion,'2025-03-26');
-  assert.equal(initialization.serverInfo.version,'0.2.0');
+  assert.equal(initialization.serverInfo.version,'0.4.0');
   send({jsonrpc:'2.0',method:'notifications/initialized'});
   send({jsonrpc:'2.0',method:'notifications/anything'});
   send({jsonrpc:'2.0',id:2,method:'ping'});

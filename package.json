@@ -1,6 +1,6 @@
 {
   "name": "reinhardt",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Static privacy-drift detection for AI-generated apps",
   "type": "module",
   "engines": {
@@ -8,20 +8,22 @@
   },
   "license": "MIT",
   "bin": {
-    "reinhardt": "bin/reinhardt.js"
+    "reinhardt": "cli/reinhardt.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "eval": "node evals/run.js"
+    "eval": "node evals/run.js",
+    "benchmark": "node evals/benchmark.js"
   },
   "files": [
-    "bin",
+    "cli",
     "src",
     "data",
     "codex",
     "README.md",
     "LICENSE",
     "skills",
+    "agents",
     "hooks",
     ".claude-plugin",
     ".codex-plugin",

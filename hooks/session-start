@@ -1,2 +1,0 @@
-#!/bin/bash
-printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"reinhardt is installed. When writing code that touches auth, data access, secrets, LLM calls, uploads, CI or dependencies, follow the secure-by-default skill. Before saying work is done, run reinhardt scan_repo; use security-audit for reviews and privacy-drift-watch after dependency changes."}}'
