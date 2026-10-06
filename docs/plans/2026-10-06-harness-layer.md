@@ -165,6 +165,40 @@ Task 6: wiring, version and documentation tests failed first; all 229 tests now 
 
 ### Task 7: Final verification
 
-- [ ] `npm ci && npm test && npm run eval && npm run benchmark`; paste the summary lines.
-- [ ] Manual smoke test in a temp copy of `evals/fixtures/leaky-security-web`: run each hook with a hand-written stdin JSON and paste its stdout.
-- [ ] `git status` clean; push `owasp-knowledge-layer`; list commits.
+- [x] `npm ci && npm test && npm run eval && npm run benchmark`; paste the summary lines.
+- [x] Manual smoke test in a temp copy of `evals/fixtures/leaky-security-web`: run each hook with a hand-written stdin JSON and paste its stdout.
+- [x] `git status` clean; push `owasp-knowledge-layer`; list commits.
+
+Final verification after `npm ci`:
+
+```text
+npm test:
+# tests 229
+# pass 229
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+npm run eval:
+Precision: 1.000; Recall: 1.000; TP=51 FP=0 FN=0
+npm run benchmark:
+Precision: 0.953; TP=61 FP=3 unresolved=3 unlabelled=0 missingTP=0
+```
+
+Manual smoke test: a temporary copy of `evals/fixtures/leaky-security-web`, isolated plugin state, session `manual-smoke`. SessionStart received cwd/session_id; PostToolUse received `tool_name: Edit` and `tool_input.file_path: firestore.rules`; both Stop calls received `stop_hook_active: false`. All exited 0 with empty stderr. Complete stdout follows:
+
+```text
+session-start stdout:
+{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"reinhardt is installed. The using-reinhardt skill follows; obey it.\n\n<SUBAGENT-STOP>\nIf you were dispatched as a subagent for a narrow task (for example `reinhardt:finding-verifier`), ignore this skill and follow your own instructions.\n</SUBAGENT-STOP>\n\n# Using reinhardt\n\nreinhardt watches the two things AI-built apps most often get wrong: **who receives user data** (privacy drift) and **the handful of security defaults that get apps breached** (secrets on the client, data without access control, untrusted input reaching something that executes). It pairs a deterministic scanner with the skills below. The scanner finds leads; you verify them.\n\n## The Rule\n\n**When your work touches any of these, invoke the matching skill before writing the code:**\n\n| You are about to... | Invoke |\n|---|---|\n| write or change auth, database access, Supabase/Firebase rules, env vars, LLM calls, uploads, fetches, redirects, iOS storage/networking, CI workflows | `reinhardt:secure-by-default` |\n| add, remove or upgrade a dependency (package.json, requirements.txt, Podfile, Package.swift) | `reinhardt:privacy-drift-watch` (after the change) |\n| answer \"is this safe to ship?\", review security, or prepare a launch | `reinhardt:launch-check` |\n| fix a reinhardt finding | `reinhardt:security-fix` or `reinhardt:privacy-fix` |\n\nAnnounce \"Using reinhardt:<skill> to <purpose>\" and follow it.\n\n## What the hooks will do\n\n- After you edit files, reinhardt may add a short note listing **new findings in the files you just changed**, or **new data recipients** after a dependency change. Treat that note as a lead: open the file:line, verify, then fix or explain. Never ignore it silently.\n- When you try to finish a turn with **unaddressed high-severity findings in files you edited**, reinhardt will ask you once to address them. Fix them, or tell the user plainly why each one is a false positive. Do not rename, move or suppress code to make a rule stop matching.\n\n## Red Flags\n\n| Thought | Reality |\n|---|---|\n| \"It's just a prototype\" | Prototypes get deployed with the anon key and no RLS. Apply secure-by-default anyway. |\n| \"The scanner found nothing, so it's fine\" | Zero findings is not evidence of safety. Say what was and wasn't checked. |\n| \"I'll put the key in NEXT_PUBLIC_ for now\" | That ships it to every visitor. Server route, now. |\n| \"The user didn't ask about privacy\" | A new analytics or AI SDK is a new data recipient. Tell them. |\n| \"I'll fix the finding by moving the code\" | That's gaming the scanner. Fix the behavior. |\n\nNever describe an app as secure, safe or compliant."}}
+
+post-edit stdout:
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"reinhardt: 1 new finding(s) in files you just changed. Verify each at file:line before continuing; fix the behavior or tell the user why it is a false positive.\n- [high] firebase-open-rules at firestore.rules:5 (A01:2025) — Firebase security rules allow unrestricted access\nDetails: list_rules {\"id\": \"<rule_id>\"} or owasp_lookup. Follow reinhardt:security-fix to fix.\n\nStatic, heuristic analysis; not legal advice and not a certification. Findings require human verification."}}
+
+stop stdout:
+{"decision":"block","reason":"reinhardt: 1 high-severity finding(s) remain in files edited this session:\n- firebase-open-rules at firestore.rules:5 — Firebase security rules allow unrestricted access\nBefore finishing, fix them (reinhardt:security-fix) or tell the user plainly, per finding, why it is a false positive. Do not rename, move or suppress code to silence a rule.\n\nStatic, heuristic analysis; not legal advice and not a certification. Findings require human verification."}
+
+stop-again stdout:
+(empty)
+```
+
+The working tree was clean before this verification record. No knowledge-owned files were edited during implementation. The benchmark reused its pinned temporary checkouts. Host installation and end-to-end host execution were not exercised.
