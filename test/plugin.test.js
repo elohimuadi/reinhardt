@@ -27,8 +27,8 @@ test('six skills have matching names and Use when descriptions', () => {
     assert.ok(/^description: Use when /m.test(front),name);
   }
 });
-test('session-start is executable and emits one context object', () => {
-  const result=spawnSync('./hooks/session-start',[],{encoding:'utf8'});
+test('session-start runner emits one context object', () => {
+  const result=spawnSync(process.execPath,['hooks/reinhardt-hook.mjs','session-start'],{encoding:'utf8'});
   assert.equal(result.status,0);
   assert.equal(result.stdout.trim().split('\n').length,1);
   const output=JSON.parse(result.stdout).hookSpecificOutput;

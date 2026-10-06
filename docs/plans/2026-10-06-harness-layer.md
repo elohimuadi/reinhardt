@@ -77,9 +77,12 @@ Task 2: new harness tests failed with missing modules, then all 5 passed after i
 
 **Interfaces:** `node hooks/reinhardt-hook.mjs session-start` prints `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext": "<text>"}}`. `<text>` is `"reinhardt is installed. The using-reinhardt skill follows; obey it.\n\n"` plus the body of `skills/using-reinhardt/SKILL.md` with the frontmatter removed. Total length must be ≤ 10,000 characters. Delete the old `hooks/session-start` bash script.
 
-- [ ] **Step 1: Failing test:** the output parses, contains `reinhardt:secure-by-default`, contains no `---` frontmatter line, and is ≤ 10,000 characters.
-- [ ] **Step 2:** FAIL → implement → PASS.
-- [ ] **Step 3:** `git commit -m "feat: inject using-reinhardt at session start"`
+- [x] **Step 1: Failing test:** the output parses, contains `reinhardt:secure-by-default`, contains no `---` frontmatter line, and is ≤ 10,000 characters.
+- [x] **Step 2:** FAIL → implement → PASS.
+- [x] **Step 3:** `git commit -m "feat: inject using-reinhardt at session start"`
+
+
+Task 3: bootstrap test failed on empty output, then all 6 harness tests passed. The legacy script is removed; hook registration is updated in Task 6.
 
 ### Task 4: PostToolUse: findings and recipients in changed files
 

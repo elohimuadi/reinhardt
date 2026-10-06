@@ -69,3 +69,15 @@ test('hook runner swallows malformed input and unknown events', () => {
     assert.equal(result.stderr, '');
   }
 });
+test('SessionStart injects the bootstrap body without frontmatter within the host limit', async () => {
+  const result = spawnSync(process.execPath, ['hooks/reinhardt-hook.mjs', 'session-start'], { input: '{}', encoding: 'utf8' });
+  assert.equal(result.status, 0);
+  assert.equal(result.stderr, '');
+  const output = JSON.parse(result.stdout).hookSpecificOutput;
+  assert.equal(output.hookEventName, 'SessionStart');
+  assert.match(output.additionalContext, /reinhardt:secure-by-default/);
+  assert.doesNotMatch(output.additionalContext, /^---$/m);
+  const skill = await readFile('skills/using-reinhardt/SKILL.md', 'utf8');
+  assert.equal(output.additionalContext, 'reinhardt is installed. The using-reinhardt skill follows; obey it.\n\n' + skill.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim());
+  assert.ok(output.additionalContext.length <= 10_000);
+});
