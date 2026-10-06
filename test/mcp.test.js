@@ -46,7 +46,7 @@ test('raw MCP protocol errors, notifications and recovery', {timeout:10000}, asy
   send({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'raw',version:'1'}}});
   const initialization = (await next()).result;
   assert.equal(initialization.protocolVersion,'2025-03-26');
-  assert.equal(initialization.serverInfo.version,'0.3.0');
+  assert.equal(initialization.serverInfo.version,'0.4.0');
   send({jsonrpc:'2.0',method:'notifications/initialized'});
   send({jsonrpc:'2.0',method:'notifications/anything'});
   send({jsonrpc:'2.0',id:2,method:'ping'});

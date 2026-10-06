@@ -14,3 +14,8 @@ test('README explains benchmark denominator, label provenance and recall limits'
   const readme = readFileSync('README.md', 'utf8');
   for (const value of ['npm run benchmark', '0.953', '61 / (61 + 3)', 'one maintainer', 'known_misses']) assert.ok(readme.includes(value), `Missing benchmark documentation: ${value}`);
 });
+
+test('README explains harness triggers, opt-out and host differences', () => {
+  const readme = readFileSync('README.md', 'utf8');
+  for (const value of ['How the harness works', 'REINHARDT_STOP_GATE=off', '/reinhardt:launch-check', '@agent-reinhardt:finding-verifier', 'self-verification']) assert.ok(readme.includes(value), `Missing harness documentation: ${value}`);
+});

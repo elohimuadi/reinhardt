@@ -140,15 +140,28 @@ Task 5: all three Stop tests failed before implementation; all 16 harness tests 
   - `Stop` (`timeout: 20`) → `… stop`
 - `.codex-plugin/plugin.json`: `"hooks": "./hooks/hooks.json"`.
 - Claude: `agents/` is loaded by default, so no manifest key is needed.
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - hooks.json has exactly those three events and matchers, and every command references `${CLAUDE_PLUGIN_ROOT}/hooks/reinhardt-hook.mjs`
   - the Codex manifest `hooks` is `./hooks/hooks.json`
   - `agents/finding-verifier.md` frontmatter has `name: finding-verifier` and `tools: Read, Grep, Glob`
   - 8 skills exist, each with a `Use when` description
   - versions are `0.4.0`
-- [ ] **Step 2:** FAIL → implement. README gets a "How the harness works" section: bootstrap, post-edit notes, stop gate with `REINHARDT_STOP_GATE=off`, `/reinhardt:launch-check`, `@agent-reinhardt:finding-verifier`, and Codex parity (no subagent; launch-check falls back to self-verification). → PASS.
-- [ ] **Step 3:** If the `claude` CLI is available, run `claude plugin validate .` and paste the result; otherwise say it was not run.
-- [ ] **Step 4:** `git commit -m "feat: wire harness hooks and verifier agent for Claude Code and Codex"`
+- [x] **Step 2:** FAIL → implement. README gets a "How the harness works" section: bootstrap, post-edit notes, stop gate with `REINHARDT_STOP_GATE=off`, `/reinhardt:launch-check`, `@agent-reinhardt:finding-verifier`, and Codex parity (no subagent; launch-check falls back to self-verification). → PASS.
+- [x] **Step 3:** If the `claude` CLI is available, run `claude plugin validate .` and paste the result; otherwise say it was not run.
+- [x] **Step 4:** `git commit -m "feat: wire harness hooks and verifier agent for Claude Code and Codex"`
+
+
+Task 6: wiring, version and documentation tests failed first; all 229 tests now pass. Eval: Precision 1.000, Recall 1.000, TP=51.
+
+`claude plugin validate .` exited 0:
+
+```text
+⚠ Found 1 warning:
+  ❯ description: No marketplace description provided. Adding a description helps users understand what this marketplace offers
+⚠ Found 1 warning:
+  ❯ root: CLAUDE.md at the plugin root is not loaded as project context. To ship context with your plugin, use a skill (skills/<name>/SKILL.md) instead.
+✔ Validation passed with warnings
+```
 
 ### Task 7: Final verification
 

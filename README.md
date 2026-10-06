@@ -84,9 +84,9 @@ In Claude Code:
 /plugin install reinhardt@reinhardt
 ```
 
-Install from a repository revision containing version 0.3.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
+Install from a repository revision containing version 0.4.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
 
-The executable SessionStart hook adds workflow guidance on startup, clear, and compact. It does not perform a scan or enforce the guidance. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, command, and hook output have automated tests.
+The shared Node hook runner injects workflow guidance at session start, scans after edits, and can ask the agent to address high findings before finishing. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, commands, and hook outputs have automated tests.
 
 ## Codex setup: config.toml first
 
@@ -109,17 +109,17 @@ Append [codex/AGENTS.snippet.md](codex/AGENTS.snippet.md) to an application's AG
 | `save_baseline` | `path`, optional `policy_path` | Write baseline **only after the user accepted the current state** |
 | `explain_sdk` | optional `id` | Explain one SDK or list the catalog |
 | `owasp_lookup` | optional `query` | List standards or look up references, item IDs, CWE IDs, or terms |
-| `list_rules` | optional `id` | List 38 security rules or explain one without its test vectors |
+| `list_rules` | optional `id` | List security rules or explain one without its test vectors |
 
 Tool failures return `isError`; a failed call does not terminate the server. Only JSON-RPC goes to stdout in MCP mode. The MCP client receives structured reports and JSON text; no source file contents are returned. Tool paths are local filesystem access with the permissions of the process; this is not a sandbox for untrusted remote clients.
 
 ## Codex plugin: secondary, host installation untested
 
-The root [.codex-plugin/plugin.json](.codex-plugin/plugin.json) references `skills/` and `codex/mcp.json`. Run `npm link` from this checkout so `reinhardt mcp` is available on the Codex host's PATH, then follow the [official local plugin installation instructions](https://developers.openai.com/plugins/build/plugins). The manifest uses the compatibility layout; it declares `hooks: {}` so the Claude-specific hook is not selected through default hook discovery.
+The root [.codex-plugin/plugin.json](.codex-plugin/plugin.json) references `skills/` and `codex/mcp.json`. Run `npm link` from this checkout so `reinhardt mcp` is available on the Codex host's PATH, then follow the [official local plugin installation instructions](https://developers.openai.com/plugins/build/plugins). The manifest references `./hooks/hooks.json`, the same hook configuration used by Claude Code.
 
 The earlier compatibility layout was checked against official documentation; this release's explicit manifest fields are covered by repository tests. Actual Codex installation, cached-plugin PATH inheritance, UI discovery, and agent behavior have not been verified. Use config.toml as the primary setup route. Neither route changes your personal configuration automatically.
 
-## Six agent workflows
+## Eight agent workflows
 
 - `privacy-audit`: verify each privacy finding in code; do not edit.
 - `privacy-fix`: fix one verified privacy finding, then re-scan; disclosure must reflect behavior.
@@ -128,7 +128,24 @@ The earlier compatibility layout was checked against official documentation; thi
 - `security-fix`: remediate a verified security finding and validate the change.
 - `secure-by-default`: apply security guidance while writing relevant code.
 
-These are instructions for an agent, not guarantees about its behavior. The Codex AGENTS snippet and Claude hook request checks; they do not enforce execution.
+- `using-reinhardt`: bootstrap the workflow choices at session start.
+- `launch-check`: scan and verify findings before a launch decision.
+
+These skills guide the agent; they do not guarantee its behavior.
+
+## How the harness works
+
+The plugin registers SessionStart, PostToolUse and Stop in one `hooks/hooks.json` for both hosts. Node >=20 must be available. An MCP-only config.toml setup exposes tools but does not install the plugin hooks.
+
+- **Bootstrap:** startup, clear and compact inject the body of `using-reinhardt`, without its frontmatter and within the host's 10,000-character limit.
+- **Post-edit notes:** Edit, Write, MultiEdit and Codex `apply_patch` invoke the deterministic scanner. Notes list new high or medium security findings in files changed by that call, plus unnamed SDK recipients detected in edited manifests. Already reported items stay quiet for that session. Deleted paths remain in session history; absent files produce no findings.
+- **Stop gate:** high security findings in files edited this session can block finishing once per finding. The agent must verify and fix them or explain false positives to the user. Later turns do not block again for the same rule/file/line. Active Stop hooks, sessions without edits, and `REINHARDT_STOP_GATE=off` bypass the gate. This is a prompt to investigate, not proof that a finding was resolved.
+
+Run `/reinhardt:launch-check` for the full pre-launch workflow. Claude Code can use `@agent-reinhardt:finding-verifier`, a read-only verifier with Read, Grep and Glob tools. Codex has the same hook behavior for edits and stopping; it has no plugin verifier subagent here, so launch-check falls back to self-verification.
+
+State stores sorted edited paths and reported/gated identifiers in `$CLAUDE_PLUGIN_DATA` or `$PLUGIN_DATA`, falling back to `os.tmpdir()/reinhardt-hooks`, under `sessions/<session_id>.json`. Invalid session IDs map to `unknown`. Hook failures return exit 0 with no output; malformed manifests during editing therefore produce no note. Findings contain rule metadata and relative file/line locations, never matched source or credentials. Post-edit and Stop hooks have 20-second host timeouts.
+
+The hook runner and outputs are tested as child processes. Actual installation and end-to-end behavior inside either host remain unverified.
 
 ## OWASP knowledge and security rules
 
@@ -207,7 +224,7 @@ npm run eval
 
 `node:test` covers matching, disclosure, excluded files, drift, ATT, CLI exit codes, and a child-process MCP stdio round trip (including error recovery). Labelled `expected.json` files in all six directories under `evals/fixtures/` define rule IDs with SDK IDs so a missed recipient cannot be hidden by another finding with the same rule. The eval runner prints precision/recall and fails on any unexpected or missing finding. `clean-web` and `clean-ios` must produce zero findings. Fixture apps are static examples; do not install or execute them.
 
-The v0.3.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 51 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
+The v0.4.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 51 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
 
 ## Benchmark
 
@@ -227,6 +244,5 @@ Each category defines `severity`, `generic_terms`, and a plain-English `purpose`
 
 - Android/Gradle dependency detection.
 - An opt-in runtime mode that records real third-party requests.
-- Dependency-change hooks that execute checks automatically (the current SessionStart hook only supplies guidance).
 - Consent-gating verification, including initialization order and denied-consent paths.
 - More fixtures, provider-specific configuration checks, and host integration tests.
