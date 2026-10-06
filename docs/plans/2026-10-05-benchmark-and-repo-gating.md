@@ -78,5 +78,17 @@ Task 3 validation: documentation and version expectations failed first; all 209 
 
 ### Task 4: Final verification
 
-- [ ] `npm ci && npm test && npm run eval && npm run benchmark`; paste the summary lines.
-- [ ] `git status` clean; push `owasp-knowledge-layer`; list commits.
+- [x] `npm ci && npm test && npm run eval && npm run benchmark`; paste the summary lines.
+- [x] `git status` clean; push `owasp-knowledge-layer`; list commits.
+
+Final verification after `npm ci`:
+
+```text
+# tests 209
+# pass 209
+# fail 0
+Precision: 1.000; Recall: 1.000; TP=51 FP=0 FN=0
+Precision: 0.953; TP=61 FP=3 unresolved=3 unlabelled=0 missingTP=0
+```
+
+The benchmark reused pinned temporary checkouts. The working tree was clean before recording these results. No protected knowledge, fixture, or benchmark label files were edited during implementation.
