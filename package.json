@@ -12,7 +12,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "eval": "node evals/run.js"
+    "eval": "node evals/run.js",
+    "benchmark": "node evals/benchmark.js"
   },
   "files": [
     "bin",

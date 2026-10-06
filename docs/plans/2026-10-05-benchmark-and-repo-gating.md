@@ -56,9 +56,12 @@ Task 1 validation: baseline had exactly the four expected failures. Added gate c
 - CLI: for each repo, clone with `git clone --filter=blob:none --no-checkout <url> <dir>` then `git -C <dir> checkout <commit>` (skip if cached dir already at that commit), run `scanRepo(dir)`, `compare`, print one block per repo and a summary line `Precision: <tp/(tp+fp)>; TP=… FP=… unresolved=… unlabelled=… missingTP=…` plus each repo's `known_misses` count. Exit 1 if any `unlabelled` or `missingTp`; exit 2 on clone/scan errors; else 0.
 - Workflow: `workflow_dispatch` plus weekly `schedule`, `permissions: contents: read`, actions pinned to the same versions as `ci.yml`, runs `npm ci && npm run benchmark`.
 
-- [ ] **Step 1: Failing tests** for `compare` only (no network): a tp label present → `tp`; a tp label absent → `missingTp`; an fp label absent → `fixedFp`; an extra finding → `unlabelled`; `unresolved` labels counted separately.
-- [ ] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS. Then run `npm run benchmark` once and paste the summary (expected at labelling time: `TP=61 FP=3 unresolved=3 unlabelled=0 missingTP=0`, precision 0.953).
-- [ ] **Step 5:** `git commit -m "feat: add pinned real-world benchmark"`
+- [x] **Step 1: Failing tests** for `compare` only (no network): a tp label present → `tp`; a tp label absent → `missingTp`; an fp label absent → `fixedFp`; an extra finding → `unlabelled`; `unresolved` labels counted separately.
+- [x] **Step 2:** FAIL → **Step 3:** implement → **Step 4:** `npm test` PASS. Then run `npm run benchmark` once and paste the summary (expected at labelling time: `TP=61 FP=3 unresolved=3 unlabelled=0 missingTP=0`, precision 0.953).
+- [x] **Step 5:** `git commit -m "feat: add pinned real-world benchmark"`
+
+
+Task 2 validation: comparison tests failed before the module existed, then passed. Full suite has only the Task 3 README failure. Benchmark: Precision: 0.953; TP=61 FP=3 unresolved=3 unlabelled=0 missingTP=0. Initial sandboxed clone failed with exit 2 and named NodeGoat; network-enabled run passed.
 
 ### Task 3: Documentation
 
