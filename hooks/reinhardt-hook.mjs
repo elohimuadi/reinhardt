@@ -2,6 +2,11 @@ try {
   let text = '';
   for await (const chunk of process.stdin) text += chunk;
   const input = JSON.parse(text || '{}');
+  if (process.argv[2] === 'stop') {
+    const { stop } = await import('../src/harness/stop.js');
+    const output = await stop(input);
+    if (output) console.log(JSON.stringify(output));
+  }
   if (process.argv[2] === 'post-edit') {
     const { postEdit } = await import('../src/harness/post-edit.js');
     const output = await postEdit(input);

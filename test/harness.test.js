@@ -168,3 +168,40 @@ test('post-edit fixture scan completes within three seconds', async t => {
   assert.equal(result.status, 0);
   assert.ok(performance.now() - start < 3000);
 });
+test('Stop blocks a high finding once per session, including later turns', async t => {
+  const { run, data } = await repo(t, { 'src/chat.js': 'db.query("SELECT * FROM users WHERE id = " + req.query.id);' });
+  assert.match(context(run('post-edit')), /sql-string-building/);
+  const result = run('stop');
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.decision, 'block');
+  assert.match(output.reason, /sql-string-building at src\/chat.js:1/);
+  silent(run('stop', { stop_hook_active: true }));
+  silent(run('stop', { stop_hook_active: false }));
+  const state = JSON.parse(await readFile(path.join(data, 'sessions/test-session.json'), 'utf8'));
+  assert.deepEqual(state.gated, ['sql-string-building:src/chat.js:1']);
+});
+test('Stop bypasses active hooks, opt-out, no edits and medium findings', async t => {
+  const high = await repo(t, { 'src/chat.js': 'dangerouslyAllowBrowser: true' });
+  silent(high.run('stop'));
+  context(high.run('post-edit'));
+  silent(high.run('stop', { stop_hook_active: true }));
+  silent(high.run('stop', {}, { REINHARDT_STOP_GATE: 'off' }));
+  assert.equal(JSON.parse(high.run('stop').stdout).decision, 'block');
+  const medium = await repo(t, { 'src/chat.js': 'eval(req.body.code)' });
+  assert.match(context(medium.run('post-edit')), /dynamic-code-execution/);
+  silent(medium.run('stop'));
+});
+test('Stop checks all session edits, ignores unedited files and recovers from scan errors', async t => {
+  const { run, cwd } = await repo(t, { 'src/chat.js': '', 'src/other.js': '', 'src/legacy.js': 'dangerouslyAllowBrowser: true' });
+  silent(run('post-edit'));
+  silent(run('stop'));
+  await writeFile(path.join(cwd, 'src/chat.js'), 'dangerouslyAllowBrowser: true');
+  silent(run('post-edit', { tool_input: { file_path: 'src/other.js' } }));
+  await writeFile(path.join(cwd, 'package.json'), '{broken');
+  silent(run('stop'));
+  await writeFile(path.join(cwd, 'package.json'), '{}');
+  const output = JSON.parse(run('stop').stdout);
+  assert.match(output.reason, /llm-sdk-in-browser at src\/chat.js:1/);
+  assert.doesNotMatch(output.reason, /legacy/);
+});

@@ -116,15 +116,18 @@ Task 4: four post-edit reporting tests failed before implementation; all 13 harn
 
 **Interfaces:** `stop` reads stdin. It exits 0 silently if `stop_hook_active` is true, if `REINHARDT_STOP_GATE` is `off`, or if `state.edited` is empty. Otherwise it runs `scanRepo(cwd)` and collects **high** security findings with evidence in `state.edited`. Each is keyed `rule:file:line`, minus keys already in `state.gated`. If any remain, it prints `{"decision":"block","reason": render(stop_gate…)}` and adds those keys to `state.gated`. Otherwise it prints nothing.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - after a post-edit that introduced `sql-string-building`, `stop` blocks and its reason contains the rule id and file:line
   - a second `stop` with `stop_hook_active: true` → silent
   - a third `stop` with `stop_hook_active: false` on a later turn → silent (already gated)
   - `REINHARDT_STOP_GATE=off` → silent
   - no edits → silent
   - a medium-only finding → silent
-- [ ] **Step 2:** FAIL → implement → PASS.
-- [ ] **Step 3:** `git commit -m "feat: gate finishing on unaddressed high findings"`
+- [x] **Step 2:** FAIL → implement → PASS.
+- [x] **Step 3:** `git commit -m "feat: gate finishing on unaddressed high findings"`
+
+
+Task 5: all three Stop tests failed before implementation; all 16 harness tests pass afterward, including later-turn deduplication, bypasses, session-wide filtering, and silent scan-error recovery.
 
 ### Task 6: Wire hooks, agent and manifests for both hosts
 
