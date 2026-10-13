@@ -69,7 +69,7 @@ Restart the ChatGPT desktop app, open the Plugins Directory, select the reinhard
 
 The Codex host must have `reinhardt` on its PATH for the bundled MCP configuration. Adding the marketplace alone does not activate the plugin.
 
-See the [harness reference](docs/harness.md) for activation checks, workflows, host differences, and `REINHARDT_STOP_GATE=off` to disable the Stop gate.
+See the [harness reference](docs/harness.md) for activation checks, workflows, host differences, and `REINHARDT_STOP_GATE=off` to disable the Stop gate. For a disposable-fixture check, start a fresh host session with that fixture as its working directory.
 
 ### MCP tools only
 

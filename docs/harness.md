@@ -4,9 +4,61 @@
 
 ### Confirm the harness is active
 
-Check the host's plugin status and hook diagnostics in a fresh session: SessionStart should run `reinhardt-hook.mjs session-start` and supply `using-reinhardt` guidance. On a disposable copy of the bundled `leaky-security-web` fixture, have the agent edit `firestore.rules`; PostToolUse should report `firebase-open-rules`, and Stop should block once if it remains. Never introduce a test vulnerability into your real app.
+**Start the host session in the disposable fixture directory.** The hook resolves edits relative to the session's `cwd` and ignores paths outside it. A session started in your application that edits a copy under `/tmp` does not exercise post-edit reporting for that copy. Changing directory inside a shell tool does not establish a new host session root.
 
-A successful `scan_repo` call verifies the MCP tool connection only. Verify the hook events separately. Automated tests cover the CLI, MCP protocol, hook subprocesses, and plugin manifests. Follow the checks above to confirm activation in your host. Set `REINHARDT_STOP_GATE=off` in the host environment to disable the Stop gate while retaining post-edit notes.
+From your reinhardt checkout, prepare the copy before opening the test session:
+
+```sh
+reinhardt_fixture_source="$PWD/evals/fixtures/leaky-security-web"
+reinhardt_test_dir=$(mktemp -d "${TMPDIR:-/tmp}/reinhardt-host-test.XXXXXX")
+cp -R "$reinhardt_fixture_source" "$reinhardt_test_dir/leaky-security-web"
+cd -P "$reinhardt_test_dir/leaky-security-web"
+pwd
+codex -C "$PWD"
+```
+
+For Claude Code, run `claude` in that same directory instead. Open a fresh session, with the plugin enabled. In Codex, review and trust reinhardt's hooks through `/hooks` if prompted, then start another fresh session in the fixture directory. Plugin installation and hook trust are separate steps; see [Codex hook trust](https://learn.chatgpt.com/docs/hooks#review-and-trust-hooks). Leave `REINHARDT_STOP_GATE` unset for this test.
+
+Give the fresh session this prompt:
+
+```text
+Test the installed reinhardt harness in this disposable fixture only.
+Do not modify Sidequest or any other application.
+
+First confirm whether SessionStart injected the full using-reinhardt
+bootstrap, beyond its available-skills entry. Confirm your session working
+directory is this leaky-security-web copy. Stop if it is not.
+
+Use apply_patch to append a harmless comment to src/components/Chat.tsx.
+Keep existing fixture behavior and line locations intact: this test checks
+the host hooks, not remediation. Do not run the fixture app.
+
+Observe whether PostToolUse automatically supplies finding context for
+that file, including llm-sdk-in-browser. Report only rule IDs and relative
+file:line locations, never source text or credentials.
+
+Attempt a normal final response so the host can evaluate Stop. If Stop
+blocks, acknowledge that the findings belong to this intentionally
+vulnerable disposable fixture and attempt to finish again without edits.
+Do not claim that Stop passed before observing its response.
+
+Do not invoke hook scripts manually, bypass trust, disable hooks, or use
+a separate scan as proof of hook execution. Report observed events and
+mark anything not observed as unconfirmed.
+```
+
+After the first turn finishes, send a second message in the **same session** asking for a brief summary without tools or edits. This checks that unchanged, already-gated findings do not block a later turn again. Moving evidence lines or starting a different session changes the deduplication conditions.
+
+| Event | Evidence needed |
+| --- | --- |
+| SessionStart | Full bootstrap guidance injected into context; a skill listing alone is insufficient |
+| PostToolUse | Automatic finding context for the file edited by `apply_patch` |
+| Stop | An observed block naming high findings in that file, followed by completion without another block for those same findings |
+| Later turn | No repeat block for unchanged findings in the same session |
+
+A successful MCP `scan_repo` call proves detection and tool connectivity, not automatic hook execution. A subprocess test that runs the hook script directly proves its handler behavior, not host integration. If a notification is missing, record the session root, tool name, relative edited path, and any available host hook diagnostics. Missing logs or a silent final response are not evidence of a passing event.
+
+Set `REINHARDT_STOP_GATE=off` in the host environment when you want to disable the Stop gate during ordinary use while retaining post-edit notes.
 
 ### Optional: MCP tools only
 
