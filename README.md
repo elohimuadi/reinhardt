@@ -6,29 +6,126 @@ Privacy drift and OWASP-mapped security checks for AI-generated (vibe-coded) app
 
 The deterministic engine makes no LLM calls or network requests. An agent uses its evidence to verify initialization, explain uncertainty, and make truthful fixes. Node >=20, ESM, plain JavaScript, MIT. Both the engine and stdio MCP server use only Node built-ins: zero runtime dependencies. `@modelcontextprotocol/sdk` is a development dependency for interoperability tests; zod is not a direct dependency. OWASP-derived data has a separate license described below.
 
-## Quickstart
+## Choose how to use reinhardt
 
-From a checkout of this repository:
+reinhardt is both a standalone scanner and an agent harness built around that scanner. Choose the setup that matches your workflow; both use the same engine and rules.
+
+| You want | Install | What runs |
+| --- | --- | --- |
+| Scan a repository yourself, save a report, or check it in CI | [Standalone scanner](#standalone-scanner) | The CLI runs when you invoke it; no agent host is required |
+| Have an agent check its edits as it works | [Agent harness](#agent-harness) | The installed plugin supplies skills, session-start guidance, post-edit checks, and a Stop gate |
+
+An agent can also run the CLI for you. That is a manual scan. Automatic hooks require the plugin to be installed and enabled in the host running your coding session. Cloning reinhardt beside your application does not activate the harness.
+
+## Standalone scanner
+
+Requires Git and Node >=20. Download the default `main` branch into a separate folder, then point the scanner at your application:
 
 ```sh
-node cli/reinhardt.js scan evals/fixtures/leaky-security-web
-node cli/reinhardt.js scan /path/to/your/app --json
-node cli/reinhardt.js scan /path/to/your/app --policy docs/privacy.md --fail-on high
+git clone https://github.com/elohimuadi/reinhardt.git "$HOME/reinhardt"
+node "$HOME/reinhardt/cli/reinhardt.js" scan /absolute/path/to/your/app
 ```
 
-No dependency installation is needed to run the CLI or MCP server from a checkout. Run `npm ci` when developing or testing.
-
-After reviewing and accepting the current recipients:
+If you already have that checkout, update it instead of cloning again:
 
 ```sh
-node cli/reinhardt.js baseline /path/to/your/app
-# Make dependency changes, then compare:
-node cli/reinhardt.js drift /path/to/your/app
+git -C "$HOME/reinhardt" switch main
+git -C "$HOME/reinhardt" pull --ff-only
 ```
 
-A baseline records sorted recipient IDs and names in `.reinhardt/baseline.json`, without timestamps or machine-specific paths. Saving overwrites the previous baseline. It is a record of accepted recipients, not an endorsement. Commit that file in the scanned application if you want to share it with CI or teammates. Without a baseline, `drift` clearly reports that no comparison is available and includes the current scan.
+No dependency installation is needed for scanning. The scanner reads local files without executing your application, making LLM calls, or sending source over the network. These examples scan without changing application files:
 
-Optionally run `npm link` from this checkout to make `reinhardt` available on your PATH. These instructions use the local checkout; npm publication and availability of the package name have not been verified.
+```sh
+# Try the bundled fixture first.
+node "$HOME/reinhardt/cli/reinhardt.js" scan "$HOME/reinhardt/evals/fixtures/leaky-security-web"
+
+# Save a report outside the scanned repository.
+node "$HOME/reinhardt/cli/reinhardt.js" scan /absolute/path/to/your/app --json > /tmp/reinhardt-report.json
+
+# Select a policy relative to your application and fail on high findings.
+node "$HOME/reinhardt/cli/reinhardt.js" scan /absolute/path/to/your/app --policy docs/privacy.md --fail-on high
+```
+
+For CI, use the same `scan <app-path> --fail-on high` command from a downloaded checkout. Exit 1 means the threshold was reached; exit 2 means the scan failed. Review findings before treating them as defects.
+
+Optionally run `npm link` from the reinhardt checkout to expose `reinhardt` on your PATH. npm publication and availability of the package name have not been verified; these instructions install from GitHub. Run `npm ci` only when developing or testing reinhardt.
+
+### Optional: track recipient changes
+
+After reviewing and accepting the current recipients, explicitly save a baseline:
+
+```sh
+node "$HOME/reinhardt/cli/reinhardt.js" baseline /absolute/path/to/your/app
+# After dependency changes:
+node "$HOME/reinhardt/cli/reinhardt.js" drift /absolute/path/to/your/app
+```
+
+`baseline` writes or overwrites `.reinhardt/baseline.json` in the application. It records sorted recipient IDs and names without timestamps or machine-specific paths. Commit it if you want to share the accepted recipients with CI or teammates. Without a baseline, `drift` reports that no comparison is available and includes the current scan.
+
+## Agent harness
+
+Choose this mode for checks during an agent's coding session. It includes the scanner and MCP tools plus the [eight workflows](#eight-agent-workflows) and [automatic hooks](#how-the-harness-works). Node >=20 must be available to the host.
+
+### Claude Code
+
+In Claude Code, add the marketplace and install the plugin:
+
+```text
+/plugin marketplace add elohimuadi/reinhardt
+/plugin install reinhardt@reinhardt
+```
+
+Start a new Claude Code session in your application's folder with the plugin enabled. Run `/reinhardt:launch-check` for an initial review. Subsequent supported edits trigger checks, and high security findings in files edited that session can trigger the Stop gate.
+
+The plugin launches its bundled CLI through `${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js`; no separate clone or npm installation is required for this route. Its read-only verifier is available as `@agent-reinhardt:finding-verifier`.
+
+### Codex
+
+Use the [standalone download steps](#standalone-scanner) to obtain a checkout, then register its marketplace:
+
+```sh
+cd "$HOME/reinhardt"
+npm link
+reinhardt --help
+codex plugin marketplace add "$HOME/reinhardt"
+```
+
+`npm link` provides the `reinhardt mcp` command required by this plugin's Codex MCP configuration. The Codex host must inherit that PATH.
+
+Restart the ChatGPT desktop app, open the Plugins Directory, choose the reinhardt marketplace, and install and enable reinhardt. Start a new Codex chat in your application's folder. Local plugin discovery, installation and caching follow the [official OpenAI documentation](https://developers.openai.com/plugins/build/plugins). Adding a marketplace alone does not establish that the plugin is active.
+
+Ask the agent to use the `launch-check` skill for an initial review. Codex uses self-verification where the plugin verifier subagent is unavailable. The manifest references the same `hooks/hooks.json` as Claude Code.
+
+### Confirm the harness is active
+
+Check the host's plugin status and hook diagnostics in a fresh session: SessionStart should run `reinhardt-hook.mjs session-start` and supply `using-reinhardt` guidance. On a disposable copy of the bundled `leaky-security-web` fixture, have the agent edit `firestore.rules`; PostToolUse should report `firebase-open-rules`, and Stop should block once if it remains. Never introduce a test vulnerability into your real app.
+
+A successful `scan_repo` call verifies the MCP tool connection only. Verify the hook events separately. The CLI, hook subprocesses, and manifests have repository tests; actual installation and end-to-end execution inside either host remain unverified. Set `REINHARDT_STOP_GATE=off` in the host environment to disable the Stop gate while retaining post-edit notes.
+
+### Optional: MCP tools only
+
+Choose this lighter integration if you want an agent to call the scanner on request. It does not install skills or activate the harness hooks. After downloading the checkout, merge [codex/config.toml.snippet](codex/config.toml.snippet) into `~/.codex/config.toml`, replacing the absolute path:
+
+```toml
+[mcp_servers.reinhardt]
+command = "node"
+args = ["/absolute/path/to/reinhardt/cli/reinhardt.js", "mcp"]
+```
+
+A trusted project's `.codex/config.toml` is also supported. Use an absolute Node executable path if needed. See the [official Codex MCP documentation](https://developers.openai.com/codex/mcp). Ask the agent to call `scan_repo` with your application's absolute path and verify the findings.
+
+The optional [AGENTS snippet](codex/AGENTS.snippet.md) requests dependency-change checks through agent instructions; it does not register hooks. When moving to the full plugin, remove a duplicate manual MCP entry if it exposes the same server twice.
+
+| MCP tool | Arguments | Behavior |
+| --- | --- | --- |
+| `scan_repo` | `path`, optional `policy_path` | Scan privacy disclosures and OWASP-mapped security patterns |
+| `drift_check` | `path`, optional `policy_path` | Compare with baseline; never saves one |
+| `save_baseline` | `path`, optional `policy_path` | Write baseline **only after the user accepted the current state** |
+| `explain_sdk` | optional `id` | Explain one SDK or list the catalog |
+| `owasp_lookup` | optional `query` | List standards or look up references, item IDs, CWE IDs, or terms |
+| `list_rules` | optional `id` | List security rules or explain one without its test vectors |
+
+Tool failures return `isError`; a failed call does not terminate the server. Only JSON-RPC goes to stdout in MCP mode. The MCP client receives structured reports and JSON text; no source file contents are returned. Tool paths are local filesystem access with the permissions of the process; this is not a sandbox for untrusted remote clients.
 
 ## CLI
 
@@ -75,50 +172,6 @@ Finding IDs identify rules; `sdk_id` distinguishes per-SDK findings. Findings in
 
 The catalog spans analytics, advertising, session replay, crash reporting, backend, auth, payments, messaging, and AI. The seed catalog is heuristic and has not been exhaustively checked against every vendor's current package names and collection behavior. Collection lists describe possibilities, not observed transmission. Firebase is grouped under backend even though specific products have other purposes. Vercel AI SDK may send content to a configured model provider without making Vercel a recipient; verify that route before changing disclosure.
 
-## Claude Code installation
-
-In Claude Code:
-
-```text
-/plugin marketplace add elohimuadi/reinhardt
-/plugin install reinhardt@reinhardt
-```
-
-Install from a repository revision containing version 0.4.0. The root `.claude-plugin/` marketplace points to this checkout. The plugin manifest explicitly references `.claude-plugin/mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/cli/reinhardt.js mcp`, so Node >=20 must be available to the host. No npm installation is required for runtime use.
-
-The shared Node hook runner injects workflow guidance at session start, scans after edits, and can ask the agent to address high findings before finishing. Actual Claude Code marketplace installation and hook execution inside the host have not been tested; the manifest, commands, and hook outputs have automated tests.
-
-## Codex setup: config.toml first
-
-Merge [codex/config.toml.snippet](codex/config.toml.snippet) into `~/.codex/config.toml`, replacing the absolute path:
-
-```toml
-[mcp_servers.reinhardt]
-command = "node"
-args = ["/absolute/path/to/reinhardt/cli/reinhardt.js", "mcp"]
-```
-
-A trusted project's `.codex/config.toml` is also supported. This follows the [official Codex MCP documentation](https://developers.openai.com/codex/mcp). Use an absolute Node executable path if your host does not inherit the right PATH. Ask Codex to call `scan_repo` with your application's absolute path, verify each finding, and report evidence without editing files.
-
-Append [codex/AGENTS.snippet.md](codex/AGENTS.snippet.md) to an application's AGENTS.md to request drift checks after dependency changes. This is agent guidance, not an installed automatic hook.
-
-| MCP tool | Arguments | Behavior |
-| --- | --- | --- |
-| `scan_repo` | `path`, optional `policy_path` | Scan privacy disclosures and OWASP-mapped security patterns |
-| `drift_check` | `path`, optional `policy_path` | Compare with baseline; never saves one |
-| `save_baseline` | `path`, optional `policy_path` | Write baseline **only after the user accepted the current state** |
-| `explain_sdk` | optional `id` | Explain one SDK or list the catalog |
-| `owasp_lookup` | optional `query` | List standards or look up references, item IDs, CWE IDs, or terms |
-| `list_rules` | optional `id` | List security rules or explain one without its test vectors |
-
-Tool failures return `isError`; a failed call does not terminate the server. Only JSON-RPC goes to stdout in MCP mode. The MCP client receives structured reports and JSON text; no source file contents are returned. Tool paths are local filesystem access with the permissions of the process; this is not a sandbox for untrusted remote clients.
-
-## Codex plugin: secondary, host installation untested
-
-The root [.codex-plugin/plugin.json](.codex-plugin/plugin.json) references `skills/` and `codex/mcp.json`. Run `npm link` from this checkout so `reinhardt mcp` is available on the Codex host's PATH, then follow the [official local plugin installation instructions](https://developers.openai.com/plugins/build/plugins). The manifest references `./hooks/hooks.json`, the same hook configuration used by Claude Code.
-
-The earlier compatibility layout was checked against official documentation; this release's explicit manifest fields are covered by repository tests. Actual Codex installation, cached-plugin PATH inheritance, UI discovery, and agent behavior have not been verified. Use config.toml as the primary setup route. Neither route changes your personal configuration automatically.
-
 ## Eight agent workflows
 
 - `privacy-audit`: verify each privacy finding in code; do not edit.
@@ -127,7 +180,6 @@ The earlier compatibility layout was checked against official documentation; thi
 - `security-audit`: investigate OWASP-mapped findings and report evidence and uncertainty.
 - `security-fix`: remediate a verified security finding and validate the change.
 - `secure-by-default`: apply security guidance while writing relevant code.
-
 - `using-reinhardt`: bootstrap the workflow choices at session start.
 - `launch-check`: scan and verify findings before a launch decision.
 
