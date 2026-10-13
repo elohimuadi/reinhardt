@@ -48,7 +48,7 @@ node "$HOME/reinhardt/cli/reinhardt.js" scan /absolute/path/to/your/app --policy
 
 For CI, use the same `scan <app-path> --fail-on high` command from a downloaded checkout. Exit 1 means the threshold was reached; exit 2 means the scan failed. Review findings before treating them as defects.
 
-Optionally run `npm link` from the reinhardt checkout to expose `reinhardt` on your PATH. npm publication and availability of the package name have not been verified; these instructions install from GitHub. Run `npm ci` only when developing or testing reinhardt.
+Optionally run `npm link` from the reinhardt checkout to expose `reinhardt` on your PATH. The installation steps above use the GitHub checkout. Run `npm ci` only when developing or testing reinhardt.
 
 ### Optional: track recipient changes
 
@@ -100,7 +100,7 @@ Ask the agent to use the `launch-check` skill for an initial review. Codex uses 
 
 Check the host's plugin status and hook diagnostics in a fresh session: SessionStart should run `reinhardt-hook.mjs session-start` and supply `using-reinhardt` guidance. On a disposable copy of the bundled `leaky-security-web` fixture, have the agent edit `firestore.rules`; PostToolUse should report `firebase-open-rules`, and Stop should block once if it remains. Never introduce a test vulnerability into your real app.
 
-A successful `scan_repo` call verifies the MCP tool connection only. Verify the hook events separately. The CLI, hook subprocesses, and manifests have repository tests; actual installation and end-to-end execution inside either host remain unverified. Set `REINHARDT_STOP_GATE=off` in the host environment to disable the Stop gate while retaining post-edit notes.
+A successful `scan_repo` call verifies the MCP tool connection only. Verify the hook events separately. Automated tests cover the CLI, MCP protocol, hook subprocesses, and plugin manifests. Follow the checks above to confirm activation in your host. Set `REINHARDT_STOP_GATE=off` in the host environment to disable the Stop gate while retaining post-edit notes.
 
 ### Optional: MCP tools only
 
@@ -197,7 +197,7 @@ Run `/reinhardt:launch-check` for the full pre-launch workflow. Claude Code can 
 
 State stores sorted edited paths and reported/gated identifiers in `$CLAUDE_PLUGIN_DATA` or `$PLUGIN_DATA`, falling back to `os.tmpdir()/reinhardt-hooks`, under `sessions/<session_id>.json`. Invalid session IDs map to `unknown`. Hook failures return exit 0 with no output; malformed manifests during editing therefore produce no note. Findings contain rule metadata and relative file/line locations, never matched source or credentials. Post-edit and Stop hooks have 20-second host timeouts.
 
-The hook runner and outputs are tested as child processes. Actual installation and end-to-end behavior inside either host remain unverified.
+Automated subprocess tests and manual fixture smoke tests cover the bootstrap, post-edit notes, and once-per-finding Stop gate. Further testing will exercise installation and complete coding sessions inside Claude Code and Codex.
 
 ## OWASP knowledge and security rules
 
@@ -276,7 +276,7 @@ npm run eval
 
 `node:test` covers matching, disclosure, excluded files, drift, ATT, CLI exit codes, and a child-process MCP stdio round trip (including error recovery). Labelled `expected.json` files in all six directories under `evals/fixtures/` define rule IDs with SDK IDs so a missed recipient cannot be hidden by another finding with the same rule. The eval runner prints precision/recall and fails on any unexpected or missing finding. `clean-web` and `clean-ios` must produce zero findings. Fixture apps are static examples; do not install or execute them.
 
-The v0.4.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 51 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22; local test results do not establish hosted CI or real editor integration behavior.
+The v0.4.0 suite tests every supplied rule vector, knowledge references, scan determinism, binary skipping, credential non-disclosure, protocol recovery, packaging, and documentation. On the six labelled fixtures, expected precision and recall are 1.000 with 51 true positives and no false positives/negatives. Those figures measure this suite, not general detection quality. GitHub Actions targets Node 20 and 22. The scanner has also been exercised on a local application repository, with its finding checked against the project files. Further validation will expand host integration coverage.
 
 ## Benchmark
 
